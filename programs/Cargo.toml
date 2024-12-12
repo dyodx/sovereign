@@ -1,6 +1,8 @@
 [workspace]
-members = ["programs/programs/*"]
-target-dir = "./programs/programs/target"
+members = [
+    "programs/*"
+]
+target-dir = "./target"
 resolver = "2"
 
 [profile.release]

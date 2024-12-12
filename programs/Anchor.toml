@@ -4,6 +4,9 @@
 resolution = true
 skip-lint = false
 
+[workspace]
+target = "./target"
+
 [programs.localnet]
 programs = "Hj7Y7LbWuCf9nx5QSmo21DoTkEUybQ2aJV72C4sBS9sd"
 
