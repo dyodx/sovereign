@@ -8,14 +8,14 @@ skip-lint = false
 target = "./target"
 
 [programs.localnet]
-programs = "Hj7Y7LbWuCf9nx5QSmo21DoTkEUybQ2aJV72C4sBS9sd"
+programs = "4oVhv3o16X3XR99UgbFrWNKptoNBkg2hsbNY2nYPpv4a"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
 cluster = "Localnet"
-wallet = "~/.config/solana/id.json"
+wallet = "./localnet-keys/admin.json"
 
 [scripts]
-test = "bun run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+test = "echo 'use bun run test instead' && exit 1"
