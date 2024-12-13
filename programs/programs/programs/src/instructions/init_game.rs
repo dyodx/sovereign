@@ -1,10 +1,7 @@
 use anchor_lang::prelude::*;
-use mpl_core::instructions::*;
+use mpl_core::{instructions::*, ID as MPL_CORE_ID};
 
-use crate::{
-    constant::{GAME_SEED, MPL_CORE_ID},
-    state::Game,
-};
+use crate::{constant::GAME_SEED, state::Game};
 
 pub fn init_game(ctx: Context<InitGame>, id: u64) -> Result<()> {
     CreateCollectionV2CpiBuilder::new(&ctx.accounts.mpl_core_program.to_account_info())
