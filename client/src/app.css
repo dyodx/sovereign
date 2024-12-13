@@ -4,6 +4,12 @@
 
 @layer base {
 	body {
-		@apply bg-background text-foreground;
+		@apply bg-background font-body text-foreground;
 	}
+}
+
+:root {
+	--font-body: 'Chivo Mono', serif;
+	--font-header: 'Chivo Mono', serif;
+	--font-mono: 'Chivo Mono', serif;
 }
