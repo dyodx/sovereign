@@ -8,7 +8,7 @@
 	</div>
 </div>
 
-<div class="mt-8 grid grid-cols-2 gap-y-5">
+<div class="mt-8 grid grid-cols-[repeat(auto-fit,minmax(270px,1fr))] gap-y-5">
 	{#each Array.from({ length: 30 }).map((_, i) => i) as slotNumber}
 		<div class="grid w-fit grid-cols-[1.5rem_8rem_1fr] rounded-lg bg-panel pr-8">
 			<div class="rounded-l-lg bg-green-400"></div>
@@ -21,7 +21,7 @@
 				/>
 				<p class="py-1">John<br />Hatchet</p>
 			</div>
-			<div class="ml-8 flex grid grid-cols-3 items-center gap-x-2">
+			<div class="ml-8 grid grid-cols-3 items-center gap-x-2">
 				<div class="h-4 w-4 rounded-full bg-black"></div>
 				<div class="h-4 w-4 rounded-full bg-black"></div>
 				<div class="h-4 w-4 rounded-full bg-black"></div>
