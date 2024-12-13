@@ -1,5 +1,6 @@
 <script>
 	import Citizens from './Citizens/Citizens.svelte';
+	import MintNewCitizen from './Panels/MintNewCitizen.svelte';
 </script>
 
 <div class="flex h-full flex-col gap-8">
@@ -28,9 +29,9 @@
 		</div>
 
 		<div
-			class="shadow-flat w-fit min-w-[300px] gap-2 rounded-xl border-2 border-black bg-panel p-4"
+			class="shadow-flat w-fit min-w-[300px] max-w-[70%] gap-2 rounded-xl border-2 border-black bg-panel p-4"
 		>
-			<p>(mint new citizen)</p>
+			<MintNewCitizen />
 		</div>
 	</div>
 
