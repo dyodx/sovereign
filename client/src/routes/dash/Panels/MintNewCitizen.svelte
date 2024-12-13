@@ -55,9 +55,9 @@
 	</div>
 </div>
 <ModalRecruit {numberOfCitizens}>
-	<button
+	<div
 		class="mt-4 w-full rounded-xl border-2 border-black bg-background p-2 transition-all hover:bg-black"
 	>
 		Review Purchase
-	</button>
+	</div>
 </ModalRecruit>
