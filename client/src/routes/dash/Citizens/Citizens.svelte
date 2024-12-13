@@ -15,7 +15,7 @@
 
 			<div class="flex items-center gap-4">
 				<img
-					src={`https://api.dicebear.com/9.x/lorelei-neutral/svg?seed=${'test'}`}
+					src={`https://api.dicebear.com/9.x/lorelei-neutral/svg?seed=${slotNumber}`}
 					alt="avatar"
 					class="h-[3rem] translate-x-[-2px] scale-150 rounded-full border-2 border-panel"
 				/>
