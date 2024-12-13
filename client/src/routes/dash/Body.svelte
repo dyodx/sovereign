@@ -35,7 +35,7 @@
 		</div>
 	</div>
 
-	<div class="h-[400px] flex-grow overflow-y-auto border-t-8 border-t-panel bg-black p-8">
+	<div class="sm:h-[[100%] flex-grow border-t-8 border-t-panel bg-black p-8 sm:overflow-y-auto">
 		<Citizens />
 	</div>
 </div>

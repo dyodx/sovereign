@@ -13,7 +13,7 @@
 		<p class=" text-4xl font-bold text-panel">NEWS</p>
 	</div>
 
-	<div class="border-r-8 border-r-panel">
+	<div class="border-r-8 border-r-panel sm:h-[calc(100vh-5rem)]">
 		<Body />
 	</div>
 	<div class="hidden w-full flex-col gap-4 overflow-y-auto overflow-x-hidden p-4 sm:flex">
