@@ -1,17 +1,18 @@
 <script lang="ts">
 	import * as Dialog from '$lib/components/ui/dialog';
+
+	let { numberOfCitizens = 1, children } = $props();
 </script>
 
 <Dialog.Root>
 	<Dialog.Trigger class="w-full">
-		<slot name="trigger">Open</slot>
+		{@render children?.()}
 	</Dialog.Trigger>
 	<Dialog.Content>
 		<Dialog.Header>
 			<Dialog.Title>Are you sure absolutely sure?</Dialog.Title>
 			<Dialog.Description>
-				This action cannot be undone. This will permanently delete your account and remove your data
-				from our servers.
+				Do you wish to purchase {numberOfCitizens} citizen(s)?
 			</Dialog.Description>
 		</Dialog.Header>
 	</Dialog.Content>

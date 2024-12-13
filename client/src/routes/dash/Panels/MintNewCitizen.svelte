@@ -54,11 +54,10 @@
 		<p>SOL</p>
 	</div>
 </div>
-<ModalRecruit>
+<ModalRecruit {numberOfCitizens}>
 	<button
-		slot="trigger"
 		class="mt-4 w-full rounded-xl border-2 border-black bg-background p-2 transition-all hover:bg-black"
 	>
-		Prepare purchase
+		Review Purchase
 	</button>
 </ModalRecruit>
