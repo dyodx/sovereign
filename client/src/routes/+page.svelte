@@ -1,2 +1,8 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation</p>
+<div class="grid h-screen w-screen place-items-center">
+	<div>
+		<p>todo: landing page content</p>
+		<a href="/dash">
+			<button class="rounded bg-panel p-4 transition-all hover:scale-125"> to dashboard </button>
+		</a>
+	</div>
+</div>
