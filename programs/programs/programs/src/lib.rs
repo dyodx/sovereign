@@ -19,22 +19,23 @@ pub mod programs {
     }
 
     // Initialize Game Account & Citizen Collection
+    pub fn init_game(ctx: Context<InitGame>, id: u64) -> Result<()> {
+        instructions::init_game(ctx, id)
+    }
 
     // Mint Citizen with rising and falling costs
     pub fn mint_citizen(ctx: Context<MintCitizen>) -> Result<()> {
         instructions::mint_citizen(ctx)
     }
 
-
     // Upgrade Citizen with Hash
 
     // Register On Chain AI Nation
-        // Will mint an SPL Token for AI Nation
+    // Will mint an SPL Token for AI Nation
 
     // Burn Citizen to benefit AI Nation
 
     // Mint AI Nation Token to Keypair
-
 }
 
 #[derive(Accounts)]
