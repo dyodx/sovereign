@@ -1,0 +1,57 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+@layer base {
+	body {
+		@apply bg-background font-body text-foreground;
+	}
+}
+
+:root {
+	--font-body: 'Chivo Mono', serif;
+	--font-header: 'Chivo Mono', serif;
+	--font-mono: 'Chivo Mono', serif;
+}
+
+html::-webkit-scrollbar {
+	width: 12px;
+}
+
+html::-webkit-scrollbar-track {
+	background-color: transparent;
+}
+
+html::-webkit-scrollbar-thumb {
+	background-color: #555;
+	border-radius: 10px;
+	border: 3px solid transparent;
+	background-clip: content-box;
+}
+
+/* Firefox support */
+html {
+	scrollbar-width: thin;
+	scrollbar-color: #555 transparent;
+}
+
+/* Alternatively, if you prefer targeting body */
+body::-webkit-scrollbar {
+	width: 12px;
+}
+
+body::-webkit-scrollbar-track {
+	background-color: transparent;
+}
+
+body::-webkit-scrollbar-thumb {
+	background-color: #555;
+	border-radius: 10px;
+	border: 3px solid transparent;
+	background-clip: content-box;
+}
+
+body {
+	scrollbar-width: thin;
+	scrollbar-color: #555 transparent;
+}
