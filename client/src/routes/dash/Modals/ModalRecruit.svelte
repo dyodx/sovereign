@@ -1,20 +1,18 @@
 <script lang="ts">
-	let { showModal = $bindable() } = $props();
-
-	let dialog: HTMLDialogElement | undefined = $state(); // HTMLDialogElement
-
-	$effect(() => {
-		if (showModal) dialog?.showModal();
-	});
+	import * as Dialog from '$lib/components/ui/dialog';
 </script>
 
-<dialog
-	bind:this={dialog}
-	onclose={() => (showModal = false)}
-	onclick={(e) => {
-		if (e.target === dialog) dialog.close();
-	}}
-	class="bg-white p-4"
->
-	<div></div>
-</dialog>
+<Dialog.Root>
+	<Dialog.Trigger class="w-full">
+		<slot name="trigger">Open</slot>
+	</Dialog.Trigger>
+	<Dialog.Content>
+		<Dialog.Header>
+			<Dialog.Title>Are you sure absolutely sure?</Dialog.Title>
+			<Dialog.Description>
+				This action cannot be undone. This will permanently delete your account and remove your data
+				from our servers.
+			</Dialog.Description>
+		</Dialog.Header>
+	</Dialog.Content>
+</Dialog.Root>

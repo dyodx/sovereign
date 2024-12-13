@@ -54,9 +54,11 @@
 		<p>SOL</p>
 	</div>
 </div>
-<button
-	class="mt-4 w-full rounded-xl border-2 border-black bg-background p-2 transition-all hover:bg-black"
->
-	Prepare purchase
-</button>
-<ModalRecruit bind:showModal />
+<ModalRecruit>
+	<button
+		slot="trigger"
+		class="mt-4 w-full rounded-xl border-2 border-black bg-background p-2 transition-all hover:bg-black"
+	>
+		Prepare purchase
+	</button>
+</ModalRecruit>
