@@ -3,7 +3,7 @@
 	Recruit a citizen to join your efforts. Purchase a job listing to get a citizen on retainer.
 </p>
 
-<p class="mb-4 mt-8 text-xl">Purchase a job listing to recruit a citizen:</p>
+<p class="mb-2 mt-8 text-xl">Purchase a job listing to recruit a citizen:</p>
 
 <div class="flex items-center gap-4">
 	<p>Recruit</p>
