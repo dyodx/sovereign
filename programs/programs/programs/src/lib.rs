@@ -19,8 +19,8 @@ pub mod programs {
     }
 
     // Initialize Game Account & Citizen Collection
-    pub fn init_game(ctx: Context<InitGame>, id: u64) -> Result<()> {
-        instructions::init_game(ctx, id)
+    pub fn init_game(ctx: Context<InitGame>, init_game_args: InitGameArgs) -> Result<()> {
+        instructions::init_game(ctx, init_game_args)
     }
 
     // Mint Citizen with rising and falling costs

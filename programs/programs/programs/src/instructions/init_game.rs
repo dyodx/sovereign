@@ -1,24 +1,27 @@
 use anchor_lang::prelude::*;
 use mpl_core::{instructions::*, ID as MPL_CORE_ID};
 
-use crate::{constant::GAME_SEED, state::Game};
+use crate::{constant::{GAME_SEED, POOL_SEED}, state::{Game, Pool}};
 
-pub fn init_game(ctx: Context<InitGame>, id: u64) -> Result<()> {
+pub fn init_game(ctx: Context<InitGame>, init_game_args: InitGameArgs) -> Result<()> {
     CreateCollectionV2CpiBuilder::new(&ctx.accounts.mpl_core_program.to_account_info())
         .collection(&ctx.accounts.collection.to_account_info())
         .payer(&ctx.accounts.payer.to_account_info())
         .update_authority(Some(&ctx.accounts.authority.to_account_info()))
         .system_program(&ctx.accounts.system_program.to_account_info())
         .name("sovereign".to_string())
-        .uri("https://api.npoint.io/946a471967c993ba9239".to_string())
+        .uri(init_game_args.collection_uri.to_string())
         .invoke()?;
 
     let game = &mut ctx.accounts.game_account;
 
     let new_game = Game {
-        id,
+        id: init_game_args.id,
         authority: ctx.accounts.authority.key(),
         collection: ctx.accounts.collection.key(),
+        slot_start: init_game_args.slot_start,
+        world_agent: init_game_args.world_agent,
+        covert_agent: init_game_args.covert_agent,
     };
 
     game.set_inner(new_game);
@@ -26,7 +29,17 @@ pub fn init_game(ctx: Context<InitGame>, id: u64) -> Result<()> {
     Ok(())
 }
 
+#[derive(AnchorSerialize, AnchorDeserialize)]
+pub struct InitGameArgs {
+    pub id: u64,
+    pub slot_start: u64,
+    pub collection_uri: String,
+    pub world_agent: Pubkey,
+    pub covert_agent: Pubkey,
+}
+
 #[derive(Accounts)]
+#[instruction(init_game_args: InitGameArgs)]
 pub struct InitGame<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
@@ -36,10 +49,18 @@ pub struct InitGame<'info> {
         init,
         space = 8 + Game::INIT_SPACE,
         payer = payer,
-        seeds = [GAME_SEED.as_bytes(), authority.key().as_ref()],
+        seeds = [GAME_SEED.as_bytes(), &init_game_args.id.to_be_bytes()],
         bump
     )]
     pub game_account: Account<'info, Game>,
+    #[account(
+        init,
+        space = 8 + Pool::INIT_SPACE,
+        payer = payer,
+        seeds = [POOL_SEED.as_bytes(),  &init_game_args.id.to_be_bytes()],
+        bump
+    )]
+    pub game_pool: Account<'info, Pool>,
     ///CHECK
     #[account(mut)]
     pub collection: Signer<'info>,
