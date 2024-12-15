@@ -6,7 +6,7 @@ use crate::{constant::{GAME_SEED, POOL_SEED}, state::{Game, Pool}};
 pub fn init_game(ctx: Context<InitGame>, init_game_args: InitGameArgs) -> Result<()> {
 
     let signers_seeds = &[
-        GAME_SEED.as_bytes(), &init_game_args.id.to_be_bytes(), &[ctx.bumps.game_account]
+        GAME_SEED.as_bytes(), &init_game_args.id.to_le_bytes(), &[ctx.bumps.game_account]
     ];
 
     CreateCollectionV2CpiBuilder::new(&ctx.accounts.mpl_core_program.to_account_info())
@@ -28,6 +28,8 @@ pub fn init_game(ctx: Context<InitGame>, init_game_args: InitGameArgs) -> Result
         world_agent: init_game_args.world_agent,
         covert_agent: init_game_args.covert_agent,
         mint_cost: init_game_args.mint_cost,
+        max_level: init_game_args.max_level,
+        hash_threshold: init_game_args.hash_threshold,
     };
 
     game.set_inner(new_game);
@@ -43,6 +45,8 @@ pub struct InitGameArgs {
     pub world_agent: Pubkey,
     pub covert_agent: Pubkey,
     pub mint_cost: u64,
+    pub max_level: u8,
+    pub hash_threshold: [u8; 32],
 }
 
 #[derive(Accounts)]
@@ -54,7 +58,7 @@ pub struct InitGame<'info> {
         init,
         space = 8 + Game::INIT_SPACE,
         payer = payer,
-        seeds = [GAME_SEED.as_bytes(), &init_game_args.id.to_be_bytes()],
+        seeds = [GAME_SEED.as_bytes(), &init_game_args.id.to_le_bytes()],
         bump
     )]
     pub game_account: Account<'info, Game>,
@@ -62,7 +66,7 @@ pub struct InitGame<'info> {
         init,
         space = 8 + Pool::INIT_SPACE,
         payer = payer,
-        seeds = [POOL_SEED.as_bytes(),  &init_game_args.id.to_be_bytes()],
+        seeds = [POOL_SEED.as_bytes(),  &init_game_args.id.to_le_bytes()],
         bump
     )]
     pub game_pool: Account<'info, Pool>,

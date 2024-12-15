@@ -4,6 +4,7 @@ use anchor_lang::prelude::*;
 mod constant;
 mod instructions;
 mod state;
+mod error;
 
 use instructions::*;
 
@@ -28,14 +29,18 @@ pub mod programs {
         instructions::mint_citizen(ctx)
     }
 
-    // Upgrade Citizen with Hash
+    // Upgrade Citizen NFT up to Max
+    pub fn upgrade_citizen(ctx: Context<UpgradeCitizen>, args: UpgradeCitizenArgs) -> Result<()> {
+        instructions::upgrade_citizen(ctx, args)
+    }
 
-    // Register On Chain AI Nation
-    // Will mint an SPL Token for AI Nation
-
-    // Burn Citizen to benefit AI Nation
-
-    // Mint AI Nation Token to Keypair
+    // Init Wallet for any User
+    // Init Nation State
+    // Create Trade Offer
+    // Use Trade Offer
+    // Make Disaster
+    // Deposit LP into Pool
+    // Mitigate Disaster with NFT
 }
 
 #[derive(Accounts)]

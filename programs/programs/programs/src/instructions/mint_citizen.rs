@@ -1,17 +1,16 @@
 use anchor_lang::prelude::*;
 use mpl_core::{accounts::BaseCollectionV1, instructions::CreateV2CpiBuilder, types::{Attribute, Attributes, PluginAuthority, PluginAuthorityPair, Plugin}, ID as MPL_CORE_ID};
-use strum::IntoEnumIterator;
 
-use crate::{constant::{Profession, GAME_SEED}, state::Game};
+use crate::{constant::{GAME_SEED, PROEFSSION_LIST}, state::Game};
 
 pub fn mint_citizen(ctx: Context<MintCitizen>) -> Result<()> {
     
     let signers_seeds = &[
-        GAME_SEED.as_bytes(), &ctx.accounts.game_account.id.to_be_bytes(), &[ctx.bumps.game_account]
+        GAME_SEED.as_bytes(), &ctx.accounts.game_account.id.to_le_bytes(), &[ctx.bumps.game_account]
     ];
 
     let clock = Clock::get()?;
-    let profession = Profession::iter().nth(clock.slot as usize % Profession::iter().len()).unwrap();
+    let profession = PROEFSSION_LIST[clock.slot as usize % PROEFSSION_LIST.len()];
 
 
     CreateV2CpiBuilder::new(&ctx.accounts.mpl_core_program.to_account_info())
@@ -20,7 +19,7 @@ pub fn mint_citizen(ctx: Context<MintCitizen>) -> Result<()> {
         .authority(Some(&ctx.accounts.game_account.to_account_info()))
         .payer(&ctx.accounts.payer.to_account_info())
         .system_program(&ctx.accounts.system_program.to_account_info())
-        .name(format!("Citizen NFT - {}", ctx.accounts.game_account.id).to_string())
+        .name(format!("Citizen NFT - {:#}", ctx.accounts.game_account.id).to_string())
         .uri(ctx.accounts.collection.uri.to_string())
         .plugins(vec![
           PluginAuthorityPair {
@@ -50,9 +49,10 @@ pub struct MintCitizen<'info> {
     pub payer: Signer<'info>,
     #[account(mut)]
     pub collection: Account<'info, BaseCollectionV1>,
+    #[account(mut)]
     pub citizen_asset: Signer<'info>,
     #[account(
-        seeds = [GAME_SEED.as_bytes(), &game_account.id.to_be_bytes()],
+        seeds = [GAME_SEED.as_bytes(), &game_account.id.to_le_bytes()],
         bump,
     )]
     pub game_account: Account<'info, Game>,
