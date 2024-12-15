@@ -35,7 +35,15 @@ pub mod programs {
     }
 
     // Init Wallet for any User
+    pub fn init_wallet(ctx: Context<InitWallet>) -> Result<()> {
+        instructions::init_wallet(ctx)
+    }
+
     // Init Nation State
+    pub fn init_nation(ctx: Context<InitNation>, args: InitNationArgs) -> Result<()> {
+        instructions::init_nation(ctx, args)
+    }
+
     // Create Trade Offer
     // Use Trade Offer
     // Make Disaster
