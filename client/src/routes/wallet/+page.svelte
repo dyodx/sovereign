@@ -7,14 +7,15 @@
 		disconnectWallet
 	} from '$lib/wallet/walletStore';
 	import { sendPayment, getWalletBalance } from '$lib/wallet/transactionHelpers';
+	import type { Adapter } from '@solana/wallet-adapter-base';
 
-	let walletAdapters = [];
-	let connection = null;
+	let walletAdapters: Adapter[] = [];
+	let connection: ReturnType<typeof createWalletAdapters>['connection'] | null = null;
 
 	let recipientAddress = '';
 	let amount = 0;
 	let walletBalance = 0;
-	let transactionResult = null;
+	let transactionResult: Awaited<ReturnType<typeof sendPayment>> | null = null;
 
 	onMount(async () => {
 		const { adapters, connection: conn } = createWalletAdapters();
@@ -39,6 +40,14 @@
 			return;
 		}
 
+		if (connection === null) {
+			transactionResult = {
+				success: false,
+				error: 'no connection'
+			};
+			return;
+		}
+
 		try {
 			const result = await sendPayment(connection, $walletStore.wallet, recipientAddress, amount);
 
@@ -46,7 +55,7 @@
 		} catch (error) {
 			transactionResult = {
 				success: false,
-				error: error.message
+				error: 'Unknown error'
 			};
 		}
 	}
@@ -54,7 +63,7 @@
 
 {#if $walletStore.connected}
 	<div>
-		<p>Wallet Connected: {$walletStore.publicKey.toBase58()}</p>
+		<p>Wallet Connected: {$walletStore?.publicKey?.toBase58()}</p>
 		<button on:click={() => disconnectWallet($walletStore.wallet)}> Disconnect Wallet </button>
 	</div>
 {:else}
