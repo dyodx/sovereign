@@ -17,6 +17,20 @@
 	let walletBalance = 0;
 	let transactionResult: Awaited<ReturnType<typeof sendPayment>> | null = null;
 
+	$: {
+		if (connection && $walletStore.connected && $walletStore.publicKey) {
+			getWalletBalance(connection, $walletStore.publicKey)
+				.then((balance) => {
+					walletBalance = balance;
+				})
+				.catch((error) => {
+					console.error('Failed to fetch wallet balance:', error);
+				});
+		}
+	}
+
+	// NOTE: I think the on mount is preventing the getWalletBalance from working
+	// find a way to to make it refresh again?
 	onMount(async () => {
 		const { adapters, connection: conn } = createWalletAdapters();
 		walletAdapters = adapters;

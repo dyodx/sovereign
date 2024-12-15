@@ -16,8 +16,11 @@ export function createWalletAdapters() {
 	const adapters = [new PhantomWalletAdapter()];
 
 	// Configure network
-	const network = clusterApiUrl('devnet'); // or 'mainnet-beta'
-	const connection = new Connection(network, 'confirmed');
+	const network = clusterApiUrl('mainnet-beta', false); // or 'mainnet-beta'
+	const rpc =
+		'https://mainnet.helius-rpc.com/?api-key=448adf9e-7365-467a-843d-1adfde85dbd9';
+	console.log({ network });
+	const connection = new Connection(rpc, 'confirmed');
 
 	return {
 		adapters,

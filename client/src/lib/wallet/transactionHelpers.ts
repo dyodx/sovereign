@@ -57,11 +57,11 @@ export async function sendPayment(
 			success: true,
 			signature
 		};
-	} catch (error) {
+	} catch (error: unknown) {
 		console.error('Transaction error:', error);
 		return {
 			success: false,
-			error: error.message
+			error: (error as Error).message
 		};
 	}
 }
@@ -71,6 +71,8 @@ export async function getWalletBalance(
 	connection: Connection,
 	publicKey: PublicKey
 ): Promise<number> {
+	console.log({ connection });
 	const balance = await connection.getBalance(publicKey);
+	console.log({ balance });
 	return balance / LAMPORTS_PER_SOL; // Convert lamports to SOL
 }
