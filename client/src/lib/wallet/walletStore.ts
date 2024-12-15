@@ -1,11 +1,14 @@
-// src/lib/wallet/walletStore.ts
-import { writable } from 'svelte/store';
-import { type Adapter } from '@svelte-on-solana/wallet-adapter-core';
+import { writable, type Writable } from 'svelte/store';
+import type { Adapter, WalletAdapter } from '@solana/wallet-adapter-base';
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
-import { Connection, clusterApiUrl } from '@solana/web3.js';
+import { Connection, PublicKey, clusterApiUrl } from '@solana/web3.js';
 
 // Create wallet store
-export const walletStore = writable({
+export const walletStore: Writable<{
+	wallet: WalletAdapter | null;
+	publicKey: PublicKey | null;
+	connected: boolean;
+}> = writable({
 	wallet: null,
 	publicKey: null,
 	connected: false
@@ -36,7 +39,7 @@ export function connectWallet(adapter: Adapter) {
 			.then(() => {
 				walletStore.update((store) => ({
 					...store,
-					wallet: adapter,
+					wallet: adapter as WalletAdapter,
 					publicKey: adapter.publicKey,
 					connected: true
 				}));
