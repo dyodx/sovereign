@@ -11,4 +11,7 @@ pub struct Game {
     // Authority Approved Agents
     pub world_agent: Pubkey,
     pub covert_agent: Pubkey,
+    
+    // Citizen Mint Cost
+    pub mint_cost: u64, //Lamports
 }
