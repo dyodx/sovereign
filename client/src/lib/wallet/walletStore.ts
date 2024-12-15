@@ -1,10 +1,6 @@
 // src/lib/wallet/walletStore.ts
 import { writable } from 'svelte/store';
-import {
-	type Adapter,
-	type WalletName,
-	type WalletReadyState
-} from '@svelte-on-solana/wallet-adapter-core';
+import { type Adapter } from '@svelte-on-solana/wallet-adapter-core';
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { Connection, clusterApiUrl } from '@solana/web3.js';
 
@@ -42,7 +38,7 @@ export function connectWallet(adapter: Adapter) {
 					connected: true
 				}));
 			})
-			.catch((error) => {
+			.catch((error: Error) => {
 				console.error('Wallet connection failed', error);
 			});
 	}
@@ -60,7 +56,7 @@ export function disconnectWallet(adapter: Adapter) {
 				connected: false
 			}));
 		})
-		.catch((error) => {
+		.catch((error: Error) => {
 			console.error('Wallet disconnection failed', error);
 		});
 }
