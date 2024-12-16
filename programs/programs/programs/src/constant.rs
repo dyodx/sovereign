@@ -3,6 +3,7 @@ pub const GAME_SEED: &str = "game";
 pub const POOL_SEED: &str = "pool";
 pub const WALLET_SEED: &str = "wallet";
 pub const NATION_STATE_SEED: &str = "nation_state";
+pub const OFFER_SEED: &str = "offer";
 pub const MAX_NATIONS_SIZE: usize = 100;
 
 // Citizen Tags

@@ -8,7 +8,10 @@ pub struct Nation {
     pub authority: Pubkey,
 
     // Stats
-    pub stability: u64
+    pub stability: u64,
+
+    // Trade Offer Idx
+    pub offer_count: u64,
 }
 
 #[account]

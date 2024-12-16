@@ -45,6 +45,10 @@ pub mod programs {
     }
 
     // Create Trade Offer
+    pub fn init_offer(ctx: Context<InitOffer>, args: InitOfferArgs) -> Result<()> {
+        instructions::init_offer(ctx, args)
+    }
+
     // Use Trade Offer
     // Make Disaster
     // Deposit LP into Pool

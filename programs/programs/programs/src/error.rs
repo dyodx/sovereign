@@ -6,4 +6,6 @@ pub enum SovereignError {
     HashNotBelowThreshold,
     #[msg("Citizen already at max level")]
     CitizenAlreadyAtMaxLevel,
+    #[msg("Invalid Profession")]
+    InvalidProfession,
 }
