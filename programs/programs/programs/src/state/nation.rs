@@ -9,18 +9,4 @@ pub struct Nation {
 
     // Stats
     pub stability: u64,
-
-    // Trade Offer Idx
-    pub offer_count: u64,
-}
-
-#[account]
-#[derive(InitSpace)]
-pub struct TradeOffer {
-    pub game_id: u64,
-    pub nation_id: u8,
-    #[max_len(12)]
-    pub required_profession: String,
-    pub requried_amount: u64,
-    pub offered_tokens_per_profession_per_level: u64,
 }

@@ -24,35 +24,6 @@ pub mod programs {
         instructions::init_game(ctx, init_game_args)
     }
 
-    // Mint Citizen with rising and falling costs
-    pub fn mint_citizen(ctx: Context<MintCitizen>) -> Result<()> {
-        instructions::mint_citizen(ctx)
-    }
-
-    // Upgrade Citizen NFT up to Max
-    pub fn upgrade_citizen(ctx: Context<UpgradeCitizen>, args: UpgradeCitizenArgs) -> Result<()> {
-        instructions::upgrade_citizen(ctx, args)
-    }
-
-    // Init Wallet for any User
-    pub fn init_wallet(ctx: Context<InitWallet>) -> Result<()> {
-        instructions::init_wallet(ctx)
-    }
-
-    // Init Nation State
-    pub fn init_nation(ctx: Context<InitNation>, args: InitNationArgs) -> Result<()> {
-        instructions::init_nation(ctx, args)
-    }
-
-    // Create Trade Offer
-    pub fn init_offer(ctx: Context<InitOffer>, args: InitOfferArgs) -> Result<()> {
-        instructions::init_offer(ctx, args)
-    }
-
-    // Use Trade Offer
-    // Make Disaster
-    // Deposit LP into Pool
-    // Mitigate Disaster with NFT
 }
 
 #[derive(Accounts)]

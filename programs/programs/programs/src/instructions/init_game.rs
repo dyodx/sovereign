@@ -14,7 +14,7 @@ pub fn init_game(ctx: Context<InitGame>, init_game_args: InitGameArgs) -> Result
         .payer(&ctx.accounts.payer.to_account_info())
         .update_authority(Some(&ctx.accounts.game_account.to_account_info()))
         .system_program(&ctx.accounts.system_program.to_account_info())
-        .name("sovereign".to_string())
+        .name(format!("Soverign {:#}", init_game_args.id).to_string())
         .uri(init_game_args.collection_uri.to_string())
         .invoke_signed(&[signers_seeds])?;
 
@@ -22,14 +22,11 @@ pub fn init_game(ctx: Context<InitGame>, init_game_args: InitGameArgs) -> Result
 
     let new_game = Game {
         id: init_game_args.id,
-        authority: game.key(),
+        authority: ctx.accounts.payer.key(),
         collection: ctx.accounts.collection.key(),
         slot_start: init_game_args.slot_start,
         world_agent: init_game_args.world_agent,
-        covert_agent: init_game_args.covert_agent,
         mint_cost: init_game_args.mint_cost,
-        max_level: init_game_args.max_level,
-        hash_threshold: init_game_args.hash_threshold,
     };
 
     game.set_inner(new_game);
