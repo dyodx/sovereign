@@ -1,6 +1,11 @@
 {
   "compilerOptions": {
     // Enable latest features
+    "types": [
+      "bun-types",
+      "vite-plugin-pwa/info.d.ts",
+      "vite-plugin-pwa/client.d.ts"
+    ],
     "lib": [
       "ESNext",
       "DOM",
@@ -25,8 +30,5 @@
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false,
     "resolveJsonModule": true,
-    "types": [
-      "bun-types"
-    ]
   }
 }
