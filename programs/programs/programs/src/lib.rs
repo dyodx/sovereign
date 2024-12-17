@@ -5,6 +5,7 @@ mod constant;
 mod instructions;
 mod state;
 mod error;
+mod verifying_key;
 
 use instructions::*;
 

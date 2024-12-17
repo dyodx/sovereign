@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-use crate::{constant::BOUNTY_SEED, error::SovereignError, state::{Bounty, BrokerEscrow, Game}};
+use crate::{constant::BOUNTY_SEED, error::SovereignError, state::{Bounty, Game}};
 
 pub fn create_bounty(ctx: Context<CreateBounty>, args: CreateBountyArgs) -> Result<()> {
     let bounty = &mut ctx.accounts.bounty;
