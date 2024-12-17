@@ -75,6 +75,18 @@ pub mod programs {
     pub fn nation_boost(ctx: Context<NationBoost>, args: NationBoostArgs) -> Result<()> {
         instructions::nation_boost(ctx, args)
     }
+
+    pub fn deposit_to_broker(ctx: Context<DepositToBroker>, args: DepositToBrokerArgs) -> Result<()> {
+        instructions::deposit_to_broker(ctx, args)
+    }
+
+    pub fn create_bounty(ctx: Context<CreateBounty>, args: CreateBountyArgs) -> Result<()> {
+        instructions::create_bounty(ctx, args)
+    }
+
+    pub fn cleanup_bounty(ctx: Context<CleanupBounty>) -> Result<()> {
+        instructions::cleanup_bounty(ctx)
+    }
 }
 
 #[derive(Accounts)]

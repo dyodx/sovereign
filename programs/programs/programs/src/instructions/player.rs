@@ -1,12 +1,16 @@
 use anchor_lang::{prelude::*, system_program::{transfer, Transfer}};
 use mpl_core::{accounts::{BaseAssetV1, BaseCollectionV1}, fetch_plugin, instructions::{CreateV2CpiBuilder, UpdatePluginV1CpiBuilder}, types::{Attribute, Attributes, FreezeDelegate, Plugin, PluginAuthority, PluginAuthorityPair, PluginType}, ID as MPL_CORE_ID};
 
-use crate::{constant::{GAME_SEED, NATION_STATES, PLAYER_SEED}, error::SovereignError, state::{Game, Player}};
+use crate::{constant::{GAME_SEED, NATION_STATES, PLAYER_SEED, WALLET_SEED}, error::SovereignError, state::{Game, Player, Wallet}};
 
 pub fn register_player(ctx: Context<RegisterPlayer>, args: RegisterPlayerArgs) -> Result<()> {
     ctx.accounts.player.game_id = ctx.accounts.game.id;
     ctx.accounts.player.authority = ctx.accounts.player_authority.key();
     ctx.accounts.player.x_username = args.x_username;
+
+    ctx.accounts.player_wallet.game_id = ctx.accounts.game.id;
+    ctx.accounts.player_wallet.authority = ctx.accounts.player_authority.key();
+    ctx.accounts.player_wallet.balances = [0u64; NATION_STATES.len()];
     Ok(())
 }
 
@@ -28,6 +32,14 @@ pub struct RegisterPlayer<'info> {
         bump
     )]
     pub player: Account<'info, Player>,
+    #[account(
+        init,
+        payer = player_authority,
+        space = 8 + Wallet::INIT_SPACE,
+        seeds = [WALLET_SEED.as_bytes(), game.id.to_le_bytes().as_ref(), player_authority.key().as_ref()],
+        bump
+    )]
+    pub player_wallet: Account<'info, Wallet>,
     pub system_program: Program<'info, System>,
 }
 

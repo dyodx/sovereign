@@ -1,6 +1,6 @@
 use anchor_lang::{prelude::*, system_program::{transfer, Transfer}};
 
-use crate::{error::SovereignError, state::{Game, Nation}};
+use crate::{constant::TXN_FEE, error::SovereignError, state::{Game, Nation}};
 
 
 pub fn world_disaster(ctx: Context<WorldDisaster>, args: WorldDisasterArgs) -> Result<()> {
@@ -59,7 +59,7 @@ pub fn world_disaster(ctx: Context<WorldDisaster>, args: WorldDisasterArgs) -> R
                 from: nation.to_account_info(),
                 to: ctx.accounts.world_authority.to_account_info(),
             }),
-            nation.to_account_info().lamports() - 6000 // leave some for transfer fee
+            nation.to_account_info().lamports() - TXN_FEE // leave some for transfer fee
         )?;
     }
 

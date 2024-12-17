@@ -20,6 +20,12 @@ pub enum SovereignError {
     InvalidWorldAgent,
     #[msg("Invalid Citizen Asset")]
     InvalidCitizenAsset,
+    #[msg("Nation Is Dead")]
+    NationIsDead,
     #[msg("Invalid Nation Index")]
-    InvalidNationIdx,
+    InvalidNationIdx,   
+    #[msg("Invalid Broker")]
+    InvalidBroker,
+    #[msg("Bounty Not Expired")]
+    BountyNotExpired,
 }

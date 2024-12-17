@@ -4,7 +4,9 @@ pub const POOL_SEED: &str = "pool";
 pub const WALLET_SEED: &str = "wallet";
 pub const NATION_SEED: &str = "nation";
 pub const PLAYER_SEED: &str = "player";
-pub const BROKER_ESCROW_SEED: &str = "broker_escrow";
+pub const BROKER_ESCROW_SEED: &str = "broker_escrow";   
+pub const BOUNTY_SEED: &str = "bounty";
+pub const TXN_FEE: u64 = 5000;
 
 // Citizen Tags
 // Max Size 30 Characters ("Saint Vincent and the Grenadines")
