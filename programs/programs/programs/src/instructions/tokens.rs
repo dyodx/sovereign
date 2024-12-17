@@ -322,3 +322,30 @@ fn auto_balance_pool(pool: &mut Pool, target_invariant: u128) -> Result<()> {
     pool.balances = new_balances;
     Ok(())
 }
+
+
+pub fn transfer_tokens(ctx: Context<TransferTokens>, args: TransferTokensArgs) -> Result<()> {
+    require!(args.token_idx < ctx.accounts.wallet.balances.len(), SovereignError::InvalidTokenIdx);
+    require!(ctx.accounts.wallet.balances[args.token_idx] >= args.amount, SovereignError::InsufficientFunds);
+
+    ctx.accounts.wallet.balances[args.token_idx] = ctx.accounts.wallet.balances[args.token_idx].checked_sub(args.amount).ok_or(SovereignError::MathOverflow)?;
+    ctx.accounts.receiver.balances[args.token_idx] = ctx.accounts.receiver.balances[args.token_idx].checked_add(args.amount).ok_or(SovereignError::MathOverflow)?;
+
+    Ok(())
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize)]
+pub struct TransferTokensArgs {
+    pub token_idx: usize,
+    pub amount: u64,
+}
+
+#[derive(Accounts)]
+pub struct TransferTokens<'info> {
+    #[account(mut)]
+    pub wallet_authority: Signer<'info>,
+    #[account(mut, constraint = wallet.authority == wallet_authority.key())]
+    pub wallet: Account<'info, Wallet>,
+    #[account(mut)]
+    pub receiver: Account<'info, Wallet>,
+}

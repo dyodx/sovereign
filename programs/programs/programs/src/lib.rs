@@ -39,6 +39,10 @@ pub mod programs {
     pub fn swap_token_to_solana(ctx: Context<SwapTokenToSolana>, args: SwapTokenToSolanaArgs) -> Result<()> {
         instructions::swap_token_to_solana(ctx, args)
     }
+
+    pub fn transfer_tokens(ctx: Context<TransferTokens>, args: TransferTokensArgs) -> Result<()> {
+        instructions::transfer_tokens(ctx, args)
+    }
 }
 
 #[derive(Accounts)]
