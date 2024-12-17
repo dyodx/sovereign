@@ -43,6 +43,10 @@ pub mod programs {
     pub fn transfer_tokens(ctx: Context<TransferTokens>, args: TransferTokensArgs) -> Result<()> {
         instructions::transfer_tokens(ctx, args)
     }
+
+    pub fn init_nation(ctx: Context<InitNation>, args: InitNationArgs) -> Result<()> {
+        instructions::init_nation(ctx, args)
+    }
 }
 
 #[derive(Accounts)]

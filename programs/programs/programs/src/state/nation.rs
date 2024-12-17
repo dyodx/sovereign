@@ -8,5 +8,8 @@ pub struct Nation {
     pub authority: Pubkey,
 
     // Stats
-    pub stability: u64,
+    pub gdp: u64,
+    pub healthcare: u64,
+    pub environment: u64,
+    pub stability: u64
 }
