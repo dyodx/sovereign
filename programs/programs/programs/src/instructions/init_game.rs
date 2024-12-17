@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use mpl_core::{instructions::*, ID as MPL_CORE_ID};
 
-use crate::{constant::{GAME_SEED, POOL_SEED}, state::{Game, Pool}};
+use crate::{constant::{BROKER_ESCROW_SEED, GAME_SEED, NATION_STATES, POOL_SEED, WALLET_SEED}, state::{BrokerEscrow, Game, Pool, Wallet}};
 
 pub fn init_game(ctx: Context<InitGame>, init_game_args: InitGameArgs) -> Result<()> {
 
@@ -26,10 +26,30 @@ pub fn init_game(ctx: Context<InitGame>, init_game_args: InitGameArgs) -> Result
         collection: ctx.accounts.collection.key(),
         slot_start: init_game_args.slot_start,
         world_agent: init_game_args.world_agent,
+        broker_key: init_game_args.broker_key,
         mint_cost: init_game_args.mint_cost,
     };
 
     game.set_inner(new_game);
+
+    let broker_escrow = &mut ctx.accounts.broker_escrow;
+
+    broker_escrow.game_id = init_game_args.id;
+    broker_escrow.broker_key = init_game_args.broker_key;
+
+    let pool = &mut ctx.accounts.game_pool;
+
+    pool.game_id = init_game_args.id;
+    pool.balances = [0u64; NATION_STATES.len()];
+    // All tokens in the pool have equal weight
+    pool.weights = [1_000_000_000u64/(NATION_STATES.len() as u64); NATION_STATES.len()];
+
+
+    let world_agent_wallet = &mut ctx.accounts.world_agent_wallet;
+
+    world_agent_wallet.game_id = init_game_args.id;
+    world_agent_wallet.authority = init_game_args.world_agent;
+    world_agent_wallet.balances = [0u64; NATION_STATES.len()];
 
     Ok(())
 }
@@ -40,10 +60,8 @@ pub struct InitGameArgs {
     pub slot_start: u64,
     pub collection_uri: String,
     pub world_agent: Pubkey,
-    pub covert_agent: Pubkey,
+    pub broker_key: Pubkey,
     pub mint_cost: u64,
-    pub max_level: u8,
-    pub hash_threshold: [u8; 32],
 }
 
 #[derive(Accounts)]
@@ -61,12 +79,28 @@ pub struct InitGame<'info> {
     pub game_account: Account<'info, Game>,
     #[account(
         init,
+        space = 8 + Wallet::INIT_SPACE,
+        payer = payer,
+        seeds = [WALLET_SEED.as_bytes(), &init_game_args.id.to_le_bytes(), &init_game_args.world_agent.to_bytes()],
+        bump
+    )]
+    pub world_agent_wallet: Account<'info, Wallet>,
+    #[account(
+        init,
         space = 8 + Pool::INIT_SPACE,
         payer = payer,
         seeds = [POOL_SEED.as_bytes(),  &init_game_args.id.to_le_bytes()],
         bump
     )]
     pub game_pool: Account<'info, Pool>,
+    #[account(
+        init,
+        space = 8 + BrokerEscrow::INIT_SPACE,
+        payer = payer,
+        seeds = [BROKER_ESCROW_SEED.as_bytes(), &init_game_args.id.to_le_bytes()],
+        bump
+    )]
+    pub broker_escrow: Account<'info, BrokerEscrow>,
     ///CHECK
     #[account(mut)]
     pub collection: Signer<'info>,

@@ -4,11 +4,13 @@ pub const POOL_SEED: &str = "pool";
 pub const WALLET_SEED: &str = "wallet";
 pub const NATION_SEED: &str = "nation";
 pub const PLAYER_SEED: &str = "player";
+pub const BROKER_ESCROW_SEED: &str = "broker_escrow";
 
 // Citizen Tags
 // Max Size 30 Characters ("Saint Vincent and the Grenadines")
-pub const NATION_STATES: [&str; 192] = [
-    "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", 
+// idx 0 is Solana and used for deposit Solana for wallets and stuff.
+pub const NATION_STATES: [&str; 193] = [
+    "Solana", "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", 
     "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", 
     "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", 
     "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", 

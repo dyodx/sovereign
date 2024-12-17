@@ -24,6 +24,21 @@ pub mod programs {
         instructions::init_game(ctx, init_game_args)
     }
 
+    pub fn deposit_or_withdraw_solana(ctx: Context<DepositOrWithdrawSolana>, args: DepositOrWithdrawSolanaArgs) -> Result<()> {
+        instructions::deposit_or_withdraw_solana(ctx, args)
+    }
+
+    pub fn deposit_or_withdraw_token(ctx: Context<DepositOrWithdrawToken>, args: DepositOrWithdrawTokenArgs) -> Result<()> {
+        instructions::deposit_or_withdraw_token(ctx, args)
+    }
+
+    pub fn swap_token_to_token(ctx: Context<SwapTokenToToken>, args: SwapTokenToTokenArgs) -> Result<()> {
+        instructions::swap_token_to_token(ctx, args)
+    }
+
+    pub fn swap_token_to_solana(ctx: Context<SwapTokenToSolana>, args: SwapTokenToSolanaArgs) -> Result<()> {
+        instructions::swap_token_to_solana(ctx, args)
+    }
 }
 
 #[derive(Accounts)]

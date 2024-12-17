@@ -2,10 +2,16 @@ use anchor_lang::prelude::*;
 
 #[error_code]
 pub enum SovereignError {
-    #[msg("Hash not below threshold")]
-    HashNotBelowThreshold,
-    #[msg("Citizen already at max level")]
-    CitizenAlreadyAtMaxLevel,
-    #[msg("Invalid Profession")]
-    InvalidProfession,
+    #[msg("Invalid Game ID")]
+    InvalidGameId,
+    #[msg("Math Overflow")]
+    MathOverflow,
+    #[msg("Use Solana for Deposit or Withdraw")]
+    UseSolanaForDepositOrWithdraw,
+    #[msg("Invalid Token Index")]  
+    InvalidTokenIdx,
+    #[msg("Insufficient Funds")]
+    InsufficientFunds,
+    #[msg("Invalid Amount")]
+    InvalidAmount,
 }
