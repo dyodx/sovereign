@@ -7,6 +7,11 @@
 			ticker: 'USA',
 			balance: 1000,
 			perSol: 0.0025
+		},
+		{
+			ticker: 'CAN',
+			balance: 890,
+			perSol: 0.0009
 		}
 	];
 </script>
@@ -21,8 +26,9 @@
 	<Table.Header>
 		<Table.Row>
 			<Table.Head>COIN</Table.Head>
-			<Table.Head class="text-right">Per SOL</Table.Head>
+			<Table.Head class="text-right">COIN/SOL</Table.Head>
 			<Table.Head class="text-right">Amount</Table.Head>
+			<Table.Head class="text-right">in SOL</Table.Head>
 		</Table.Row>
 	</Table.Header>
 	<Table.Body>
@@ -33,6 +39,7 @@
 				</Table.Cell>
 				<Table.Cell class="text-right">{perSol}</Table.Cell>
 				<Table.Cell class="text-right">{balance}</Table.Cell>
+				<Table.Cell class="text-right">{Math.round(balance * perSol * 1000) / 1000}</Table.Cell>
 			</Table.Row>
 		{/each}
 	</Table.Body>
