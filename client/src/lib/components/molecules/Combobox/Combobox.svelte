@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { tick } from 'svelte';
+	import { IconChevUpDown } from '$lib/components/atoms/icons';
 	import * as Command from '$lib/components/ui/command';
 	import * as Popover from '$lib/components/ui/popover';
 	import { Button } from '$lib/components/ui/button';
@@ -9,7 +10,7 @@
 		options: { value: string; label: string }[];
 		value: string;
 	};
-	let { defaultText = 'Select...', options, value = $bindable() }: Props = $props();
+	let { defaultText = 'Select', options, value = $bindable() }: Props = $props();
 
 	let open = $state(false);
 	let triggerRef = $state<HTMLButtonElement>(null!);
@@ -31,20 +32,24 @@
 	<Popover.Trigger bind:ref={triggerRef}>
 		{#snippet child({ props })}
 			<Button
-				class="min-w-24 justify-center bg-background shadow-flat"
+				class="min-w-28 justify-between bg-background shadow-flat"
 				{...props}
 				role="combobox"
 				aria-expanded={open}
 			>
-				{selectedValue || defaultText}
+				<p>
+					{selectedValue || defaultText}
+				</p>
+
+				<IconChevUpDown />
 			</Button>
 		{/snippet}
 	</Popover.Trigger>
-	<Popover.Content class="w-[200px] p-0">
-		<Command.Root>
-			<Command.Input placeholder="Search framework..." />
+	<Popover.Content class="w-[200px] border-0 p-0" data-testid="combobox-content">
+		<Command.Root class="bg-background text-foreground">
+			<Command.Input placeholder="Search..." />
 			<Command.List>
-				<Command.Empty>No framework found.</Command.Empty>
+				<Command.Empty>No result found.</Command.Empty>
 				<Command.Group>
 					{#each options as option}
 						<Command.Item

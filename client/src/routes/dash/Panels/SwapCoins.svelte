@@ -1,31 +1,13 @@
 <script lang="ts">
 	import TipCitizensExplained from '../Tooltips/TipCitizensExplained.svelte';
 	import Combobox from '$lib/components/molecules/Combobox/Combobox.svelte';
+	import IconExchange from '$lib/components/atoms/icons/IconExchange.svelte';
+	import { currencies } from '$lib/constants/currencies';
 
-	const options = [
-		{
-			value: 'sveltekit',
-			label: 'SvelteKit'
-		},
-		{
-			value: 'next.js',
-			label: 'Next.js'
-		},
-		{
-			value: 'nuxt.js',
-			label: 'Nuxt.js'
-		},
-		{
-			value: 'remix',
-			label: 'Remix'
-		},
-		{
-			value: 'astro',
-			label: 'Astro'
-		}
-	];
+	const options = currencies;
 
-	let value = $state('');
+	let sell = $state('');
+	let buy = $state('');
 </script>
 
 <div class="flex justify-between">
@@ -33,20 +15,43 @@
 	<TipCitizensExplained />
 </div>
 
-<div class="flex flex-col py-4">
-	<p>Sell</p>
-	<div class="flex gap-4">
-		<input class="rounded-xl bg-background p-1 text-center text-lg" {value} />
-		<Combobox {options} bind:value />
+{#snippet trade(direction: 'Sell' | 'Buy')}
+	<div class="flex items-end gap-2">
+		<Combobox {options} value={direction === 'Sell' ? sell : buy} />
+		<div>
+			<div class="flex justify-between">
+				<p>{direction}</p>
+				<p>$0.00</p>
+			</div>
+			<div class="flex gap-4">
+				<input
+					type="number"
+					class="w-full rounded-xl bg-background p-1 text-lg"
+					value={direction === 'Sell' ? sell : buy}
+				/>
+			</div>
+		</div>
 	</div>
-	<!-- <div class="z-50 my-[-0.5rem] h-8 w-8 self-start rounded-lg border-4 border-panel bg-background" ></div> -->
+{/snippet}
+
+<div class="flex flex-col py-4 md:items-center">
+	{@render trade('Sell')}
 	<div class="relative mt-3 flex justify-center">
-		<div class="absolute top-[50%] h-[1px] w-full bg-background"></div>
-		<p class="z-10 bg-panel px-2 text-background">trade</p>
+		<div
+			class="absolute top-[50%] h-[1px] w-full bg-gradient-to-r from-panel via-background to-panel"
+		></div>
+		<p class="z-10 bg-panel px-2 text-background"><IconExchange /></p>
 	</div>
-	<p>Buy</p>
-	<div class="flex gap-4">
-		<input class="rounded-xl bg-background p-1 text-center text-lg" {value} />
-		<Combobox {options} bind:value />
-	</div>
+	{@render trade('Buy')}
 </div>
+
+<button
+	disabled={sell === ''}
+	class="w-full rounded-xl border-2 border-black bg-background p-2 transition-all hover:bg-black"
+>
+	{#if sell === ''}
+		Select a token
+	{:else}
+		Swap {sell}
+	{/if}
+</button>
