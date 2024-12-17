@@ -40,7 +40,7 @@
 		<Combobox {options} bind:value />
 	</div>
 	<!-- <div class="z-50 my-[-0.5rem] h-8 w-8 self-start rounded-lg border-4 border-panel bg-background" ></div> -->
-	<div class="relative flex justify-center">
+	<div class="relative mt-3 flex justify-center">
 		<div class="absolute top-[50%] h-[1px] w-full bg-background"></div>
 		<p class="z-10 bg-panel px-2 text-background">trade</p>
 	</div>
