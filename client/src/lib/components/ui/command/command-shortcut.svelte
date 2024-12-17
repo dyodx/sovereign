@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { HTMLTdAttributes } from "svelte/elements";
 	import type { WithElementRef } from "bits-ui";
+	import type { HTMLAttributes } from "svelte/elements";
 	import { cn } from "$lib/utils.js";
 
 	let {
@@ -8,13 +8,13 @@
 		class: className,
 		children,
 		...restProps
-	}: WithElementRef<HTMLTdAttributes> = $props();
+	}: WithElementRef<HTMLAttributes<HTMLSpanElement>> = $props();
 </script>
 
-<td
+<span
 	bind:this={ref}
-	class={cn("p-4 align-middle [&:has([role=checkbox])]:pr-0", className)}
+	class={cn("text-muted-foreground ml-auto text-xs tracking-widest", className)}
 	{...restProps}
 >
 	{@render children?.()}
-</td>
+</span>
