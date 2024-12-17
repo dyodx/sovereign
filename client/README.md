@@ -14,7 +14,6 @@ for development
 
 
 
-
 # TODO PWA
 - add notifications
 - 
