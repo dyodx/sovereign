@@ -18,4 +18,8 @@ pub enum SovereignError {
     InvalidAuthority,
     #[msg("Invalid World Agent")]
     InvalidWorldAgent,
+    #[msg("Invalid Citizen Asset")]
+    InvalidCitizenAsset,
+    #[msg("Invalid Nation Index")]
+    InvalidNationIdx,
 }

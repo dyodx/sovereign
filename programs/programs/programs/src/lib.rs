@@ -59,6 +59,22 @@ pub mod programs {
     pub fn mint_citizen(ctx: Context<MintCitizen>) -> Result<()> {
         instructions::mint_citizen(ctx)
     }
+
+    pub fn stake_or_unstake_citizen(ctx: Context<StakeOrUnstakeCitizen>, args: StakeOrUnstakeCitizenArgs) -> Result<()> {
+        instructions::stake_or_unstake_citizen(ctx, args)
+    }
+
+    pub fn mint_tokens_to_player_wallet(ctx: Context<MintTokensToPlayerWallet>, args: MintTokensToPlayerWalletArgs) -> Result<()> {
+        instructions::mint_tokens_to_player_wallet(ctx, args)
+    }
+
+    pub fn world_disaster(ctx: Context<WorldDisaster>, args: WorldDisasterArgs) -> Result<()> {
+        instructions::world_disaster(ctx, args)
+    }
+
+    pub fn nation_boost(ctx: Context<NationBoost>, args: NationBoostArgs) -> Result<()> {
+        instructions::nation_boost(ctx, args)
+    }
 }
 
 #[derive(Accounts)]

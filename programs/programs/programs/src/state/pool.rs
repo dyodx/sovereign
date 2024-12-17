@@ -1,7 +1,8 @@
 use anchor_lang::prelude::*;
 
-use crate::constant::{NATION_STATES};
+use crate::constant::NATION_STATES;
 
+// Seeds = [POOL_SEED.as_bytes(), &game_id.to_le_bytes()]
 #[account]
 #[derive(InitSpace)]
 pub struct Pool {

@@ -1,5 +1,6 @@
 use anchor_lang::prelude::*;
 
+// Seeds = [PLAYER_SEED.as_bytes(), &game_id.to_le_bytes(), &authority.to_bytes()]
 #[account]
 #[derive(InitSpace)]
 pub struct Player {

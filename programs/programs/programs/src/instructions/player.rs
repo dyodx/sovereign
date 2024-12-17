@@ -1,5 +1,5 @@
 use anchor_lang::{prelude::*, system_program::{transfer, Transfer}};
-use mpl_core::{accounts::BaseCollectionV1, instructions::CreateV2CpiBuilder, types::{Attribute, Attributes, Plugin, PluginAuthority, PluginAuthorityPair}, ID as MPL_CORE_ID};
+use mpl_core::{accounts::{BaseAssetV1, BaseCollectionV1}, fetch_plugin, instructions::{CreateV2CpiBuilder, UpdatePluginV1CpiBuilder}, types::{Attribute, Attributes, FreezeDelegate, Plugin, PluginAuthority, PluginAuthorityPair, PluginType}, ID as MPL_CORE_ID};
 
 use crate::{constant::{GAME_SEED, NATION_STATES, PLAYER_SEED}, error::SovereignError, state::{Game, Player}};
 
@@ -33,7 +33,7 @@ pub struct RegisterPlayer<'info> {
 
 pub fn mint_citizen(ctx: Context<MintCitizen>) -> Result<()> {
     // Mint Price is sent 100% to World Agent
-    // World Agent will then send to Nation State based on Citizen's Nation State
+    // World Agent will then send to Nation State Account (not authority) based on Citizen's Nation State
     // Cannot do it in this ix, because nation state is random.
     // We log it so it can be picked up by indexer and added to queue for World Agent to process
 
@@ -66,9 +66,17 @@ pub fn mint_citizen(ctx: Context<MintCitizen>) -> Result<()> {
         .name(format!("Citizen - Game {:#}", ctx.accounts.game_account.id).to_string())
         .uri(ctx.accounts.collection.uri.to_string())
         .plugins(vec![
-          PluginAuthorityPair {
-            plugin: Plugin::Attributes(
-                Attributes {
+            PluginAuthorityPair {
+                plugin: Plugin::FreezeDelegate(
+                    FreezeDelegate {
+                        frozen: false,
+                    }
+                ),
+                authority: Some(PluginAuthority::UpdateAuthority),
+            },
+            PluginAuthorityPair {
+                plugin: Plugin::Attributes(
+                    Attributes {
                     attribute_list:vec![
                         Attribute { key: "game".to_string(), value: ctx.accounts.game_account.id.to_string() },
                         Attribute { key: "nation_state".to_string(), value: nation_state.to_string() },
@@ -117,6 +125,89 @@ pub struct MintCitizen<'info> {
     pub collection: Account<'info, BaseCollectionV1>,
     #[account(mut)]
     pub citizen_asset: Signer<'info>,
+    #[account(
+        seeds = [GAME_SEED.as_bytes(), &game_account.id.to_le_bytes()],
+        bump,
+    )]
+    pub game_account: Account<'info, Game>,
+    #[account(address = MPL_CORE_ID)]
+    pub mpl_core_program: UncheckedAccount<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+pub fn stake_or_unstake_citizen(ctx: Context<StakeOrUnstakeCitizen>, args: StakeOrUnstakeCitizenArgs) -> Result<()> {
+    // Check if Citizen is staked or not
+    let (_, plugin, _) = fetch_plugin::<BaseAssetV1, FreezeDelegate>(&ctx.accounts.citizen_asset.to_account_info(), PluginType::FreezeDelegate)?;
+    let signers_seeds = &[
+        GAME_SEED.as_bytes(), &ctx.accounts.game_account.id.to_le_bytes(), &[ctx.bumps.game_account]
+    ];
+
+    let clock = Clock::get()?;
+
+    if plugin.frozen {
+        // Unstake
+        UpdatePluginV1CpiBuilder::new(&ctx.accounts.mpl_core_program.to_account_info())
+            .asset(&ctx.accounts.citizen_asset.to_account_info())
+            .plugin(Plugin::FreezeDelegate(FreezeDelegate { frozen: false }))
+            .authority(Some(&ctx.accounts.game_account.to_account_info()))
+            .payer(&ctx.accounts.player_authority.to_account_info())
+            .system_program(&ctx.accounts.system_program.to_account_info())
+            .invoke_signed(&[signers_seeds])?;
+
+        emit!(StakeOrUnstakeCitizenEvent {
+            game_id: ctx.accounts.game_account.id,
+            player_authority: ctx.accounts.player_authority.key(),
+            asset_id: ctx.accounts.citizen_asset.key(),
+            is_staked: false,
+            slot: clock.slot,
+        });
+    } else {
+        // Stake
+        let nation_idx = args.nation_idx.unwrap_or(0);
+        require!((nation_idx as usize) < NATION_STATES.len(), SovereignError::InvalidNationIdx);
+
+        UpdatePluginV1CpiBuilder::new(&ctx.accounts.mpl_core_program.to_account_info())
+            .asset(&ctx.accounts.citizen_asset.to_account_info())
+            .plugin(Plugin::FreezeDelegate(FreezeDelegate { frozen: true }))
+            .authority(Some(&ctx.accounts.game_account.to_account_info()))
+            .payer(&ctx.accounts.player_authority.to_account_info())
+            .system_program(&ctx.accounts.system_program.to_account_info())
+            .invoke_signed(&[signers_seeds])?;
+
+        emit!(StakeOrUnstakeCitizenEvent {
+            game_id: ctx.accounts.game_account.id,
+            player_authority: ctx.accounts.player_authority.key(),
+            asset_id: ctx.accounts.citizen_asset.key(),
+            is_staked: true,
+            slot: clock.slot,
+        });
+    }
+
+    Ok(())
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize)]
+pub struct StakeOrUnstakeCitizenArgs {
+    pub nation_idx: Option<u8>,
+}
+
+#[event]
+pub struct StakeOrUnstakeCitizenEvent {
+    pub game_id: u64,
+    pub player_authority: Pubkey,
+    pub asset_id: Pubkey,
+    pub is_staked: bool,
+    pub slot: u64,
+}
+
+#[derive(Accounts)]
+pub struct StakeOrUnstakeCitizen<'info> {
+    pub player_authority: Signer<'info>,
+    #[account(
+        mut,
+        constraint = citizen_asset.owner == player_authority.key() @ SovereignError::InvalidCitizenAsset
+    )]
+    pub citizen_asset: Account<'info, BaseAssetV1>,
     #[account(
         seeds = [GAME_SEED.as_bytes(), &game_account.id.to_le_bytes()],
         bump,

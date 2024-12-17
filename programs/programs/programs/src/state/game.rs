@@ -1,5 +1,6 @@
 use anchor_lang::prelude::*;
 
+// Seeds = [GAME_SEED.as_bytes(), &game_id.to_le_bytes()]
 #[account]
 #[derive(InitSpace)]
 pub struct Game {
@@ -16,6 +17,7 @@ pub struct Game {
     pub mint_cost: u64, //Lamports
 }
 
+// Seeds = [BROKER_ESCROW_SEED.as_bytes(), &game_id.to_le_bytes()]
 #[account]
 #[derive(InitSpace)]
 pub struct BrokerEscrow {

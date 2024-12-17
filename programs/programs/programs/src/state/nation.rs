@@ -1,5 +1,6 @@
 use anchor_lang::prelude::*;
 
+// Seeds = [NATION_SEED.as_bytes(), &game_id.to_le_bytes(), &nation_id.to_le_bytes()]
 #[account]
 #[derive(InitSpace)]
 pub struct Nation {
@@ -17,6 +18,8 @@ pub struct Nation {
     pub gdp_reward_rate: u64,
     pub healthcare_reward_rate: u64,
     pub environment_reward_rate: u64,
-    pub stability_reward_rate: u64
+    pub stability_reward_rate: u64,
 
+    // Dissolved
+    pub is_alive: bool,
 }
