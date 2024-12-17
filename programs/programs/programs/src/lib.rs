@@ -51,7 +51,14 @@ pub mod programs {
     pub fn update_nation_reward_rate(ctx: Context<UpdateNationRewardRate>, args: UpdateNationRewardRateArgs) -> Result<()> {
         instructions::update_nation_reward_rate(ctx, args)
     }
-    
+
+    pub fn register_player(ctx: Context<RegisterPlayer>, args: RegisterPlayerArgs) -> Result<()> {
+        instructions::register_player(ctx, args)
+    }
+
+    pub fn mint_citizen(ctx: Context<MintCitizen>) -> Result<()> {
+        instructions::mint_citizen(ctx)
+    }
 }
 
 #[derive(Accounts)]
