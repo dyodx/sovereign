@@ -14,4 +14,6 @@ pub enum SovereignError {
     InsufficientFunds,
     #[msg("Invalid Amount")]
     InvalidAmount,
+    #[msg("Invalid Authority")]
+    InvalidAuthority,
 }

@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-use crate::{constant::NATION_SEED, state::{Game, Nation}};
+use crate::{constant::NATION_SEED, error::SovereignError, state::{Game, Nation}};
 
 pub fn init_nation(ctx: Context<InitNation>, init_nation_args: InitNationArgs) -> Result<()> {
 
@@ -12,6 +12,11 @@ pub fn init_nation(ctx: Context<InitNation>, init_nation_args: InitNationArgs) -
     ctx.accounts.nation.environment = init_nation_args.environment;
     ctx.accounts.nation.stability = init_nation_args.stability;
 
+    ctx.accounts.nation.gdp_reward_rate = init_nation_args.gdp_reward_rate;
+    ctx.accounts.nation.healthcare_reward_rate = init_nation_args.healthcare_reward_rate;
+    ctx.accounts.nation.environment_reward_rate = init_nation_args.environment_reward_rate;
+    ctx.accounts.nation.stability_reward_rate = init_nation_args.stability_reward_rate;
+
     Ok(())
 }
 
@@ -21,7 +26,11 @@ pub struct InitNationArgs {
     pub gdp: u64,
     pub healthcare: u64,
     pub environment: u64,
-    pub stability: u64
+    pub stability: u64,
+    pub gdp_reward_rate: u64,
+    pub healthcare_reward_rate: u64,
+    pub environment_reward_rate: u64,
+    pub stability_reward_rate: u64
 }
 
 #[derive(Accounts)]
@@ -40,4 +49,32 @@ pub struct InitNation<'info> {
     )]
     pub nation: Account<'info, Nation>,
     pub system_program: Program<'info, System>,
+}
+
+pub fn update_nation_reward_rate(ctx: Context<UpdateNationRewardRate>, update_nation_reward_rate_args: UpdateNationRewardRateArgs) -> Result<()> {
+
+    ctx.accounts.nation.gdp_reward_rate = update_nation_reward_rate_args.gdp_reward_rate;
+    ctx.accounts.nation.healthcare_reward_rate = update_nation_reward_rate_args.healthcare_reward_rate;
+    ctx.accounts.nation.environment_reward_rate = update_nation_reward_rate_args.environment_reward_rate;
+    ctx.accounts.nation.stability_reward_rate = update_nation_reward_rate_args.stability_reward_rate;
+
+    Ok(())
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize)]
+pub struct UpdateNationRewardRateArgs {
+    pub gdp_reward_rate: u64,
+    pub healthcare_reward_rate: u64,
+    pub environment_reward_rate: u64,
+    pub stability_reward_rate: u64
+}
+
+#[derive(Accounts)]
+pub struct UpdateNationRewardRate<'info> {
+    pub nation_authority: Signer<'info>,
+    #[account(
+        mut,    
+        constraint = nation.authority == nation_authority.key() @ SovereignError::InvalidAuthority
+    )]
+    pub nation: Account<'info, Nation>,
 }

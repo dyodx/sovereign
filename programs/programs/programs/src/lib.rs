@@ -47,6 +47,11 @@ pub mod programs {
     pub fn init_nation(ctx: Context<InitNation>, args: InitNationArgs) -> Result<()> {
         instructions::init_nation(ctx, args)
     }
+
+    pub fn update_nation_reward_rate(ctx: Context<UpdateNationRewardRate>, args: UpdateNationRewardRateArgs) -> Result<()> {
+        instructions::update_nation_reward_rate(ctx, args)
+    }
+    
 }
 
 #[derive(Accounts)]
