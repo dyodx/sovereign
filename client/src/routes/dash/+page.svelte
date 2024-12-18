@@ -3,19 +3,27 @@
 	import Body from './Body.svelte';
 	import News from './News.svelte';
 	import * as Tabs from '$lib/components/ui/tabs';
-	import { getAppKit } from '$lib/wallet/appkit';
-	import type { AppKit } from '@reown/appkit';
+	import { getAppKit, appKitStore } from '$lib/wallet/appkit.svelte';
+	import { onMount } from 'svelte';
+	import { derived, get } from 'svelte/store';
 
-	let appkit = getAppKit() as AppKit;
+	onMount(() => {
+		const appKitInstance = getAppKit();
+		if (appKitInstance) {
+			console.log('DEBUG: is there', appKitInstance);
+			appKitStore.set(appKitInstance);
+		}
+	});
+
+	// let address = $state('');
+	let address = $appKitStore?.getAddress();
 
 	function login() {
-		appkit?.open();
+		$appKitStore?.open();
 	}
 	function openAccount() {
-		appkit?.open({ view: 'Account' });
+		$appKitStore?.open({ view: 'Account' });
 	}
-
-	let address = appkit?.getAddress() ?? '';
 
 	let tab: 'dash' | 'news' | 'state' = $state('dash');
 </script>
