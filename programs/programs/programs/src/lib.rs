@@ -88,6 +88,10 @@ pub mod programs {
     pub fn cleanup_bounty(ctx: Context<CleanupBounty>) -> Result<()> {
         instructions::cleanup_bounty(ctx)
     }
+
+    pub fn claim_bounty(ctx: Context<ClaimBounty>, args: ClaimBountyArgs) -> Result<()> {
+        instructions::claim_bounty(ctx, args)
+    }
 }
 
 #[derive(Accounts)]
