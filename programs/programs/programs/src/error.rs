@@ -28,4 +28,6 @@ pub enum SovereignError {
     InvalidBroker,
     #[msg("Bounty Not Expired")]
     BountyNotExpired,
+    #[msg("Bounty Expired")]
+    BountyExpired,
 }

@@ -1,7 +1,10 @@
 use anchor_lang::{prelude::*, system_program::{transfer, Transfer}};
 use mpl_core::{accounts::{BaseAssetV1, BaseCollectionV1}, fetch_plugin, instructions::{CreateV2CpiBuilder, UpdatePluginV1CpiBuilder}, types::{Attribute, Attributes, FreezeDelegate, Plugin, PluginAuthority, PluginAuthorityPair, PluginType}, ID as MPL_CORE_ID};
+use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
+use groth16_solana::groth16::Groth16Verifier;
 
-use crate::{constant::{GAME_SEED, NATION_STATES, PLAYER_SEED, WALLET_SEED}, error::SovereignError, state::{Bounty, Game, Player, Wallet}};
+use crate::{constant::{GAME_SEED, NATION_STATES, PLAYER_SEED, WALLET_SEED}, error::SovereignError, state::{Bounty, BrokerEscrow, Game, Player, Wallet}, verifying_key::VERIFYINGKEY};
+type G1 = ark_bn254::g1::G1Affine;
 
 pub fn register_player(ctx: Context<RegisterPlayer>, args: RegisterPlayerArgs) -> Result<()> {
     ctx.accounts.player.game_id = ctx.accounts.game.id;
@@ -230,24 +233,77 @@ pub struct StakeOrUnstakeCitizen<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn claim_bounty(ctx: Context<ClaimBounty>) -> Result<()> {
-    Ok(())
+pub fn claim_bounty(ctx: Context<ClaimBounty>, args: ClaimBountyArgs) -> Result<()> {
+    require!(ctx.accounts.bounty.expiry_slot > Clock::get()?.slot, SovereignError::BountyExpired);
+    verify_bounty(ctx.accounts.bounty.bounty_hash, args.bounty_nonce, ctx.accounts.game.bounty_pow_threshold, args.bounty_proof)?;
+
+    transfer(
+        CpiContext::new(ctx.accounts.system_program.to_account_info(), Transfer {
+            from: ctx.accounts.broker_escrow.to_account_info(),
+            to: ctx.accounts.player_authority.to_account_info(),
+        }),
+        ctx.accounts.bounty.amount
+    )?;
+
+    emit!(ClaimBountyEvent {
+        game_id: ctx.accounts.game.id,
+        bounty_hash: ctx.accounts.bounty.bounty_hash,
+        player_authority: ctx.accounts.player_authority.key(),
+        amount: ctx.accounts.bounty.amount,
+    });
+
+    Ok(())  
+}
+
+#[event]
+pub struct ClaimBountyEvent {
+    pub game_id: u64,
+    pub bounty_hash: [u8; 32],
+    pub player_authority: Pubkey,
+    pub amount: u64,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct ClaimBountyArgs {
-    pub bounty_hash: [u8; 32],
+    pub bounty_nonce: [u8; 32],
+    pub bounty_proof: [u8; 256],
 }
 
 #[derive(Accounts)]
 #[instruction(args: ClaimBountyArgs)]
 pub struct ClaimBounty<'info> {
+    #[account(mut)]
     pub player_authority: Signer<'info>,
+    #[account(mut)]
+    pub broker_escrow: Account<'info, BrokerEscrow>,
+    #[account(
+        mut,
+        constraint = bounty.game_id == game.id @ SovereignError::InvalidGameId,
+        close = broker_escrow
+    )]
     pub bounty: Account<'info, Bounty>,
+    pub game: Account<'info, Game>,
     pub system_program: Program<'info, System>,
 }
 
-fn verify_bounty(bounty_hash: [u8; 32], bounty_proof: [u8; 256]) -> Result<()> {
+fn verify_bounty(bounty_hash: [u8; 32], bounty_nonce: [u8; 32], threshold: [u8; 32], proof: [u8; 256]) -> Result<()> {
+    let proof_a: G1 = <G1 as CanonicalDeserialize>::deserialize_uncompressed(
+        &*[&change_endianness(&proof[0..64])[..], &[0u8][..]].concat(),
+    )
+    .unwrap();
+    let mut proof_a_neg = [0u8; 65];
+    <G1 as CanonicalSerialize>::serialize_uncompressed(&-proof_a, &mut proof_a_neg[..])
+        .unwrap();
+    let proof_a: [u8; 64] = change_endianness(&proof_a_neg[..64]).try_into().unwrap();
+    let proof_b: [u8; 128] = proof[64..192].try_into().unwrap();
+    let proof_c: [u8; 64] = proof[192..256].try_into().unwrap();
+
+    let public_inputs = [bounty_hash, bounty_nonce, threshold];
+    let mut verifier =
+        Groth16Verifier::new(&proof_a, &proof_b, &proof_c, &public_inputs, &VERIFYINGKEY)
+        .unwrap();
+    
+    verifier.verify().unwrap();
     Ok(())    
 }
 

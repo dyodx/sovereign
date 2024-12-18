@@ -15,6 +15,9 @@ pub struct Game {
     
     // Citizen Info
     pub mint_cost: u64, //Lamports
+
+    // Bounty Info
+    pub bounty_pow_threshold: [u8; 32],
 }
 
 // Seeds = [BROKER_ESCROW_SEED.as_bytes(), &game_id.to_le_bytes()]

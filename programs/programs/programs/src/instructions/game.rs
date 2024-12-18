@@ -1,7 +1,7 @@
-use anchor_lang::prelude::*;
+use anchor_lang::{prelude::*, system_program::{transfer, Transfer}};
 use mpl_core::{instructions::*, ID as MPL_CORE_ID};
 
-use crate::{constant::{BROKER_ESCROW_SEED, GAME_SEED, NATION_STATES, POOL_SEED, WALLET_SEED}, state::{BrokerEscrow, Game, Pool, Wallet}};
+use crate::{constant::{BROKER_ESCROW_SEED, GAME_SEED, NATION_STATES, POOL_SEED, TXN_FEE, WALLET_SEED}, state::{BrokerEscrow, Game, Pool, Wallet}};
 
 pub fn init_game(ctx: Context<InitGame>, init_game_args: InitGameArgs) -> Result<()> {
 
@@ -28,6 +28,7 @@ pub fn init_game(ctx: Context<InitGame>, init_game_args: InitGameArgs) -> Result
         world_agent: init_game_args.world_agent,
         broker_key: init_game_args.broker_key,
         mint_cost: init_game_args.mint_cost,
+        bounty_pow_threshold: [0u8; 32],
     };
 
     game.set_inner(new_game);
@@ -51,6 +52,14 @@ pub fn init_game(ctx: Context<InitGame>, init_game_args: InitGameArgs) -> Result
     world_agent_wallet.authority = init_game_args.world_agent;
     world_agent_wallet.balances = [0u64; NATION_STATES.len()];
 
+    // Tansfer starting sol into World Agent transfer fees
+    transfer(
+        CpiContext::new(ctx.accounts.system_program.to_account_info(), Transfer {
+            from: ctx.accounts.payer.to_account_info(),
+            to: ctx.accounts.world_agent_wallet.to_account_info(),
+        }),
+        TXN_FEE * 5_000
+    )?;
     Ok(())
 }
 
@@ -62,6 +71,7 @@ pub struct InitGameArgs {
     pub world_agent: Pubkey,
     pub broker_key: Pubkey,
     pub mint_cost: u64,
+    pub bounty_pow_threshold: [u8; 32],
 }
 
 #[derive(Accounts)]

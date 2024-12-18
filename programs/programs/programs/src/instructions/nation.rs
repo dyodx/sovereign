@@ -1,6 +1,6 @@
 use anchor_lang::{prelude::*, system_program::{transfer, Transfer}};
 
-use crate::{constant::NATION_SEED, error::SovereignError, state::{BrokerEscrow, Game, Nation, Wallet}};
+use crate::{constant::{NATION_SEED, TXN_FEE}, error::SovereignError, state::{BrokerEscrow, Game, Nation, Wallet}};
 
 pub fn init_nation(ctx: Context<InitNation>, init_nation_args: InitNationArgs) -> Result<()> {
 
@@ -130,7 +130,7 @@ pub fn deposit_to_broker(ctx: Context<DepositToBroker>, args: DepositToBrokerArg
             from: ctx.accounts.nation_authority.to_account_info(),
             to: ctx.accounts.broker_escrow.to_account_info(),
         }),
-        args.amount
+        args.amount + TXN_FEE //pay for claim fee
     )?;
 
     emit!(DepositToBrokerEvent {
