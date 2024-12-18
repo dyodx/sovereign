@@ -1,7 +1,7 @@
 use anchor_lang::{prelude::*, system_program::{transfer, Transfer}};
 use mpl_core::{accounts::{BaseAssetV1, BaseCollectionV1}, fetch_plugin, instructions::{CreateV2CpiBuilder, UpdatePluginV1CpiBuilder}, types::{Attribute, Attributes, FreezeDelegate, Plugin, PluginAuthority, PluginAuthorityPair, PluginType}, ID as MPL_CORE_ID};
 
-use crate::{constant::{GAME_SEED, NATION_STATES, PLAYER_SEED, WALLET_SEED}, error::SovereignError, state::{Game, Player, Wallet}};
+use crate::{constant::{GAME_SEED, NATION_STATES, PLAYER_SEED, WALLET_SEED}, error::SovereignError, state::{Bounty, Game, Player, Wallet}};
 
 pub fn register_player(ctx: Context<RegisterPlayer>, args: RegisterPlayerArgs) -> Result<()> {
     ctx.accounts.player.game_id = ctx.accounts.game.id;
@@ -228,4 +228,35 @@ pub struct StakeOrUnstakeCitizen<'info> {
     #[account(address = MPL_CORE_ID)]
     pub mpl_core_program: UncheckedAccount<'info>,
     pub system_program: Program<'info, System>,
+}
+
+pub fn claim_bounty(ctx: Context<ClaimBounty>) -> Result<()> {
+    Ok(())
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize)]
+pub struct ClaimBountyArgs {
+    pub bounty_hash: [u8; 32],
+}
+
+#[derive(Accounts)]
+#[instruction(args: ClaimBountyArgs)]
+pub struct ClaimBounty<'info> {
+    pub player_authority: Signer<'info>,
+    pub bounty: Account<'info, Bounty>,
+    pub system_program: Program<'info, System>,
+}
+
+fn verify_bounty(bounty_hash: [u8; 32], bounty_proof: [u8; 256]) -> Result<()> {
+    Ok(())    
+}
+
+fn change_endianness(bytes: &[u8]) -> Vec<u8> {
+    let mut vec = Vec::new();
+    for b in bytes.chunks(32) {
+        for byte in b.iter().rev() {
+            vec.push(*byte);
+        }
+    }
+    vec
 }
