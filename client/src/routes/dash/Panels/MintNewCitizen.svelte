@@ -8,7 +8,7 @@
 	<TipCitizensExplained />
 </div>
 
-<div class="my-6 flex w-full items-center gap-2">
+<div class="my-6 flex w-full flex-wrap items-center gap-2">
 	<p>Recruit</p>
 	<input
 		disabled

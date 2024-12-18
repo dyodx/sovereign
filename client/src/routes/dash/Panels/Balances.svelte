@@ -28,7 +28,7 @@
 			<Table.Head>COIN</Table.Head>
 			<Table.Head class="text-right">COIN/SOL</Table.Head>
 			<Table.Head class="text-right">Amount</Table.Head>
-			<Table.Head class="text-right">in SOL</Table.Head>
+			<Table.Head class="text-right">SOL</Table.Head>
 		</Table.Row>
 	</Table.Header>
 	<Table.Body>

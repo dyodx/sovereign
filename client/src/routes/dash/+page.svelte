@@ -26,17 +26,17 @@
 
 	<!-- BOTTOM SECTION -->
 	<div
-		class={`overflow-y-auto overflow-x-hidden border-r-panel md:h-[calc(100vh-5rem)] md:overflow-x-visible md:overflow-y-visible md:border-r-8`}
+		class={`overflow-y-auto overflow-x-hidden border-r-panel md:h-[calc(100vh-5rem)] md:overflow-x-visible md:border-r-8`}
 	>
 		{#if tab === 'body'}
-			<Body />
+			<Body></Body>
 		{:else if tab === 'news'}
 			<div class="flex w-full flex-col gap-2 overflow-y-auto overflow-x-hidden p-4">
-				<News />
+				<News></News>
 			</div>
 		{/if}
 	</div>
 	<div class="hidden w-full flex-col gap-4 overflow-y-auto overflow-x-hidden p-4 md:flex">
-		<News />
+		<News></News>
 	</div>
 </div>
