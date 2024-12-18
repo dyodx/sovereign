@@ -1,17 +1,11 @@
 <script lang="ts">
 	import { initializeAppKit } from '$lib/wallet/appkit';
 
-	function handler(state: any) {
-		console.log('xxxxx', state);
-	}
-
 	const appkit = initializeAppKit();
-	const props = appkit?.subscribeWalletInfo(handler);
-	const state = appkit?.getState();
-	const wallet = appkit?.getWalletInfo();
 
+	$: network = appkit?.chainNamespaces?.[0];
 	$: address = appkit?.getAddress();
-	$: network = appkit?.getState()?.selectedNetworkId;
+	console.log('debugxxxxxx', appkit?.getWalletInfo());
 </script>
 
 <div class="grid h-screen w-screen place-items-center">
