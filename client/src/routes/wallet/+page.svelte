@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { initializeAppKit } from '$lib/wallet/appkit';
+	import { getAppKit } from '$lib/wallet/appkit';
+	import type { AppKit } from '@reown/appkit';
 
-	const appkit = initializeAppKit();
+	const appkit = getAppKit() as AppKit;
 
 	$: network = appkit?.chainNamespaces?.[0];
 	$: address = appkit?.getAddress();
@@ -14,7 +15,7 @@
 		<p>{address}</p>
 
 		<button onclick={() => appkit?.open()}> login </button>
-		<button onclick={() => appkit?.open({ view: 'Account' })}> Account </button>
-		<button onclick={() => appkit?.open({ view: 'OnRampProviders' })}> ramp </button>
+		<button onclick={() => appkit.open({ view: 'Account' })}> Account </button>
+		<button onclick={() => appkit.open({ view: 'OnRampProviders' })}> ramp </button>
 	</div>
 </div>
