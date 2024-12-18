@@ -6,9 +6,11 @@ import {
 	SolflareWalletAdapter
 } from '@solana/wallet-adapter-wallets';
 import { browser } from '$app/environment';
+import { writable } from 'svelte/store';
 
 export const APPKIT_KEY = Symbol();
 export let appkit: AppKit | null = null;
+export let appkitStore = writable<AppKit | null>(null);
 
 export function initializeAppKit(): AppKit | null {
 	// Only run on client side
