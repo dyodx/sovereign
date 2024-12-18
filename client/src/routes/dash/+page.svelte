@@ -1,9 +1,10 @@
 <script lang="ts">
+	import { cn } from '$lib/utils.js';
 	import Body from './Body.svelte';
 	import News from './News.svelte';
 	import * as Tabs from '$lib/components/ui/tabs';
 
-	let tab: 'body' | 'news' = $state('body');
+	let tab: 'dash' | 'news' | 'state' = $state('dash');
 </script>
 
 <div
@@ -12,11 +13,34 @@
 	<div
 		class="order-last items-center border-t-8 border-panel border-b-panel px-4 md:order-first md:flex md:border-b-8 md:border-r-8 md:border-t-0"
 	>
-		<p class="hidden text-4xl font-bold text-panel md:inline">SOVEREIGN</p>
+		<button
+			class={cn(
+				'hidden text-4xl font-bold md:inline',
+				tab === 'dash' ? 'text-foreground' : 'text-panel'
+			)}
+			onclick={() => {
+				tab = 'dash';
+			}}
+		>
+			SOVEREIGN
+		</button>
+		<span class="hidden text-4xl font-bold text-panel md:ml-4 md:inline"> | </span>
+		<button
+			class={cn(
+				'hidden text-4xl font-bold md:inline',
+				tab === 'state' ? 'text-foreground' : 'text-panel'
+			)}
+			onclick={() => {
+				tab = 'state';
+			}}
+		>
+			NATION STATE
+		</button>
 		<Tabs.Root bind:value={tab} class="w-full py-4 md:hidden">
 			<Tabs.List class="justify-self-end">
-				<Tabs.Trigger value="body">Dashboard</Tabs.Trigger>
+				<Tabs.Trigger value="dash">Dashboard</Tabs.Trigger>
 				<Tabs.Trigger value="news">News</Tabs.Trigger>
+				<Tabs.Trigger value="state">States</Tabs.Trigger>
 			</Tabs.List>
 		</Tabs.Root>
 	</div>
@@ -28,11 +52,15 @@
 	<div
 		class={`overflow-y-auto overflow-x-hidden border-r-panel md:h-[calc(100vh-5rem)] md:overflow-x-visible md:border-r-8`}
 	>
-		{#if tab === 'body'}
+		{#if tab === 'dash'}
 			<Body></Body>
 		{:else if tab === 'news'}
 			<div class="flex w-full flex-col gap-2 overflow-y-auto overflow-x-hidden p-4">
 				<News></News>
+			</div>
+		{:else if tab === 'state'}
+			<div class="flex w-full flex-col gap-2 overflow-y-auto overflow-x-hidden p-4">
+				todo: add state panels
 			</div>
 		{/if}
 	</div>
