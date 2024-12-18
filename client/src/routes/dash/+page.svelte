@@ -3,26 +3,27 @@
 	import Body from './Body.svelte';
 	import News from './News.svelte';
 	import * as Tabs from '$lib/components/ui/tabs';
-	import { getAppKit, appKitStore } from '$lib/wallet/appkit.svelte';
+	import { getAppKit } from '$lib/wallet/appkit.svelte';
 	import { onMount } from 'svelte';
-	import { derived, get } from 'svelte/store';
+	import type { AppKit } from '@reown/appkit';
 
+	let appkit: AppKit | null = $state(null);
+	let address = $state('');
 	onMount(() => {
 		const appKitInstance = getAppKit();
-		if (appKitInstance) {
-			console.log('DEBUG: is there', appKitInstance);
-			appKitStore.set(appKitInstance);
-		}
+		appkit = appKitInstance;
+
+		appkit?.subscribeAccount((e) => {
+			address = e.address ?? '';
+		});
 	});
 
-	// let address = $state('');
-	let address = $appKitStore?.getAddress();
-
 	function login() {
-		$appKitStore?.open();
+		console.log({ appkit });
+		appkit?.open();
 	}
 	function openAccount() {
-		$appKitStore?.open({ view: 'Account' });
+		appkit?.open({ view: 'Account' });
 	}
 
 	let tab: 'dash' | 'news' | 'state' = $state('dash');

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getAppKit } from '$lib/wallet/appkit';
+	import { getAppKit } from '$lib/wallet/appkit.svelte';
 	import type { AppKit } from '@reown/appkit';
 
 	const appkit = getAppKit() as AppKit;

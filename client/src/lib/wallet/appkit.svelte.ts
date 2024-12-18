@@ -1,4 +1,4 @@
-import { AppKit, createAppKit } from '@reown/appkit/react';
+import { AppKit, createAppKit } from '@reown/appkit';
 import { SolanaAdapter } from '@reown/appkit-adapter-solana/react';
 import { solana, solanaTestnet, solanaDevnet } from '@reown/appkit/networks';
 import {
@@ -6,12 +6,9 @@ import {
 	SolflareWalletAdapter
 } from '@solana/wallet-adapter-wallets';
 import { browser } from '$app/environment';
-import { writable } from 'svelte/store';
 
 export const APPKIT_KEY = Symbol();
 export let appkit: AppKit | null = null;
-
-export const appKitStore = writable<AppKit | null>(null);
 
 export function initializeAppKit(): AppKit | null {
 	// Only run on client side
@@ -52,6 +49,5 @@ export function getAppKit() {
 	if (!appkit && browser) {
 		appkit = initializeAppKit();
 	}
-	appKitStore.set(appkit);
 	return appkit;
 }
