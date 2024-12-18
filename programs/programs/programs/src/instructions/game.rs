@@ -29,6 +29,7 @@ pub fn init_game(ctx: Context<InitGame>, init_game_args: InitGameArgs) -> Result
         broker_key: init_game_args.broker_key,
         mint_cost: init_game_args.mint_cost,
         bounty_pow_threshold: [0u8; 32],
+        nations_alive: 0,
     };
 
     game.set_inner(new_game);
@@ -58,7 +59,7 @@ pub fn init_game(ctx: Context<InitGame>, init_game_args: InitGameArgs) -> Result
             from: ctx.accounts.payer.to_account_info(),
             to: ctx.accounts.world_agent_wallet.to_account_info(),
         }),
-        TXN_FEE * 5_000
+        TXN_FEE * 25_000 //should be around 1.25 sol
     )?;
     Ok(())
 }

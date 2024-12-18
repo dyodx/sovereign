@@ -1,9 +1,10 @@
 use anchor_lang::{prelude::*, system_program::{transfer, Transfer}};
 
-use crate::{constant::TXN_FEE, error::SovereignError, state::{Game, Nation}};
+use crate::{constant::{TXN_FEE, WALLET_SEED}, error::SovereignError, state::{Game, Nation, Wallet}};
 
 
 pub fn world_disaster(ctx: Context<WorldDisaster>, args: WorldDisasterArgs) -> Result<()> {
+    require!(ctx.accounts.game_account.nations_alive > 1, SovereignError::GameNotOver);
 
     emit!(WorldDisasterEvent {
         game_id: ctx.accounts.game_account.id,
@@ -49,19 +50,25 @@ pub fn world_disaster(ctx: Context<WorldDisaster>, args: WorldDisasterArgs) -> R
     }
 
     if !nation.is_alive {
+        ctx.accounts.game_account.nations_alive -= 1;
         emit!(NationDissolutionEvent {
             game_id: ctx.accounts.game_account.id,
             nation_id: nation.nation_id,
         });
 
+        let nation_signer_seeds = &[WALLET_SEED.as_bytes(), &ctx.accounts.game_account.id.to_le_bytes(), &nation.authority.to_bytes(), &[ctx.bumps.nation]];
         transfer(
-            CpiContext::new(ctx.accounts.system_program.to_account_info(), Transfer {
-                from: nation.to_account_info(),
-                to: ctx.accounts.world_authority.to_account_info(),
-            }),
+            CpiContext::new_with_signer(
+                ctx.accounts.system_program.to_account_info(), 
+                Transfer {
+                    from: nation.to_account_info(),
+                    to: ctx.accounts.world_agent_wallet.to_account_info(),
+                },
+                &[nation_signer_seeds]
+            ),
             nation.to_account_info().lamports() - TXN_FEE // leave some for transfer fee
         )?;
-    }
+    } 
 
     Ok(())
 }
@@ -94,23 +101,38 @@ pub struct WorldDisasterArgs {
 pub struct WorldDisaster<'info> {
     pub world_authority: Signer<'info>,
     #[account(
+        mut,
+        constraint = world_agent_wallet.authority == world_authority.key() @ SovereignError::InvalidAuthority,
+        seeds = [WALLET_SEED.as_bytes(), &game_account.id.to_le_bytes(), &game_account.world_agent.to_bytes()],
+        bump
+    )]
+    pub world_agent_wallet: Account<'info, Wallet>,
+    #[account(
+        mut,
         constraint = game_account.world_agent == world_authority.key() @ SovereignError::InvalidAuthority
     )]
     pub game_account: Account<'info, Game>,
     #[account(
         mut,
-        constraint = nation.game_id == game_account.id @ SovereignError::InvalidGameId
+        constraint = nation.game_id == game_account.id @ SovereignError::InvalidGameId,
+        seeds = [WALLET_SEED.as_bytes(), &game_account.id.to_le_bytes(), &nation.authority.to_bytes()],
+        bump
     )]
     pub nation: Account<'info, Nation>,
     pub system_program: Program<'info, System>,
 }
 
 pub fn nation_boost(ctx: Context<NationBoost>, args: NationBoostArgs) -> Result<()> {
+    let world_agent_wallet_signer_seeds = &[WALLET_SEED.as_bytes(), &ctx.accounts.game_account.id.to_le_bytes(), &ctx.accounts.game_account.world_agent.to_bytes(), &[ctx.bumps.world_agent_wallet]];
     transfer(
-        CpiContext::new(ctx.accounts.system_program.to_account_info(), Transfer {
-            from: ctx.accounts.world_authority.to_account_info(),
-            to: ctx.accounts.nation.to_account_info(),
-        }),
+        CpiContext::new_with_signer(
+            ctx.accounts.system_program.to_account_info(),
+            Transfer {
+                from: ctx.accounts.world_agent_wallet.to_account_info(),
+                to: ctx.accounts.nation_authority.to_account_info(),
+            },
+            &[world_agent_wallet_signer_seeds]
+        ),
         args.lamports_amount
     )?;
 
@@ -139,6 +161,12 @@ pub struct NationBoostEvent {
 pub struct NationBoost<'info> {
     pub world_authority: Signer<'info>,
     #[account(
+        mut,
+        seeds = [WALLET_SEED.as_bytes(), &game_account.id.to_le_bytes(), &game_account.world_agent.to_bytes()],
+        bump
+    )]
+    pub world_agent_wallet: Account<'info, Wallet>,
+    #[account(
         constraint = game_account.world_agent == world_authority.key() @ SovereignError::InvalidAuthority
     )]
     pub game_account: Account<'info, Game>,
@@ -147,5 +175,8 @@ pub struct NationBoost<'info> {
         constraint = nation.game_id == game_account.id @ SovereignError::InvalidGameId
     )]
     pub nation: Account<'info, Nation>,
+    /// CHECK: Checked in instruction
+    #[account(address = nation.authority)]
+    pub nation_authority: UncheckedAccount<'info>,
     pub system_program: Program<'info, System>,
 }

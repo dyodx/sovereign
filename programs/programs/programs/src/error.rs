@@ -29,5 +29,7 @@ pub enum SovereignError {
     #[msg("Bounty Not Expired")]
     BountyNotExpired,
     #[msg("Bounty Expired")]
-    BountyExpired,
-}
+    BountyExpired,  
+    #[msg("Game Not Over")]
+    GameNotOver,
+}   

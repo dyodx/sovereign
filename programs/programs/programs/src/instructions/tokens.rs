@@ -2,67 +2,19 @@ use anchor_lang::system_program::Transfer;
 use anchor_lang::system_program::transfer;
 use anchor_lang::prelude::*;
 
+use crate::constant::WALLET_SEED;
 use crate::state::Wallet;
 use crate::{error::SovereignError, state::{Game, Pool}};
 
-// World Agent Deposit Or Withdraw Solana
-pub fn deposit_or_withdraw_solana(ctx: Context<DepositOrWithdrawSolana>, args: DepositOrWithdrawSolanaArgs) -> Result<()> {
-    if args.is_deposit {
-        transfer(
-            CpiContext::new(ctx.accounts.system_program.to_account_info(), Transfer {
-                from: ctx.accounts.world_agent.to_account_info(),
-                to: ctx.accounts.game_pool.to_account_info(),
-            }),
-            args.lamports
-        )?;
-        ctx.accounts.game_pool.balances[0] += args.lamports;
-    } else {
-        transfer(
-            CpiContext::new(ctx.accounts.system_program.to_account_info(), Transfer {
-                from: ctx.accounts.game_pool.to_account_info(),
-                to: ctx.accounts.world_agent.to_account_info(),
-            }),
-            args.lamports
-        )?;
-        ctx.accounts.game_pool.balances[0] -= args.lamports;
-    }
-    let invariant = calculate_invariant_for_pool(&ctx.accounts.game_pool);
-    auto_balance_pool(&mut ctx.accounts.game_pool, invariant)?;
-
-    Ok(())
-}
-
-#[derive(AnchorSerialize, AnchorDeserialize)]
-pub struct DepositOrWithdrawSolanaArgs {
-    pub lamports: u64,
-    pub is_deposit: bool,
-}
-
-#[derive(Accounts)]
-pub struct DepositOrWithdrawSolana<'info> {
-    #[account(mut)]
-    pub world_agent: Signer<'info>,
-    #[account(constraint = game_account.world_agent == world_agent.key())]
-    pub game_account: Account<'info, Game>,
-    #[account(
-        mut,
-        constraint = game_pool.game_id == game_account.id @ SovereignError::InvalidGameId
-    )]
-    pub game_pool: Account<'info, Pool>,
-    pub system_program: Program<'info, System>,
-}
-
-// World Agent Deposit or Withdraw Token
-pub fn deposit_or_withdraw_token(ctx: Context<DepositOrWithdrawToken>, args: DepositOrWithdrawTokenArgs) -> Result<()> {
-    if args.token_idx == 0 {
-        return Err(SovereignError::UseSolanaForDepositOrWithdraw.into());
-    }
-
+// WORLD AGENT ONLY
+pub fn deposit_or_withdraw_token_from_wallet_to_pool(ctx: Context<DepositOrWithdrawToken>, args: DepositOrWithdrawTokenArgs) -> Result<()> {
     // Transfer Token to World Agent Wallet to Pool
      if args.is_deposit {
+        require!(ctx.accounts.world_agent_wallet.balances[args.token_idx] >= args.amount, SovereignError::InsufficientFunds);
         ctx.accounts.world_agent_wallet.balances[args.token_idx] -= args.amount;
         ctx.accounts.game_pool.balances[args.token_idx] += args.amount;
     } else {
+        require!(ctx.accounts.game_pool.balances[args.token_idx] >= args.amount, SovereignError::InsufficientFunds);
         ctx.accounts.world_agent_wallet.balances[args.token_idx] += args.amount;
         ctx.accounts.game_pool.balances[args.token_idx] -= args.amount;
     }
@@ -83,7 +35,6 @@ pub struct DepositOrWithdrawTokenArgs {
 
 #[derive(Accounts)]
 pub struct DepositOrWithdrawToken<'info> {
-    #[account(mut)]
     pub world_agent: Signer<'info>,
     #[account(
         constraint = world_agent_wallet.authority == world_agent.key()
@@ -96,82 +47,6 @@ pub struct DepositOrWithdrawToken<'info> {
         constraint = game_pool.game_id == game_account.id @ SovereignError::InvalidGameId
     )]
     pub game_pool: Account<'info, Pool>,
-}
-
-// Swap Token<>Solana
-pub fn swap_token_to_solana(ctx: Context<SwapTokenToSolana>, args: SwapTokenToSolanaArgs) -> Result<()> {
-    require!(args.token_idx < ctx.accounts.game_pool.balances.len(), SovereignError::InvalidTokenIdx);
-    require!((args.amount_in > 0 || args.sol_in > 0) && (args.amount_in != 0 || args.sol_in != 0), SovereignError::InvalidAmount);
-
-    if args.sol_in > 0 {
-        let old_balance_in = ctx.accounts.game_pool.balances[0];
-        let old_balance_out = ctx.accounts.game_pool.balances[args.token_idx];
-        
-        transfer(
-            CpiContext::new(ctx.accounts.system_program.to_account_info(), Transfer {
-                from: ctx.accounts.wallet_authority.to_account_info(),
-                to: ctx.accounts.game_pool.to_account_info(),
-            }),
-            args.sol_in
-        )?;
-        ctx.accounts.game_pool.balances[0] += args.sol_in;
-
-        let amount_out = calculate_amount_out(
-            &ctx.accounts.game_pool,
-            0,
-            args.token_idx,
-            args.sol_in,
-            old_balance_in,
-            old_balance_out
-        )?;
-
-        ctx.accounts.game_pool.balances[args.token_idx] = old_balance_out.checked_sub(amount_out).ok_or(SovereignError::MathOverflow)?;
-        ctx.accounts.wallet.balances[args.token_idx] = ctx.accounts.wallet.balances[args.token_idx].checked_add(amount_out).ok_or(SovereignError::MathOverflow)?;
-    } else {
-        let old_balance_in = ctx.accounts.game_pool.balances[args.token_idx];
-        let old_balance_out = ctx.accounts.game_pool.balances[0];
-
-        ctx.accounts.game_pool.balances[args.token_idx] = old_balance_in.checked_sub(args.amount_in).ok_or(SovereignError::MathOverflow)?;
-        ctx.accounts.game_pool.balances[0] = old_balance_out.checked_add(args.amount_in).ok_or(SovereignError::MathOverflow)?;
-
-        let amount_out = calculate_amount_out(
-            &ctx.accounts.game_pool,
-            args.token_idx,
-            0,
-            args.amount_in,
-            old_balance_in,
-            old_balance_out
-        )?;
-
-        ctx.accounts.game_pool.balances[0] = old_balance_out.checked_sub(amount_out).ok_or(SovereignError::MathOverflow)?;
-        transfer(
-            CpiContext::new(ctx.accounts.system_program.to_account_info(), Transfer {
-                from: ctx.accounts.game_pool.to_account_info(),
-                to: ctx.accounts.wallet_authority.to_account_info(),
-            }),
-            amount_out
-        )?;
-    }
-    
-    Ok(())
-}
-
-#[derive(AnchorSerialize, AnchorDeserialize)]
-pub struct SwapTokenToSolanaArgs {
-    pub token_idx: usize,
-    pub amount_in: u64,
-    pub sol_in: u64,
-}
-
-#[derive(Accounts)]
-pub struct SwapTokenToSolana<'info> {
-    #[account(mut)]
-    pub wallet_authority: Signer<'info>,
-    #[account(mut, constraint = wallet.authority == wallet_authority.key())]
-    pub wallet: Account<'info, Wallet>,
-    #[account(mut, constraint = game_pool.game_id == wallet.game_id @ SovereignError::InvalidGameId)]
-    pub game_pool: Account<'info, Pool>,
-    pub system_program: Program<'info, System>,
 }
 
 // Swap Token<>Token
@@ -244,8 +119,6 @@ pub struct SwapTokenToToken<'info> {
     #[account(mut, constraint = game_pool.game_id == wallet.game_id @ SovereignError::InvalidGameId)]
     pub game_pool: Account<'info, Pool>,
 }
-
-
 
 //// Util Functions
 fn calculate_invariant_for_pool(pool: &Pool) -> u128 {
@@ -348,4 +221,58 @@ pub struct TransferTokens<'info> {
     pub wallet: Account<'info, Wallet>,
     #[account(mut)]
     pub receiver: Account<'info, Wallet>,
+}
+
+// Deposit/Withdraw SOL from Wallet Account
+pub fn deposit_or_withdraw_sol_to_wallet(ctx: Context<DepositOrWithdrawSol>, args: DepositOrWithdrawSolArgs) -> Result<()> {
+    require!(args.amount > 0, SovereignError::InvalidAmount);
+
+    if args.is_deposit {
+        transfer(
+            CpiContext::new(ctx.accounts.system_program.to_account_info(), Transfer {
+                from: ctx.accounts.wallet_authority.to_account_info(),
+                to: ctx.accounts.wallet.to_account_info(),
+            }),
+            args.amount
+        )?;
+        ctx.accounts.wallet.balances[0] = ctx.accounts.wallet.balances[0].checked_add(args.amount).ok_or(SovereignError::MathOverflow)?;
+    } else {
+        let wallet_account_signer_seeds = &[WALLET_SEED.as_bytes(), &ctx.accounts.game_account.id.to_le_bytes(), &ctx.accounts.wallet_authority.key().to_bytes(),&[ctx.bumps.wallet]];
+        transfer(
+            CpiContext::new_with_signer(
+                ctx.accounts.system_program.to_account_info(),
+                Transfer {
+                    from: ctx.accounts.wallet.to_account_info(),
+                    to: ctx.accounts.wallet_authority.to_account_info(),
+                },
+                &[wallet_account_signer_seeds]
+            ),
+            args.amount
+        )?;
+        ctx.accounts.wallet.balances[0] = ctx.accounts.wallet.balances[0].checked_sub(args.amount).ok_or(SovereignError::MathOverflow)?;
+    }
+
+    Ok(())
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize)]
+pub struct DepositOrWithdrawSolArgs {
+    pub amount: u64,
+    pub is_deposit: bool,
+}
+
+#[derive(Accounts)]
+pub struct DepositOrWithdrawSol<'info> {
+    #[account(mut)]
+    pub wallet_authority: Signer<'info>,
+    #[account(
+        mut,
+        constraint = wallet.authority == wallet_authority.key(),
+        seeds = [WALLET_SEED.as_bytes(), &game_account.id.to_le_bytes(), &wallet_authority.key().to_bytes()],
+        bump
+    )]
+    pub wallet: Account<'info, Wallet>,
+    #[account(constraint = game_account.id == wallet.game_id @ SovereignError::InvalidGameId)]
+    pub game_account: Account<'info, Game>,
+    pub system_program: Program<'info, System>,
 }

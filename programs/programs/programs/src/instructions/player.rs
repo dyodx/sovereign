@@ -55,10 +55,12 @@ pub fn mint_citizen(ctx: Context<MintCitizen>) -> Result<()> {
     transfer(
         CpiContext::new(ctx.accounts.system_program.to_account_info(), Transfer {
             from: ctx.accounts.player_authority.to_account_info(),
-            to: ctx.accounts.world_agent.to_account_info(),
+            to: ctx.accounts.world_agent_wallet.to_account_info(),
         }),
         ctx.accounts.game_account.mint_cost
     )?;
+    // Mint Price is sent 100% to World Agent as SOL
+    ctx.accounts.world_agent_wallet.balances[0] += ctx.accounts.game_account.mint_cost;
 
     let signers_seeds = &[
         GAME_SEED.as_bytes(), &ctx.accounts.game_account.id.to_le_bytes(), &[ctx.bumps.game_account]
@@ -133,9 +135,10 @@ pub struct MintCitizen<'info> {
     /// CHECK: 
     #[account(
         mut,
-        constraint = world_agent.key() == game_account.world_agent @ SovereignError::InvalidWorldAgent
+        seeds = [WALLET_SEED.as_bytes(), &game_account.id.to_le_bytes(), &game_account.world_agent.to_bytes()],
+        bump
     )]
-    pub world_agent: UncheckedAccount<'info>,
+    pub world_agent_wallet: Account<'info, Wallet>,
     #[account(mut)]
     pub collection: Account<'info, BaseCollectionV1>,
     #[account(mut)]
@@ -237,11 +240,16 @@ pub fn claim_bounty(ctx: Context<ClaimBounty>, args: ClaimBountyArgs) -> Result<
     require!(ctx.accounts.bounty.expiry_slot > Clock::get()?.slot, SovereignError::BountyExpired);
     verify_bounty(ctx.accounts.bounty.bounty_hash, args.bounty_nonce, ctx.accounts.game.bounty_pow_threshold, args.bounty_proof)?;
 
+    let broker_escrow_signer_seeds = &[WALLET_SEED.as_bytes(), &ctx.accounts.game.id.to_le_bytes(), &ctx.accounts.game.broker_key.to_bytes(), &[ctx.bumps.broker_escrow]];
     transfer(
-        CpiContext::new(ctx.accounts.system_program.to_account_info(), Transfer {
-            from: ctx.accounts.broker_escrow.to_account_info(),
-            to: ctx.accounts.player_authority.to_account_info(),
-        }),
+        CpiContext::new_with_signer(
+            ctx.accounts.system_program.to_account_info(), 
+            Transfer {
+                from: ctx.accounts.broker_escrow.to_account_info(),
+                to: ctx.accounts.player_authority.to_account_info(),
+            },
+            &[broker_escrow_signer_seeds]
+        ),
         ctx.accounts.bounty.amount
     )?;
 
@@ -274,7 +282,11 @@ pub struct ClaimBountyArgs {
 pub struct ClaimBounty<'info> {
     #[account(mut)]
     pub player_authority: Signer<'info>,
-    #[account(mut)]
+    #[account(
+        mut,
+        seeds = [WALLET_SEED.as_bytes(), &game.id.to_le_bytes(), &game.broker_key.to_bytes()],
+        bump
+    )]
     pub broker_escrow: Account<'info, BrokerEscrow>,
     #[account(
         mut,

@@ -25,23 +25,19 @@ pub mod programs {
         instructions::init_game(ctx, init_game_args)
     }
 
-    pub fn deposit_or_withdraw_solana(ctx: Context<DepositOrWithdrawSolana>, args: DepositOrWithdrawSolanaArgs) -> Result<()> {
-        instructions::deposit_or_withdraw_solana(ctx, args)
+    pub fn deposit_or_withdraw_sol_to_wallet(ctx: Context<DepositOrWithdrawSol>, args: DepositOrWithdrawSolArgs) -> Result<()> {
+        instructions::deposit_or_withdraw_sol_to_wallet(ctx, args)
     }
 
-    pub fn deposit_or_withdraw_token(ctx: Context<DepositOrWithdrawToken>, args: DepositOrWithdrawTokenArgs) -> Result<()> {
-        instructions::deposit_or_withdraw_token(ctx, args)
+    pub fn deposit_or_withdraw_token_from_wallet_to_pool(ctx: Context<DepositOrWithdrawToken>, args: DepositOrWithdrawTokenArgs) -> Result<()> {
+        instructions::deposit_or_withdraw_token_from_wallet_to_pool(ctx, args)
     }
 
     pub fn swap_token_to_token(ctx: Context<SwapTokenToToken>, args: SwapTokenToTokenArgs) -> Result<()> {
         instructions::swap_token_to_token(ctx, args)
     }
 
-    pub fn swap_token_to_solana(ctx: Context<SwapTokenToSolana>, args: SwapTokenToSolanaArgs) -> Result<()> {
-        instructions::swap_token_to_solana(ctx, args)
-    }
-
-    pub fn transfer_tokens(ctx: Context<TransferTokens>, args: TransferTokensArgs) -> Result<()> {
+    pub fn transfer_tokens_from_wallet_to_wallet(ctx: Context<TransferTokens>, args: TransferTokensArgs) -> Result<()> {
         instructions::transfer_tokens(ctx, args)
     }
 
@@ -90,7 +86,15 @@ pub mod programs {
     }
 
     pub fn claim_bounty(ctx: Context<ClaimBounty>, args: ClaimBountyArgs) -> Result<()> {
-        instructions::claim_bounty(ctx, args)
+        instructions::claim_bounty(ctx, args)   
+    }
+
+    pub fn coup_nation(ctx: Context<CoupNation>) -> Result<()> {
+        instructions::coup_nation(ctx)
+    }
+
+    pub fn loot_nation(ctx: Context<LootNation>) -> Result<()> {
+        instructions::loot_nation(ctx)
     }
 }
 

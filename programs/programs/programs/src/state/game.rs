@@ -18,6 +18,9 @@ pub struct Game {
 
     // Bounty Info
     pub bounty_pow_threshold: [u8; 32],
+
+    // Nations Alive
+    pub nations_alive: u8,
 }
 
 // Seeds = [BROKER_ESCROW_SEED.as_bytes(), &game_id.to_le_bytes()]

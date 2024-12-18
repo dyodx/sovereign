@@ -7,6 +7,7 @@ pub struct Nation {
     pub game_id: u64,
     pub nation_id: u8, // 0-MAX_NATIONS_SIZE
     pub authority: Pubkey,
+    pub minted_tokens_total: u64,
 
     // Stats
     pub gdp: u64,
