@@ -6,11 +6,34 @@
 	import { getAppKit } from '$lib/wallet/appkit.svelte';
 	import { onMount } from 'svelte';
 	import type { AppKit } from '@reown/appkit';
+	import { Connection, PublicKey } from '@solana/web3.js';
 
 	let appkit: AppKit | null = $state(null);
 	let address = $state('');
+
+	const rpc = 'https://mainnet.helius-rpc.com/?api-key=448adf9e-7365-467a-843d-1adfde85dbd9';
+	const connection = new Connection(rpc, 'confirmed');
+	let publicKey = $derived(address === '' ? null : new PublicKey(address));
+	let resolvedBalance = $state(5); // or whatever default value you prefer
+
+	let balance = $derived.by(() => {
+		if (connection && address !== '') {
+			connection
+				.getBalance(publicKey as PublicKey)
+				.then((data) => {
+					resolvedBalance = data;
+				})
+				.catch((error) => {
+					console.error('Error fetching balance:', error);
+					resolvedBalance = 0; // or whatever error value you want
+				});
+		}
+		return resolvedBalance;
+	});
+
 	onMount(() => {
 		const appKitInstance = getAppKit();
+
 		appkit = appKitInstance;
 
 		appkit?.subscribeAccount((e) => {
@@ -65,6 +88,7 @@
 				<button onclick={openAccount} class="rounded-xl bg-panel px-4 py-2">
 					<div class="group flex items-center gap-4">
 						<span class="tracking-tight">
+							{balance} SOL |
 							{address.substring(0, 4)}
 							{address.substring(address.length - 4, address.length)}
 						</span>
