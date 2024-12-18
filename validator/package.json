@@ -1,0 +1,14 @@
+{
+  "name": "validator",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "scripts": {
+    "copy-deps": "cp ../programs/target/deploy/programs.so ./src/deps/soverign.so && cp ../programs/deps/mpl_core_program.so ./src/deps/mpl_core_program.so && cp -r ../programs/localnet-keys/* ./src/keys",
+    "build-container": "cd src && docker build -t sovereign ."
+  }
+}

@@ -13,7 +13,9 @@
   "workspaces": [
     "programs/*",
     "agents/*",
-    "circuits/*"
+    "circuits/*",
+    "backend/*",
+    "validator/*"
   ],
   "scripts": {
     "test:programs": "bun run --cwd=./programs test",
