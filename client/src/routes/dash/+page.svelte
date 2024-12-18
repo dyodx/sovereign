@@ -31,6 +31,8 @@
 		return resolvedBalance;
 	});
 
+	// TODO REFACTOR THIS TO AVOID THE ONMOUNT
+	// endgoal: use the appkit in balance panel without drill propping
 	onMount(() => {
 		const appKitInstance = getAppKit();
 
