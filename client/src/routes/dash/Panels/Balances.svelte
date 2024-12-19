@@ -1,6 +1,9 @@
 <script lang="ts">
 	import * as Table from '$lib/components/ui/table';
 	import TipCitizensExplained from '../Tooltips/TipCitizensExplained.svelte';
+	import { walletStore } from '$lib/stores/wallet.svelte';
+
+	let balance = $derived.by(() => ($walletStore.connected ? $walletStore.balance : 0));
 
 	let data = [
 		{
@@ -20,6 +23,10 @@
 	<p class="text-light text-2xl md:text-4xl">Balances</p>
 	<TipCitizensExplained />
 </div>
+
+<p>
+	SOL balance: {balance}
+</p>
 
 <Table.Root>
 	<Table.Caption class="py-2">view all coins</Table.Caption>

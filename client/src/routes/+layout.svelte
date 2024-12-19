@@ -1,8 +1,10 @@
 <script lang="ts">
 	import '../app.css';
-	import { pwaInfo } from 'virtual:pwa-info';
 
+	//@ts-expect-error: compiler fails to see this dependency
+	import { pwaInfo } from 'virtual:pwa-info';
 	const webManifestLink = $derived(pwaInfo ? pwaInfo.webManifest.linkTag : '');
+
 	let { children } = $props();
 </script>
 

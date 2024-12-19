@@ -8,6 +8,10 @@ for development
 `pnpm run dev`
 
 
+# Reown
+- using js implementation (no svelte)
+- use the appkit actions to manually open stuff https://docs.reown.com/appkit/javascript/core/actions#open-and-close-the-modal
+
 # Todo
 - [ ] add PoW
 - [x] add toggle to show news on mobile view (root layout design)
