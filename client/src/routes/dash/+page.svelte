@@ -25,7 +25,6 @@
 		appkit = getAppKit();
 
 		appkit?.subscribeAccount((e) => {
-			console.log('event', e);
 			walletStore.update((state) => ({
 				...state,
 				address: e.address ?? null,
@@ -37,14 +36,14 @@
 	const rpc = 'https://mainnet.helius-rpc.com/?api-key=448adf9e-7365-467a-843d-1adfde85dbd9';
 	const connection = new Connection(rpc, 'confirmed');
 	let publicKey = $derived(address === '' ? null : new PublicKey(address as string));
-	let resolvedBalance = $state(5); // or whatever default value you prefer
+	let resolvedBalance = $state(0);
 
 	let balance = $derived.by(() => {
 		if (connection && address !== '') {
-			connection
-				.getBalance(publicKey as PublicKey)
+			connection // connection to solana rpc endpoint
+				.getBalance(publicKey as PublicKey) // fetch balance from connection
 				.then((data) => {
-					resolvedBalance = data / LAMPORTS_PER_SOL;
+					resolvedBalance = data / LAMPORTS_PER_SOL; // correct the decimal placement
 					walletStore.update((state) => ({
 						...state,
 						balance: resolvedBalance
@@ -63,7 +62,7 @@
 	class="grid h-screen w-screen md:grid-cols-[2fr_1fr] md:grid-rows-[5rem_1fr] md:overflow-x-hidden"
 >
 	<div
-		class="order-last justify-between border-t-8 border-panel border-b-panel px-4 md:order-first md:flex md:border-b-8 md:border-r-8 md:border-t-0"
+		class="order-last justify-center border-t-8 border-panel border-b-panel px-4 md:order-first md:flex md:justify-between md:border-b-8 md:border-r-8 md:border-t-0"
 	>
 		<div class="flex items-center">
 			<button
