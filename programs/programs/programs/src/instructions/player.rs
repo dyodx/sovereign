@@ -148,6 +148,7 @@ pub struct MintCitizen<'info> {
         bump,
     )]
     pub game_account: Account<'info, Game>,
+    /// CHECK: constraint checks it
     #[account(address = MPL_CORE_ID)]
     pub mpl_core_program: UncheckedAccount<'info>,
     pub system_program: Program<'info, System>,
@@ -231,6 +232,7 @@ pub struct StakeOrUnstakeCitizen<'info> {
         bump,
     )]
     pub game_account: Account<'info, Game>,
+    /// CHECK: constraint checks it
     #[account(address = MPL_CORE_ID)]
     pub mpl_core_program: UncheckedAccount<'info>,
     pub system_program: Program<'info, System>,

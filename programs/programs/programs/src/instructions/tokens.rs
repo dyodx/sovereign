@@ -10,13 +10,13 @@ use crate::{error::SovereignError, state::{Game, Pool}};
 pub fn deposit_or_withdraw_token_from_wallet_to_pool(ctx: Context<DepositOrWithdrawToken>, args: DepositOrWithdrawTokenArgs) -> Result<()> {
     // Transfer Token to World Agent Wallet to Pool
      if args.is_deposit {
-        require!(ctx.accounts.world_agent_wallet.balances[args.token_idx] >= args.amount, SovereignError::InsufficientFunds);
-        ctx.accounts.world_agent_wallet.balances[args.token_idx] -= args.amount;
-        ctx.accounts.game_pool.balances[args.token_idx] += args.amount;
+        require!(ctx.accounts.world_agent_wallet.balances[args.token_idx as usize] >= args.amount, SovereignError::InsufficientFunds);
+        ctx.accounts.world_agent_wallet.balances[args.token_idx as usize] -= args.amount;
+        ctx.accounts.game_pool.balances[args.token_idx as usize] += args.amount;
     } else {
-        require!(ctx.accounts.game_pool.balances[args.token_idx] >= args.amount, SovereignError::InsufficientFunds);
-        ctx.accounts.world_agent_wallet.balances[args.token_idx] += args.amount;
-        ctx.accounts.game_pool.balances[args.token_idx] -= args.amount;
+        require!(ctx.accounts.game_pool.balances[args.token_idx as usize] >= args.amount, SovereignError::InsufficientFunds);
+        ctx.accounts.world_agent_wallet.balances[args.token_idx as usize] += args.amount;
+        ctx.accounts.game_pool.balances[args.token_idx as usize] -= args.amount;
     }
     
     // Update Game Pool
@@ -28,7 +28,7 @@ pub fn deposit_or_withdraw_token_from_wallet_to_pool(ctx: Context<DepositOrWithd
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct DepositOrWithdrawTokenArgs {
-    pub token_idx: usize,
+    pub token_idx: u8,
     pub amount: u64,
     pub is_deposit: bool,
 }
@@ -51,34 +51,34 @@ pub struct DepositOrWithdrawToken<'info> {
 
 // Swap Token<>Token
 pub fn swap_token_to_token(ctx: Context<SwapTokenToToken>, args: SwapTokenToTokenArgs) -> Result<()> {
-    require!(args.from_token_idx < ctx.accounts.game_pool.balances.len(), SovereignError::InvalidTokenIdx);
-    require!(args.to_token_idx < ctx.accounts.game_pool.balances.len(), SovereignError::InvalidTokenIdx);
+    require!(args.from_token_idx < ctx.accounts.game_pool.balances.len() as u8, SovereignError::InvalidTokenIdx);
+    require!(args.to_token_idx < ctx.accounts.game_pool.balances.len() as u8, SovereignError::InvalidTokenIdx);
     require!(args.from_token_idx != args.to_token_idx, SovereignError::InvalidTokenIdx);
     require!(args.amount_in > 0, SovereignError::InvalidAmount);
-    require!(ctx.accounts.wallet.balances[args.from_token_idx] >= args.amount_in, SovereignError::InsufficientFunds);
+    require!(ctx.accounts.wallet.balances[args.from_token_idx as usize] >= args.amount_in, SovereignError::InsufficientFunds);
 
-    let old_in_balance = ctx.accounts.game_pool.balances[args.from_token_idx];
-    let old_out_balance = ctx.accounts.game_pool.balances[args.to_token_idx];
+    let old_in_balance = ctx.accounts.game_pool.balances[args.from_token_idx as usize];
+    let old_out_balance = ctx.accounts.game_pool.balances[args.to_token_idx as usize];
 
     // Add input amount to pool
-    ctx.accounts.game_pool.balances[args.from_token_idx] = old_in_balance.checked_add(args.amount_in).ok_or(SovereignError::MathOverflow)?;
+    ctx.accounts.game_pool.balances[args.from_token_idx as usize] = old_in_balance.checked_add(args.amount_in).ok_or(SovereignError::MathOverflow)?;
 
     // Calculate new output amount
     let amount_out = calculate_amount_out(
         &ctx.accounts.game_pool,
-        args.from_token_idx,
-        args.to_token_idx,
+        args.from_token_idx as usize,
+        args.to_token_idx as usize,
         args.amount_in,
         old_in_balance,
         old_out_balance
     )?;
 
     // Remove output amount from pool
-    ctx.accounts.game_pool.balances[args.to_token_idx] = old_out_balance.checked_sub(amount_out).ok_or(SovereignError::MathOverflow)?;
+    ctx.accounts.game_pool.balances[args.to_token_idx as usize] = old_out_balance.checked_sub(amount_out).ok_or(SovereignError::MathOverflow)?;
 
     // Update Wallet
-    ctx.accounts.wallet.balances[args.from_token_idx] = old_in_balance.checked_sub(args.amount_in).ok_or(SovereignError::MathOverflow)?;
-    ctx.accounts.wallet.balances[args.to_token_idx] = old_out_balance.checked_add(amount_out).ok_or(SovereignError::MathOverflow)?;
+    ctx.accounts.wallet.balances[args.from_token_idx as usize] = old_in_balance.checked_sub(args.amount_in).ok_or(SovereignError::MathOverflow)?;
+    ctx.accounts.wallet.balances[args.to_token_idx as usize] = old_out_balance.checked_add(amount_out).ok_or(SovereignError::MathOverflow)?;
 
     Ok(())
 }
@@ -106,8 +106,8 @@ fn calculate_amount_out(pool: &Pool, from_token_idx: usize, to_token_idx: usize,
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct SwapTokenToTokenArgs {
-    pub from_token_idx: usize,
-    pub to_token_idx: usize,
+    pub from_token_idx: u8,
+    pub to_token_idx: u8,
     pub amount_in: u64,
 }
 
@@ -198,18 +198,18 @@ fn auto_balance_pool(pool: &mut Pool, target_invariant: u128) -> Result<()> {
 
 
 pub fn transfer_tokens(ctx: Context<TransferTokens>, args: TransferTokensArgs) -> Result<()> {
-    require!(args.token_idx < ctx.accounts.wallet.balances.len(), SovereignError::InvalidTokenIdx);
-    require!(ctx.accounts.wallet.balances[args.token_idx] >= args.amount, SovereignError::InsufficientFunds);
+    require!(args.token_idx < ctx.accounts.wallet.balances.len() as u8, SovereignError::InvalidTokenIdx);
+    require!(ctx.accounts.wallet.balances[args.token_idx as usize] >= args.amount, SovereignError::InsufficientFunds);
 
-    ctx.accounts.wallet.balances[args.token_idx] = ctx.accounts.wallet.balances[args.token_idx].checked_sub(args.amount).ok_or(SovereignError::MathOverflow)?;
-    ctx.accounts.receiver.balances[args.token_idx] = ctx.accounts.receiver.balances[args.token_idx].checked_add(args.amount).ok_or(SovereignError::MathOverflow)?;
+    ctx.accounts.wallet.balances[args.token_idx as usize] = ctx.accounts.wallet.balances[args.token_idx as usize].checked_sub(args.amount).ok_or(SovereignError::MathOverflow)?;
+    ctx.accounts.receiver.balances[args.token_idx as usize] = ctx.accounts.receiver.balances[args.token_idx as usize].checked_add(args.amount).ok_or(SovereignError::MathOverflow)?;
 
     Ok(())
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct TransferTokensArgs {
-    pub token_idx: usize,
+    pub token_idx: u8,
     pub amount: u64,
 }
 
