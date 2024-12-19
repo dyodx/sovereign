@@ -1,7 +1,7 @@
 <script lang="ts">
 	import TipCitizensExplained from '../Tooltips/TipCitizensExplained.svelte';
-	import Combobox from '$lib/components/molecules/Combobox/Combobox.svelte';
 	import IconExchange from '$lib/components/atoms/icons/IconExchange.svelte';
+	import Combobox from '$lib/components/molecules/Combobox/Combobox.svelte';
 	import { currencies } from '$lib/constants/currencies';
 
 	const options = currencies;
