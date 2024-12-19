@@ -25,8 +25,8 @@
 </div>
 
 <div class="flex gap-2">
-	<p class="mt-2 w-fit rounded-full bg-black px-4 py-2">
-		SOL balance: {balance}
+	<p class="mt-2 w-fit rounded-full bg-background px-4 py-2 text-sm font-thin text-foreground">
+		{balance} SOL
 	</p>
 </div>
 
