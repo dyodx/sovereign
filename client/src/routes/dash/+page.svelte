@@ -22,7 +22,7 @@
 	let tab: 'dash' | 'news' | 'state' = $state('dash');
 
 	onMount(() => {
-		appkit = getAppKit();
+		appkit = getAppKit(); // initialize appkit
 
 		appkit?.subscribeAccount((e) => {
 			walletStore.update((state) => ({
