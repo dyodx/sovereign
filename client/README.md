@@ -22,14 +22,16 @@ for development
 - [ ] add notifications
 
 # TODO 2
-- [ ] recruit citizen: move everything to the button
+- [x] recruit citizen: move everything to the button
     - move it above my citizens with recruit
     - ditch modal and just go to confirmation screen
 - [ ] balances
     - add a "your total sol balance" (maybe where question mark is?)
     - need a deposit sol button
     - withdrawl sol
-- [ ] add reown wallet - https://reown.com/
+- [x] add reown wallet - https://reown.com/
+- [ ] add stake modal to citizen (design)
+- [ ] add PoW
 
 
 - PoW need to add hashing
