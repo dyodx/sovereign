@@ -6,7 +6,6 @@ import {
 	SolflareWalletAdapter
 } from '@solana/wallet-adapter-wallets';
 import { browser } from '$app/environment';
-import { writable } from 'svelte/store';
 
 export const APPKIT_KEY = Symbol();
 export let appkit: AppKit | null = null;
@@ -45,6 +44,7 @@ export function initializeAppKit(): AppKit | null {
 	return appkit;
 }
 
+// use this on +page.svelte to instantiate the stores/wallet.svelte.ts
 export function getAppKit() {
 	if (!browser) return null;
 	if (!appkit && browser) {
