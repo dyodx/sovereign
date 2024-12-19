@@ -1,4 +1,5 @@
 <script lang="ts">
+	// @deprecated - removing this panel
 	import ModalRecruit from '../Modals/ModalRecruit.svelte';
 	import TipCitizensExplained from '../Tooltips/TipCitizensExplained.svelte';
 </script>
