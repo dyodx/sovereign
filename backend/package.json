@@ -2,10 +2,13 @@
   "name": "backend",
   "type": "module",
   "scripts": {
-    "start": "bun run solana.ts"
+    "start": "bun run solana.ts",
+    "lint:fix": "prettier  *.ts -w",
+    "lint": "prettier  *.ts --check"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "prettier": "^3.4.2"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
