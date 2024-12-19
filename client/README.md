@@ -37,6 +37,12 @@ for development
     - bounties are where you can trigger PoW
 
 
+    WHEN BACK
+    - citizen: replace icon with number
+    - modal should be for staking to a ccertain nation
+    - balance modal: need to experiment if i can get appkit there locally to open a transaction?
+
+
 - PoW need to add hashing
     - check this implementation: https://github.com/SPCG-NEST/sovereign/blob/develop-v2/circuits/tests/test01/test.ts
     - check out how to to do multithreading in mobile (in service worker)
