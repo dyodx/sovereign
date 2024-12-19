@@ -13,7 +13,6 @@ for development
 - use the appkit actions to manually open stuff https://docs.reown.com/appkit/javascript/core/actions#open-and-close-the-modal
 
 # Todo
-- [ ] add PoW
 - [x] add toggle to show news on mobile view (root layout design)
 
 
@@ -30,8 +29,12 @@ for development
     - need a deposit sol button
     - withdrawl sol
 - [x] add reown wallet - https://reown.com/
-- [ ] add stake modal to citizen (design)
-- [ ] add PoW
+- [ ] deposit sol
+- [ ] add twitter auth to confirm your account
+- [ ] add stake modal to citizen (design). Just stake or not stake to a certain nation
+    - modal should show stats
+- [ ] inbox for bounties
+    - bounties are where you can trigger PoW
 
 
 - PoW need to add hashing
