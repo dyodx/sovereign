@@ -4,16 +4,39 @@
 	import News from './News.svelte';
 	import * as Tabs from '$lib/components/ui/tabs';
 	import { getAppKit } from '$lib/wallet/appkit.svelte';
+	import { walletStore } from '$lib/stores/wallet.svelte';
+	import { Connection, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
 	import { onMount } from 'svelte';
 	import type { AppKit } from '@reown/appkit';
-	import { Connection, PublicKey } from '@solana/web3.js';
 
 	let appkit: AppKit | null = $state(null);
-	let address = $state('');
+	let address = $derived.by(() => ($walletStore.connected ? $walletStore.address : ''));
+
+	function login() {
+		appkit?.open();
+	}
+	function openAccount() {
+		appkit?.open({ view: 'Account' });
+	}
+
+	let tab: 'dash' | 'news' | 'state' = $state('dash');
+
+	onMount(() => {
+		appkit = getAppKit();
+
+		appkit?.subscribeAccount((e) => {
+			console.log('event', e);
+			walletStore.update((state) => ({
+				...state,
+				address: e.address ?? null,
+				connected: !!e.address
+			}));
+		});
+	});
 
 	const rpc = 'https://mainnet.helius-rpc.com/?api-key=448adf9e-7365-467a-843d-1adfde85dbd9';
 	const connection = new Connection(rpc, 'confirmed');
-	let publicKey = $derived(address === '' ? null : new PublicKey(address));
+	let publicKey = $derived(address === '' ? null : new PublicKey(address as string));
 	let resolvedBalance = $state(5); // or whatever default value you prefer
 
 	let balance = $derived.by(() => {
@@ -21,7 +44,11 @@
 			connection
 				.getBalance(publicKey as PublicKey)
 				.then((data) => {
-					resolvedBalance = data;
+					resolvedBalance = data / LAMPORTS_PER_SOL;
+					walletStore.update((state) => ({
+						...state,
+						balance: resolvedBalance
+					}));
 				})
 				.catch((error) => {
 					console.error('Error fetching balance:', error);
@@ -30,28 +57,6 @@
 		}
 		return resolvedBalance;
 	});
-
-	// TODO REFACTOR THIS TO AVOID THE ONMOUNT
-	// endgoal: use the appkit in balance panel without drill propping
-	onMount(() => {
-		const appKitInstance = getAppKit();
-
-		appkit = appKitInstance;
-
-		appkit?.subscribeAccount((e) => {
-			address = e.address ?? '';
-		});
-	});
-
-	function login() {
-		console.log({ appkit });
-		appkit?.open();
-	}
-	function openAccount() {
-		appkit?.open({ view: 'Account' });
-	}
-
-	let tab: 'dash' | 'news' | 'state' = $state('dash');
 </script>
 
 <div
