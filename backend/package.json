@@ -6,5 +6,14 @@
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.30.1",
+    "@solana/web3.js": "^2.0.0-rc.4",
+    "edgedb": "^1.5.12",
+    "hono": "^4.6.14"
+  },
+  "scripts": {
+    "edgedb": ""
   }
 }
