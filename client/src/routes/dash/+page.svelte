@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { PUBLIC_RPC_URL } from '$env/static/public';
 	import { cn } from '$lib/utils.js';
 	import Body from './Body.svelte';
 	import News from './News.svelte';
@@ -33,7 +34,7 @@
 		});
 	});
 
-	const rpc = 'https://mainnet.helius-rpc.com/?api-key=448adf9e-7365-467a-843d-1adfde85dbd9';
+	const rpc = PUBLIC_RPC_URL as string;
 	const connection = new Connection(rpc, 'confirmed');
 	let publicKey = $derived(address === '' ? null : new PublicKey(address as string));
 	let resolvedBalance = $state(0);
