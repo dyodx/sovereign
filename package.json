@@ -11,7 +11,11 @@
   "private": true,
   "type": "module",
   "workspaces": [
-    "sovereign-programs/*"
+    "programs/*",
+    "agents/*",
+    "circuits/*",
+    "backend/*",
+    "validator/*"
   ],
   "scripts": {
     "test:programs": "bun run --cwd=./programs test",
