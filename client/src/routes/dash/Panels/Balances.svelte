@@ -24,9 +24,11 @@
 	<TipCitizensExplained />
 </div>
 
-<p>
-	SOL balance: {balance}
-</p>
+<div class="flex gap-2">
+	<p class="mt-2 w-fit rounded-full bg-black px-4 py-2">
+		SOL balance: {balance}
+	</p>
+</div>
 
 <Table.Root>
 	<Table.Caption class="py-2">view all coins</Table.Caption>
