@@ -89,7 +89,7 @@
 				NATION STATE
 			</button>
 		</div>
-		<div class="flex items-center">
+		<div class="flex items-center pt-4 md:pt-0">
 			{#if !!address}
 				<button onclick={openAccount} class="rounded-xl bg-panel px-4 py-2">
 					<div class="group flex items-center gap-4">
