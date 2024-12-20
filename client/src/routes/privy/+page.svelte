@@ -189,6 +189,7 @@
 			).signature;
 			tx.addSignature(pkey, Uint8Array.from(Buffer.from(signature, 'base64')));
 			console.log('Signed: ', Buffer.from(tx.serialize()).toString('base64'));
+			console.log('SIMULATE', connection.simulateTransaction(tx));
 			const txnSig = await connection.sendRawTransaction(tx.serialize());
 			confirmedTx = txnSig;
 			console.log('txnSig: ', txnSig);
