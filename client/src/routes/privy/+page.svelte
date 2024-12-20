@@ -19,6 +19,56 @@
 	} from '@solana/web3.js';
 	import { onDestroy, onMount } from 'svelte';
 
+	// Auth state store
+	const AUTH_STORAGE_KEY = 'privy_auth_state';
+
+	// Save auth state
+	function saveAuthState(authUser: PrivyAuthenticatedUser) {
+		if (typeof window !== 'undefined') {
+			localStorage.setItem(
+				AUTH_STORAGE_KEY,
+				JSON.stringify({
+					user: authUser,
+					timestamp: new Date().getTime()
+				})
+			);
+		}
+	}
+
+	// Load auth state
+	async function loadAuthState(privyInstance: Privy): Promise<PrivyAuthenticatedUser | null> {
+		if (typeof window === 'undefined') return null;
+
+		const stored = localStorage.getItem(AUTH_STORAGE_KEY);
+		if (!stored) return null;
+
+		const { user: storedUser, timestamp } = JSON.parse(stored);
+
+		// Check if the stored state is less than 24 hours old
+		const now = new Date().getTime();
+		const expired = now - timestamp > 24 * 60 * 60 * 1000;
+
+		if (expired) {
+			localStorage.removeItem(AUTH_STORAGE_KEY);
+			return null;
+		}
+
+		try {
+			// Verify the stored auth state is still valid
+			const isAuthenticated = await privyInstance.embeddedWallet.hasEmbeddedWallet();
+			if (!isAuthenticated) {
+				localStorage.removeItem(AUTH_STORAGE_KEY);
+				return null;
+			}
+
+			return storedUser;
+		} catch (error) {
+			console.error('Error verifying auth state:', error);
+			localStorage.removeItem(AUTH_STORAGE_KEY);
+			return null;
+		}
+	}
+
 	let privy_oauth_state = $page.url.searchParams.get('privy_oauth_state');
 	let privy_oauth_code = $page.url.searchParams.get('privy_oauth_code');
 
@@ -36,6 +86,20 @@
 			storage: new LocalStorage()
 		});
 		privy = newPrivy;
+
+		// Try to restore the previous session
+		const storedUser = await loadAuthState(newPrivy);
+		if (storedUser) {
+			user = storedUser;
+			// Initialize wallet if needed
+			if (await newPrivy.embeddedWallet.hasEmbeddedWallet()) {
+				const accounts = getAllUserEmbeddedSolanaWallets(storedUser.user);
+				if (accounts.length > 0) {
+					address = accounts[0].address;
+				}
+			}
+		}
+
 		iframeSrc = privy?.embeddedWallet.getURL()! as string;
 		console.log('iframeSrc', iframeSrc);
 		if (iframe?.contentWindow) {
@@ -56,13 +120,32 @@
 			.url as string;
 	}
 
+	// async function loginWithCode() {
+	// 	privy?.auth.oauth
+	// 		.loginWithCode(privy_oauth_code as string, privy_oauth_state as string, 'twitter')
+	// 		.then((e) => {
+	// 			user = e;
+	// 			console.log('USER', user);
+	// 		});
+	// }
+	// Modified login function
 	async function loginWithCode() {
-		privy?.auth.oauth
-			.loginWithCode(privy_oauth_code as string, privy_oauth_state as string, 'twitter')
-			.then((e) => {
-				user = e;
+		try {
+			const authenticatedUser = await privy?.auth.oauth.loginWithCode(
+				privy_oauth_code as string,
+				privy_oauth_state as string,
+				'twitter'
+			);
+
+			if (authenticatedUser) {
+				user = authenticatedUser;
+				saveAuthState(authenticatedUser);
 				console.log('USER', user);
-			});
+			}
+		} catch (error) {
+			console.error('Login failed:', error);
+			localStorage.removeItem(AUTH_STORAGE_KEY);
+		}
 	}
 
 	async function createEmbeddedWallet() {
