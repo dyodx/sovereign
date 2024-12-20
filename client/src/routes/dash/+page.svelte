@@ -4,11 +4,11 @@
 	import Body from './Body.svelte';
 	import News from './News.svelte';
 	import * as Tabs from '$lib/components/ui/tabs';
-	import { getAppKit } from '$lib/wallet/appkit.svelte';
 	import { walletStore } from '$lib/stores/wallet.svelte';
 	import { Connection, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
 	import { onMount } from 'svelte';
 	import type { AppKit } from '@reown/appkit';
+	import Privy from '@privy-io/js-sdk-core';
 
 	let appkit: AppKit | null = $state(null);
 	let address = $derived.by(() => ($walletStore.connected ? $walletStore.address : ''));
@@ -23,14 +23,8 @@
 	let tab: 'dash' | 'news' | 'state' = $state('dash');
 
 	onMount(() => {
-		appkit = getAppKit(); // initialize appkit
-
-		appkit?.subscribeAccount((e) => {
-			walletStore.update((state) => ({
-				...state,
-				address: e.address ?? null,
-				connected: !!e.address
-			}));
+		const privy = new Privy({
+			clientId: 'cm4rluhru04zmuj8pzs0hklmk'
 		});
 	});
 
