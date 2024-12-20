@@ -37,6 +37,10 @@ for development
     - bounties are where you can trigger PoW
 
 
+- [ ] make wallet persistent?
+
+
+
     WHEN BACK
     - citizen: replace icon with number
     - modal should be for staking to a ccertain nation
