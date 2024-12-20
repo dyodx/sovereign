@@ -21,8 +21,8 @@ pub mod programs {
     }
 
     // Initialize Game Account & Citizen Collection
-    pub fn init_game(ctx: Context<InitGame>, init_game_args: InitGameArgs) -> Result<()> {
-        instructions::init_game(ctx, init_game_args)
+    pub fn init_game(ctx: Context<InitGame>, game_id: u64, init_game_args: InitGameArgs) -> Result<()> {
+        instructions::init_game(ctx, game_id, init_game_args)
     }
 
     pub fn deposit_or_withdraw_sol_to_wallet(ctx: Context<DepositOrWithdrawSol>, args: DepositOrWithdrawSolArgs) -> Result<()> {

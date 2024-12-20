@@ -39,14 +39,14 @@ pub struct DepositOrWithdrawToken<'info> {
     #[account(
         constraint = world_agent_wallet.authority == world_agent.key()
     )]
-    pub world_agent_wallet: Account<'info, Wallet>,
+    pub world_agent_wallet: Box<Account<'info, Wallet>>,
     #[account(constraint = game_account.world_agent == world_agent.key())]
-    pub game_account: Account<'info, Game>,
+    pub game_account: Box<Account<'info, Game>>,
     #[account(
         mut,
         constraint = game_pool.game_id == game_account.id @ SovereignError::InvalidGameId
     )]
-    pub game_pool: Account<'info, Pool>,
+    pub game_pool: Box<Account<'info, Pool>>,
 }
 
 // Swap Token<>Token
@@ -115,9 +115,9 @@ pub struct SwapTokenToTokenArgs {
 pub struct SwapTokenToToken<'info> {
     pub wallet_authority: Signer<'info>,
     #[account(mut, constraint = wallet.authority == wallet_authority.key())]
-    pub wallet: Account<'info, Wallet>,
+    pub wallet: Box<Account<'info, Wallet>>,
     #[account(mut, constraint = game_pool.game_id == wallet.game_id @ SovereignError::InvalidGameId)]
-    pub game_pool: Account<'info, Pool>,
+    pub game_pool: Box<Account<'info, Pool>>,
 }
 
 //// Util Functions
@@ -218,9 +218,9 @@ pub struct TransferTokens<'info> {
     #[account(mut)]
     pub wallet_authority: Signer<'info>,
     #[account(mut, constraint = wallet.authority == wallet_authority.key())]
-    pub wallet: Account<'info, Wallet>,
+    pub wallet: Box<Account<'info, Wallet>>,
     #[account(mut)]
-    pub receiver: Account<'info, Wallet>,
+    pub receiver: Box<Account<'info, Wallet>>,
 }
 
 // Deposit/Withdraw SOL from Wallet Account
@@ -271,8 +271,8 @@ pub struct DepositOrWithdrawSol<'info> {
         seeds = [WALLET_SEED.as_bytes(), &game_account.id.to_le_bytes(), &wallet_authority.key().to_bytes()],
         bump
     )]
-    pub wallet: Account<'info, Wallet>,
+    pub wallet: Box<Account<'info, Wallet>>,
     #[account(constraint = game_account.id == wallet.game_id @ SovereignError::InvalidGameId)]
-    pub game_account: Account<'info, Game>,
+    pub game_account: Box<Account<'info, Game>>,
     pub system_program: Program<'info, System>,
 }

@@ -3,10 +3,19 @@ use mpl_core::{instructions::*, ID as MPL_CORE_ID};
 
 use crate::{constant::{BROKER_ESCROW_SEED, GAME_SEED, NATION_STATES, POOL_SEED, TXN_FEE, WALLET_SEED}, state::{BrokerEscrow, Game, Pool, Wallet}};
 
-pub fn init_game(ctx: Context<InitGame>, init_game_args: InitGameArgs) -> Result<()> {
-
+pub fn init_game(ctx: Context<InitGame>, game_id: u64, init_game_args: InitGameArgs) -> Result<()> {
+    // First, prepare all the data we need to copy
+    let payer_key = ctx.accounts.payer.key();
+    let collection_key = ctx.accounts.collection.key();
+    let game_id = game_id;
+    let world_agent = init_game_args.world_agent;
+    let broker_key = init_game_args.broker_key;
+    
+    // Create collection first
     let signers_seeds = &[
-        GAME_SEED.as_bytes(), &init_game_args.id.to_le_bytes(), &[ctx.bumps.game_account]
+        GAME_SEED.as_bytes(), 
+        &game_id.to_le_bytes(), 
+        &[ctx.bumps.game_account]
     ];
 
     CreateCollectionV2CpiBuilder::new(&ctx.accounts.mpl_core_program.to_account_info())
@@ -14,59 +23,56 @@ pub fn init_game(ctx: Context<InitGame>, init_game_args: InitGameArgs) -> Result
         .payer(&ctx.accounts.payer.to_account_info())
         .update_authority(Some(&ctx.accounts.game_account.to_account_info()))
         .system_program(&ctx.accounts.system_program.to_account_info())
-        .name(format!("Soverign {:#}", init_game_args.id).to_string())
+        .name(format!("Soverign {:#}", game_id).to_string())
         .uri(init_game_args.collection_uri.to_string())
         .invoke_signed(&[signers_seeds])?;
 
-    let game = &mut ctx.accounts.game_account;
-
-    let new_game = Game {
-        id: init_game_args.id,
-        authority: ctx.accounts.payer.key(),
-        collection: ctx.accounts.collection.key(),
+    // Initialize game account
+    ctx.accounts.game_account.set_inner(Game {
+        id: game_id,
+        authority: payer_key,
+        collection: collection_key,
         slot_start: init_game_args.slot_start,
-        world_agent: init_game_args.world_agent,
-        broker_key: init_game_args.broker_key,
+        world_agent,
+        broker_key,
         mint_cost: init_game_args.mint_cost,
         bounty_pow_threshold: [0u8; 32],
         nations_alive: 0,
+    });
+
+    // Initialize broker escrow
+    ctx.accounts.broker_escrow.game_id = game_id;
+    ctx.accounts.broker_escrow.broker_key = broker_key;
+
+    // Initialize pool
+    ctx.accounts.game_pool.game_id = game_id;
+    ctx.accounts.game_pool.balances = [0u64; NATION_STATES.len()];
+    ctx.accounts.game_pool.weights = [1_000_000_000u64/(NATION_STATES.len() as u64); NATION_STATES.len()];
+
+    // Initialize world agent wallet
+    ctx.accounts.world_agent_wallet.game_id = game_id;
+    ctx.accounts.world_agent_wallet.authority = world_agent;
+    ctx.accounts.world_agent_wallet.balances = [0u64; NATION_STATES.len()];
+
+    // Transfer sol
+    let transfer_accounts = Transfer {
+        from: ctx.accounts.payer.to_account_info(),
+        to: ctx.accounts.world_agent_wallet.to_account_info(),
     };
-
-    game.set_inner(new_game);
-
-    let broker_escrow = &mut ctx.accounts.broker_escrow;
-
-    broker_escrow.game_id = init_game_args.id;
-    broker_escrow.broker_key = init_game_args.broker_key;
-
-    let pool = &mut ctx.accounts.game_pool;
-
-    pool.game_id = init_game_args.id;
-    pool.balances = [0u64; NATION_STATES.len()];
-    // All tokens in the pool have equal weight
-    pool.weights = [1_000_000_000u64/(NATION_STATES.len() as u64); NATION_STATES.len()];
-
-
-    let world_agent_wallet = &mut ctx.accounts.world_agent_wallet;
-
-    world_agent_wallet.game_id = init_game_args.id;
-    world_agent_wallet.authority = init_game_args.world_agent;
-    world_agent_wallet.balances = [0u64; NATION_STATES.len()];
-
-    // Tansfer starting sol into World Agent transfer fees
+    
     transfer(
-        CpiContext::new(ctx.accounts.system_program.to_account_info(), Transfer {
-            from: ctx.accounts.payer.to_account_info(),
-            to: ctx.accounts.world_agent_wallet.to_account_info(),
-        }),
-        TXN_FEE * 25_000 //should be around 1.25 sol
+        CpiContext::new(
+            ctx.accounts.system_program.to_account_info(), 
+            transfer_accounts
+        ),
+        TXN_FEE * 25_000
     )?;
+
     Ok(())
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct InitGameArgs {
-    pub id: u64,
     pub slot_start: u64,
     pub collection_uri: String,
     pub world_agent: Pubkey,
@@ -76,7 +82,7 @@ pub struct InitGameArgs {
 }
 
 #[derive(Accounts)]
-#[instruction(init_game_args: InitGameArgs)]
+#[instruction(game_id: u64, init_game_args: InitGameArgs)]
 pub struct InitGame<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
@@ -84,35 +90,35 @@ pub struct InitGame<'info> {
         init,
         space = 8 + Game::INIT_SPACE,
         payer = payer,
-        seeds = [GAME_SEED.as_bytes(), &init_game_args.id.to_le_bytes()],
+        seeds = [GAME_SEED.as_bytes().as_ref(), &game_id.to_le_bytes().as_ref()],
         bump
     )]
-    pub game_account: Account<'info, Game>,
+    pub game_account: Box<Account<'info, Game>>,
     #[account(
         init,
         space = 8 + Wallet::INIT_SPACE,
         payer = payer,
-        seeds = [WALLET_SEED.as_bytes(), &init_game_args.id.to_le_bytes(), &init_game_args.world_agent.to_bytes()],
+        seeds = [WALLET_SEED.as_bytes().as_ref(), &game_id.to_le_bytes().as_ref(), &init_game_args.world_agent.to_bytes().as_ref()],
         bump
     )]
-    pub world_agent_wallet: Account<'info, Wallet>,
+    pub world_agent_wallet: Box<Account<'info, Wallet>>,
     #[account(
         init,
         space = 8 + Pool::INIT_SPACE,
         payer = payer,
-        seeds = [POOL_SEED.as_bytes(),  &init_game_args.id.to_le_bytes()],
+        seeds = [POOL_SEED.as_bytes().as_ref(),  &game_id.to_le_bytes().as_ref()],
         bump
     )]
-    pub game_pool: Account<'info, Pool>,
+    pub game_pool: Box<Account<'info, Pool>>,
     #[account(
         init,
         space = 8 + BrokerEscrow::INIT_SPACE,
         payer = payer,
-        seeds = [BROKER_ESCROW_SEED.as_bytes(), &init_game_args.id.to_le_bytes()],
+        seeds = [BROKER_ESCROW_SEED.as_bytes().as_ref(), &game_id.to_le_bytes().as_ref()],
         bump
     )]
-    pub broker_escrow: Account<'info, BrokerEscrow>,
-    ///CHECK
+    pub broker_escrow: Box<Account<'info, BrokerEscrow>>,
+    ///CHECK: Created by CPI
     #[account(mut)]
     pub collection: Signer<'info>,
     /// CHECK: this account is checked by the address constraint

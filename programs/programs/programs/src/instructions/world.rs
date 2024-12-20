@@ -106,19 +106,19 @@ pub struct WorldDisaster<'info> {
         seeds = [WALLET_SEED.as_bytes(), &game_account.id.to_le_bytes(), &game_account.world_agent.to_bytes()],
         bump
     )]
-    pub world_agent_wallet: Account<'info, Wallet>,
+    pub world_agent_wallet: Box<Account<'info, Wallet>>,
     #[account(
         mut,
         constraint = game_account.world_agent == world_authority.key() @ SovereignError::InvalidAuthority
     )]
-    pub game_account: Account<'info, Game>,
+    pub game_account: Box<Account<'info, Game>>,
     #[account(
         mut,
         constraint = nation.game_id == game_account.id @ SovereignError::InvalidGameId,
         seeds = [WALLET_SEED.as_bytes(), &game_account.id.to_le_bytes(), &nation.authority.to_bytes()],
         bump
     )]
-    pub nation: Account<'info, Nation>,
+    pub nation: Box<Account<'info, Nation>>,
     pub system_program: Program<'info, System>,
 }
 
@@ -165,16 +165,16 @@ pub struct NationBoost<'info> {
         seeds = [WALLET_SEED.as_bytes(), &game_account.id.to_le_bytes(), &game_account.world_agent.to_bytes()],
         bump
     )]
-    pub world_agent_wallet: Account<'info, Wallet>,
+    pub world_agent_wallet: Box<Account<'info, Wallet>>,
     #[account(
         constraint = game_account.world_agent == world_authority.key() @ SovereignError::InvalidAuthority
     )]
-    pub game_account: Account<'info, Game>,
+    pub game_account: Box<Account<'info, Game>>,
     #[account(
         mut,
         constraint = nation.game_id == game_account.id @ SovereignError::InvalidGameId
     )]
-    pub nation: Account<'info, Nation>,
+    pub nation: Box<Account<'info, Nation>>,
     /// CHECK: Checked in instruction
     #[account(address = nation.authority)]
     pub nation_authority: UncheckedAccount<'info>,
