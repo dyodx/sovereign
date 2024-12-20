@@ -17,7 +17,7 @@
     "jsx": "react-jsx",
     "allowJs": true,
     // Bundler mode
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "noEmit": true,
@@ -29,6 +29,7 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false,
+    "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
   }
 }
