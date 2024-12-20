@@ -91,6 +91,8 @@ pub fn mint_tokens_to_player_wallet(ctx: Context<MintTokensToPlayerWallet>, args
     ctx.accounts.player_wallet.balances[ctx.accounts.nation.nation_id as usize] = ctx.accounts.player_wallet.balances[ctx.accounts.nation.nation_id as usize].checked_add(args.amount).unwrap();
     ctx.accounts.nation.minted_tokens_total += args.amount;    
     emit!(MintTokensToPlayerWalletEvent {
+        game_id: ctx.accounts.nation.game_id,
+        nation_id: ctx.accounts.nation.nation_id,
         player: args.player_authority.key().to_string(),
         player_wallet: ctx.accounts.player_wallet.key().to_string(),
         amount: args.amount,
@@ -108,6 +110,8 @@ pub struct MintTokensToPlayerWalletArgs {
 
 #[event]
 pub struct MintTokensToPlayerWalletEvent {
+    pub game_id: u64,
+    pub nation_id: u8,
     pub player: String,
     pub player_wallet: String,
     pub amount: u64,

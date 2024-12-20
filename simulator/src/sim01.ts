@@ -53,6 +53,7 @@ async function createGame(){
     const worldAgentKey = web3.Keypair.generate();
     const brokerKey = web3.Keypair.generate();
     const collectionKey = web3.Keypair.generate();
+    const journalistKey = web3.Keypair.generate();
     await requestAirdrops([adminKey.publicKey, worldAgentKey.publicKey, brokerKey.publicKey]);
 
     const newGameArgs = {
@@ -94,14 +95,13 @@ async function createGame(){
     .instruction();
     
     // Create DB Entries
-    
     const result = await db.insert(db.common.Game, {
         game_id: newGameId,
         admin_private_key: bs58.encode(adminKey.secretKey),
         world_agent_private_key: bs58.encode(worldAgentKey.secretKey),
         broker_private_key: bs58.encode(brokerKey.secretKey),
+        journalist_private_key: bs58.encode(journalistKey.secretKey),
     }).run(dbClient);
-    console.log("Insert Result: ", result);
     
     const estimatedCU = await estimateCU(adminKey.publicKey, [newGameIx]);
     // Send Transaction To Chain
