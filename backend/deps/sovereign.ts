@@ -146,22 +146,24 @@ export type Programs = {
               {
                 "kind": "const",
                 "value": [
-                  119,
-                  97,
-                  108,
-                  108,
+                  98,
+                  114,
+                  111,
+                  107,
                   101,
-                  116
+                  114,
+                  95,
+                  101,
+                  115,
+                  99,
+                  114,
+                  111,
+                  119
                 ]
               },
               {
                 "kind": "account",
                 "path": "game_account.id",
-                "account": "game"
-              },
-              {
-                "kind": "account",
-                "path": "game_account.broker_key",
                 "account": "game"
               }
             ]
@@ -792,38 +794,6 @@ export type Programs = {
         {
           "name": "systemProgram",
           "address": "11111111111111111111111111111111"
-        },
-        {
-          "name": "eventAuthority",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  95,
-                  95,
-                  101,
-                  118,
-                  101,
-                  110,
-                  116,
-                  95,
-                  97,
-                  117,
-                  116,
-                  104,
-                  111,
-                  114,
-                  105,
-                  116,
-                  121
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "program"
         }
       ],
       "args": []
@@ -1507,6 +1477,19 @@ export type Programs = {
       ]
     },
     {
+      "name": "newGameEvent",
+      "discriminator": [
+        136,
+        229,
+        226,
+        33,
+        167,
+        103,
+        141,
+        246
+      ]
+    },
+    {
       "name": "stakeOrUnstakeCitizenEvent",
       "discriminator": [
         199,
@@ -1771,16 +1754,11 @@ export type Programs = {
           },
           {
             "name": "bountyHash",
-            "type": {
-              "array": [
-                "u8",
-                32
-              ]
-            }
+            "type": "string"
           },
           {
             "name": "playerAuthority",
-            "type": "pubkey"
+            "type": "string"
           },
           {
             "name": "amount",
@@ -2061,11 +2039,11 @@ export type Programs = {
           },
           {
             "name": "playerAuthority",
-            "type": "pubkey"
+            "type": "string"
           },
           {
             "name": "assetId",
-            "type": "pubkey"
+            "type": "string"
           },
           {
             "name": "nationStateIdx",
@@ -2097,11 +2075,11 @@ export type Programs = {
         "fields": [
           {
             "name": "player",
-            "type": "pubkey"
+            "type": "string"
           },
           {
             "name": "playerWallet",
-            "type": "pubkey"
+            "type": "string"
           },
           {
             "name": "amount",
@@ -2223,6 +2201,22 @@ export type Programs = {
       }
     },
     {
+      "name": "newGameEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "gameId",
+            "type": "u64"
+          },
+          {
+            "name": "authority",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
       "name": "player",
       "type": {
         "kind": "struct",
@@ -2309,11 +2303,11 @@ export type Programs = {
           },
           {
             "name": "playerAuthority",
-            "type": "pubkey"
+            "type": "string"
           },
           {
             "name": "assetId",
-            "type": "pubkey"
+            "type": "string"
           },
           {
             "name": "isStaked",

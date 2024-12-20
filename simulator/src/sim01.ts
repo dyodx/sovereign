@@ -95,12 +95,13 @@ async function createGame(){
     
     // Create DB Entries
     
-    await db.insert(db.common.Game, {
+    const result = await db.insert(db.common.Game, {
         game_id: newGameId,
         admin_private_key: bs58.encode(adminKey.secretKey),
         world_agent_private_key: bs58.encode(worldAgentKey.secretKey),
         broker_private_key: bs58.encode(brokerKey.secretKey),
     }).run(dbClient);
+    console.log("Insert Result: ", result);
     
     const estimatedCU = await estimateCU(adminKey.publicKey, [newGameIx]);
     // Send Transaction To Chain
@@ -154,14 +155,22 @@ async function requestAirdrops(keys: web3.PublicKey[]){
 
 async function estimateCU(feePayer: web3.PublicKey, ixs: web3.TransactionInstruction[]) {
     try {
-        const tx = new web3.VersionedTransaction(new web3.TransactionMessage({
-            payerKey: feePayer,
-            recentBlockhash: (await CONNECTION.getLatestBlockhash()).blockhash,
-            instructions: ixs
-        }).compileToV0Message());
-        const unitsConsumed =(await CONNECTION.simulateTransaction(tx)).value.unitsConsumed;
-        if(unitsConsumed) return unitsConsumed + 20_000;
-        else throw new Error("Error Estimating CU");
+        console.log("Estimating CU for ", ixs.length, " instructions");
+        try {
+            const tx = new web3.VersionedTransaction(new web3.TransactionMessage({
+                payerKey: feePayer,
+                recentBlockhash: (await CONNECTION.getLatestBlockhash()).blockhash,
+                instructions: ixs
+            }).compileToV0Message());
+            console.log("Simulating Transaction");
+            await CONNECTION.simulateTransaction(tx);
+            const unitsConsumed = (await CONNECTION.simulateTransaction(tx)).value.unitsConsumed;
+            if(unitsConsumed) return unitsConsumed + 20_000;
+            else throw new Error("Error Estimating CU")
+        } catch (e: any) {
+            console.log("Error Simulating Transaction: ", e.getLogs());
+            return 0;
+        }
     } catch (e) {
         throw e;
     }

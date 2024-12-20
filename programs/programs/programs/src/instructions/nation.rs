@@ -1,6 +1,6 @@
 use anchor_lang::{prelude::*, system_program::{transfer, Transfer}};
 
-use crate::{constant::{NATION_SEED, TXN_FEE, WALLET_SEED}, error::SovereignError, state::{BrokerEscrow, Game, Nation, Wallet}};
+use crate::{constant::{BROKER_ESCROW_SEED, NATION_SEED, TXN_FEE, WALLET_SEED}, error::SovereignError, state::{BrokerEscrow, Game, Nation, Wallet}};
 
 pub fn init_nation(ctx: Context<InitNation>, init_nation_args: InitNationArgs) -> Result<()> {
 
@@ -91,8 +91,8 @@ pub fn mint_tokens_to_player_wallet(ctx: Context<MintTokensToPlayerWallet>, args
     ctx.accounts.player_wallet.balances[ctx.accounts.nation.nation_id as usize] = ctx.accounts.player_wallet.balances[ctx.accounts.nation.nation_id as usize].checked_add(args.amount).unwrap();
     ctx.accounts.nation.minted_tokens_total += args.amount;    
     emit!(MintTokensToPlayerWalletEvent {
-        player: args.player_authority.key(),
-        player_wallet: ctx.accounts.player_wallet.key(),
+        player: args.player_authority.key().to_string(),
+        player_wallet: ctx.accounts.player_wallet.key().to_string(),
         amount: args.amount,
         slot: Clock::get()?.slot,
     });
@@ -108,8 +108,8 @@ pub struct MintTokensToPlayerWalletArgs {
 
 #[event]
 pub struct MintTokensToPlayerWalletEvent {
-    pub player: Pubkey,
-    pub player_wallet: Pubkey,
+    pub player: String,
+    pub player_wallet: String,
     pub amount: u64,
     pub slot: u64,
 }
@@ -236,7 +236,7 @@ pub struct CoupNation<'info> {
     pub nation_authority: UncheckedAccount<'info>,
     #[account(
         mut,
-        seeds = [WALLET_SEED.as_bytes(), &game_account.id.to_le_bytes(), &game_account.broker_key.to_bytes()],
+        seeds = [BROKER_ESCROW_SEED.as_bytes(), &game_account.id.to_le_bytes()],
         bump
     )]
     pub broker_escrow: Account<'info, BrokerEscrow>,
@@ -245,7 +245,7 @@ pub struct CoupNation<'info> {
         seeds = [WALLET_SEED.as_bytes(), &game_account.id.to_le_bytes(), &game_account.world_agent.to_bytes()],
         bump
     )]
-    pub world_agent_wallet: Account<'info, Wallet>,
+    pub world_agent_wallet: Box<Account<'info, Wallet>>,
     pub system_program: Program<'info, System>,
 }
 

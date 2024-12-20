@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use anchor_lang::{prelude::*, system_program::{transfer, Transfer}};
 use mpl_core::{accounts::{BaseAssetV1, BaseCollectionV1}, fetch_plugin, instructions::{CreateV2CpiBuilder, UpdatePluginV1CpiBuilder}, types::{Attribute, Attributes, FreezeDelegate, Plugin, PluginAuthority, PluginAuthorityPair, PluginType}, ID as MPL_CORE_ID};
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
@@ -111,8 +113,8 @@ pub fn mint_citizen(ctx: Context<MintCitizen>) -> Result<()> {
 
     emit!(MintCitizenEvent {
         game_id: ctx.accounts.game_account.id,
-        player_authority: ctx.accounts.player_authority.key(),
-        asset_id: ctx.accounts.citizen_asset.key(),
+        player_authority: ctx.accounts.player_authority.key().to_string(),
+        asset_id: ctx.accounts.citizen_asset.key().to_string(),
         nation_state_idx: nation_state_idx as u8,
     });
 
@@ -122,13 +124,12 @@ pub fn mint_citizen(ctx: Context<MintCitizen>) -> Result<()> {
 #[event]
 pub struct MintCitizenEvent {
     pub game_id: u64,
-    pub player_authority: Pubkey,
-    pub asset_id: Pubkey,
+    pub player_authority: String,
+    pub asset_id: String,
     pub nation_state_idx: u8,
 }
 
 #[derive(Accounts)]
-#[event_cpi]
 pub struct MintCitizen<'info> {
     #[account(mut)]
     pub player_authority: Signer<'info>,
@@ -175,8 +176,8 @@ pub fn stake_or_unstake_citizen(ctx: Context<StakeOrUnstakeCitizen>, args: Stake
 
         emit!(StakeOrUnstakeCitizenEvent {
             game_id: ctx.accounts.game_account.id,
-            player_authority: ctx.accounts.player_authority.key(),
-            asset_id: ctx.accounts.citizen_asset.key(),
+            player_authority: ctx.accounts.player_authority.key().to_string(),
+            asset_id: ctx.accounts.citizen_asset.key().to_string(),
             is_staked: false,
             slot: clock.slot,
         });
@@ -195,8 +196,8 @@ pub fn stake_or_unstake_citizen(ctx: Context<StakeOrUnstakeCitizen>, args: Stake
 
         emit!(StakeOrUnstakeCitizenEvent {
             game_id: ctx.accounts.game_account.id,
-            player_authority: ctx.accounts.player_authority.key(),
-            asset_id: ctx.accounts.citizen_asset.key(),
+            player_authority: ctx.accounts.player_authority.key().to_string(),
+            asset_id: ctx.accounts.citizen_asset.key().to_string(),
             is_staked: true,
             slot: clock.slot,
         });
@@ -213,8 +214,8 @@ pub struct StakeOrUnstakeCitizenArgs {
 #[event]
 pub struct StakeOrUnstakeCitizenEvent {
     pub game_id: u64,
-    pub player_authority: Pubkey,
-    pub asset_id: Pubkey,
+    pub player_authority: String,
+    pub asset_id: String,
     pub is_staked: bool,
     pub slot: u64,
 }
@@ -255,10 +256,14 @@ pub fn claim_bounty(ctx: Context<ClaimBounty>, args: ClaimBountyArgs) -> Result<
         ctx.accounts.bounty.amount
     )?;
 
+    let bounty_hash_str = ctx.accounts.bounty.bounty_hash.iter()
+        .map(|b| format!("{:02x}", b))
+        .collect::<String>();
+
     emit!(ClaimBountyEvent {
         game_id: ctx.accounts.game.id,
-        bounty_hash: ctx.accounts.bounty.bounty_hash,
-        player_authority: ctx.accounts.player_authority.key(),
+        bounty_hash: bounty_hash_str,
+        player_authority: ctx.accounts.player_authority.key().to_string(),
         amount: ctx.accounts.bounty.amount,
     });
 
@@ -268,8 +273,8 @@ pub fn claim_bounty(ctx: Context<ClaimBounty>, args: ClaimBountyArgs) -> Result<
 #[event]
 pub struct ClaimBountyEvent {
     pub game_id: u64,
-    pub bounty_hash: [u8; 32],
-    pub player_authority: Pubkey,
+    pub bounty_hash: String,
+    pub player_authority: String,
     pub amount: u64,
 }
 

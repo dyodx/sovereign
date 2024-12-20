@@ -44,3 +44,6 @@ pub const NATION_STATES: [&str; 193] = [
     "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Vanuatu", 
     "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
 ];
+
+pub const BALANCES_INIT: [u64; NATION_STATES.len()] = [0; NATION_STATES.len()];
+pub const WEIGHTS_INIT: [u64; NATION_STATES.len()] = [1_000_000_000 / NATION_STATES.len() as u64; NATION_STATES.len()];
