@@ -1,9 +1,11 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import { SvelteKitPWA } from '@vite-pwa/sveltekit';
+import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 /** @type {import('vite').UserConfig} */
 export default {
 	plugins: [
+		nodePolyfills(),
 		sveltekit(),
 		SvelteKitPWA({
 			// Options for PWA configuration
