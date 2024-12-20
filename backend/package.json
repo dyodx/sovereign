@@ -2,6 +2,7 @@
   "name": "backend",
   "type": "module",
   "devDependencies": {
+    "@edgedb/generate": "^0.5.6",
     "@types/bun": "latest"
   },
   "peerDependencies": {
@@ -14,6 +15,7 @@
     "hono": "^4.6.14"
   },
   "scripts": {
-    "edgedb": ""
+    "copy-program-deps": "cp ../programs/target/idl/programs.json ./deps/sovereign.json && cp ../programs/target/types/programs.ts ./deps/sovereign.ts",
+    "generate-edgedb-types": "bunx @edgedb/generate edgeql-js --out ./edgedb"
   }
 }

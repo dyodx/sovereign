@@ -9,14 +9,6 @@ solana-test-validator --reset \
     > /dev/null 2>&1 &
 sleep 5
 
-# Configure CLI to use localhost
-solana config set --url localhost
-
-echo "Airdropping SOL to admin keypair..."
-solana airdrop 10000 -k "./localnet-keys/admin.json"
-sleep 5
-
-
 echo "Deployment successful!"
 
 
