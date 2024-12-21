@@ -8,7 +8,7 @@
 	import { walletStore } from '$lib/stores/wallet.svelte';
 	import { PUBLIC_RPC_URL } from '$env/static/public';
 	import { generateNamePair } from '$lib/constants/names';
-	import { publicKey } from '@metaplex-foundation/umi';
+	import { getCountryFlag } from '$lib/constants/flags';
 
 	let address = $derived.by(() =>
 		$walletStore.connected && !!$walletStore.address ? $walletStore.address : null
@@ -41,6 +41,11 @@
 		console.log({ citizens: data, address });
 		return data;
 	}
+
+	// CITIZEN HELPERS
+	function getAttribute(key: string, asset: AssetV1) {
+		return asset.attributes?.attributeList.find((e) => e.key === key)?.value;
+	}
 </script>
 
 <div class="grid items-end gap-6 md:grid-cols-3">
@@ -67,7 +72,7 @@
 				<div class="grid w-fit grid-cols-[8rem_1fr] gap-4 justify-self-center rounded bg-panel">
 					<div class="relative flex items-center gap-4">
 						<p class="absolute left-[-1rem] top-[-1rem] z-10 text-4xl">
-							{flags[20 % flags.length]}
+							{getCountryFlag(getAttribute('nation_state', asset) ?? 'Solana')}
 						</p>
 						<img
 							src={`https://api.dicebear.com/9.x/lorelei-neutral/svg?seed=${asset.publicKey}`}

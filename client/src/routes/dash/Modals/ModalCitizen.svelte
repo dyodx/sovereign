@@ -2,6 +2,7 @@
 	import * as Dialog from '$lib/components/ui/dialog';
 	import Combobox from '$lib/components/molecules/Combobox/Combobox.svelte';
 	import { currencies } from '$lib/constants/currencies';
+	import { getCountryFlag } from '$lib/constants/flags';
 	import { fetchAssetV1, mplCore, type AssetV1 } from '@metaplex-foundation/mpl-core';
 	import { createUmi } from '@metaplex-foundation/umi-bundle-defaults';
 	import { PUBLIC_RPC_URL } from '$env/static/public';
@@ -42,7 +43,10 @@
 					<p>citizenId: {citizenId}</p>
 					{#await asset then data}
 						<p>{firstName} {lastName}</p>
-						<p>Citizen of: {getAttribute('nation_state', data)}</p>
+						<p>
+							Citizen of: {getCountryFlag(getAttribute('nation_state', data) ?? 'Solana')}
+							{getAttribute('nation_state', data)}
+						</p>
 						<div class="grid grid-cols-4">
 							<p>GDP: {getAttribute('gdp_fix', data)}</p>
 							<p>HEALTH: {getAttribute('healthcare_fix', data)}</p>
