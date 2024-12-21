@@ -6,6 +6,7 @@ import Privy, {
 	type PrivyEmbeddedSolanaWalletProvider
 } from '@privy-io/js-sdk-core';
 import { walletStore } from '$lib/stores/wallet.svelte';
+import { privyStore, updatePrivyStore } from '$lib/stores/privy.svelte';
 
 // Auth state store
 const AUTH_STORAGE_KEY = 'privy_auth_state';
@@ -23,12 +24,14 @@ async function initializePrivy(props: initProps) {
 	});
 
 	props.setPrivy(newPrivy);
+	updatePrivyStore.setPrivy(newPrivy);
 
 	// Try to restore the previous session
 	const storedUser = await loadAuthState(newPrivy);
 	if (storedUser) {
 		// user = storedUser;
 		props.setUser(storedUser);
+		updatePrivyStore.setUser(storedUser);
 
 		// Initialize wallet if needed
 		if (await newPrivy.embeddedWallet.hasEmbeddedWallet()) {
