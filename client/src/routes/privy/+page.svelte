@@ -43,7 +43,8 @@
 
 		// trigger login with code if returning from twitter callback
 		if (!user?.user.id && !twitURL && privy_oauth_code && privy_oauth_state) {
-			loginWithCode();
+			await loginWithCode();
+			goto('/dash');
 		}
 
 		iframeSrc = privy?.embeddedWallet.getURL()! as string;
