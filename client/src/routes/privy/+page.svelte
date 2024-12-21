@@ -14,7 +14,7 @@
 	} from '@solana/web3.js';
 	import { onDestroy, onMount } from 'svelte';
 	import { authHandler } from '$lib/wallet/authStateHelpers';
-	import { buildTransaction } from '$lib/wallet/txHelpers';
+	import { buildTransaction, buildRequest } from '$lib/wallet/txHelpers';
 
 	let privy_oauth_state = $page.url.searchParams.get('privy_oauth_state');
 	let privy_oauth_code = $page.url.searchParams.get('privy_oauth_code');
@@ -78,32 +78,16 @@
 			const connection = new Connection('http://127.0.0.1:8899');
 			const pkey = new PublicKey(address);
 
-			const tx = new VersionedTransaction(
-				new TransactionMessage({
-					payerKey: pkey,
-					recentBlockhash: (await connection.getLatestBlockhash()).blockhash,
-					instructions: [
-						SystemProgram.transfer({
-							fromPubkey: pkey,
-							toPubkey: pkey,
-							lamports: 1
-						})
-					]
-				}).compileToLegacyMessage()
-			);
-			const message = Buffer.from(tx.message.serialize()).toString('base64');
-			const simpleSig = (
-				await provider.request({
-					method: 'signMessage',
-					params: {
-						message: message
-					}
-				})
-			).signature;
-			console.log('Message Signature: ', simpleSig);
-			tx.addSignature(pkey, Uint8Array.from(Buffer.from(simpleSig, 'base64')));
-			console.log('Signed: ', Buffer.from(tx.serialize()).toString('base64'));
-			// sign that message ^^^ and attach the signature
+			const { tx, message } = await buildTransaction.sendOneLamportToSelf(connection, address);
+			// const simpleSig = (
+			// 	await provider.request({
+			// 		method: 'signMessage',
+			// 		params: { message }
+			// 	})
+			// ).signature;
+			// tx.addSignature(pkey, Uint8Array.from(Buffer.from(simpleSig, 'base64')));
+			// // sign that message ^^^ and attach the signature
+			await buildRequest(provider, tx, message, address);
 			const confirmedSentTx = await connection.sendTransaction(tx);
 			confirmedTx = confirmedSentTx;
 		} else {

@@ -1,3 +1,4 @@
+import type Privy from '@privy-io/js-sdk-core';
 import {
 	ComputeBudgetProgram,
 	Connection,
@@ -10,29 +11,46 @@ import {
 
 async function sendOneLamportToSelf(connection: Connection, address: string) {
 	const pkey = new PublicKey(address);
-
 	const tx = new VersionedTransaction(
 		new TransactionMessage({
 			payerKey: pkey,
 			recentBlockhash: (await connection.getLatestBlockhash()).blockhash,
 			instructions: [
-				ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 1_000_000 }),
-				ComputeBudgetProgram.setComputeUnitLimit({ units: 100000 }),
 				SystemProgram.transfer({
 					fromPubkey: pkey,
 					toPubkey: pkey,
 					lamports: 1
 				})
 			]
-		}).compileToV0Message()
+		}).compileToLegacyMessage()
 	);
-
-	const serialized = Buffer.from(tx.message.serialize()).toString('base64');
+	const message = Buffer.from(tx.message.serialize()).toString('base64');
 
 	return {
 		tx,
-		serialized
+		message
 	};
+}
+
+type EmbeddedSolanaWalletProvider = Awaited<
+	ReturnType<Privy['embeddedWallet']['getSolanaProvider']>
+>;
+export async function buildRequest(
+	provider: EmbeddedSolanaWalletProvider,
+	tx: VersionedTransaction,
+	message: string,
+	address: string
+) {
+	const pkey = new PublicKey(address);
+
+	const simpleSig = (
+		await provider.request({
+			method: 'signMessage',
+			params: { message }
+		})
+	).signature;
+	tx.addSignature(pkey, Uint8Array.from(Buffer.from(simpleSig, 'base64')));
+	// sign that message ^^^ and attach the signature
 }
 
 export const buildTransaction = {
