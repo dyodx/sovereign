@@ -65,14 +65,7 @@
 		// open account modal
 	}
 
-	const connection = new Connection(PUBLIC_RPC_URL as string, 'confirmed');
 	let tab: 'dash' | 'news' | 'state' = $state('dash');
-	// let address = $derived.by(() => ($walletStore.connected ? $walletStore.address : ''));
-	let balance = $derived.by(() => {
-		if (connection && address !== '') {
-			return walletHandler.getWalletBalance(connection, address as string);
-		}
-	});
 </script>
 
 <iframe
