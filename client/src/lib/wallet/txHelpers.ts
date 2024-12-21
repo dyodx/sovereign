@@ -43,7 +43,6 @@ async function sendOneLamportToSelf(connection: Connection, address: string) {
 
 async function mintNewCitizen(connection: Connection, address: string) {
 	const { SVPRGM } = initAnchor();
-	console.log({ SVPRGM });
 
 	const pkey = new PublicKey(address);
 	const currentGameId = 0n;
