@@ -47,19 +47,19 @@
 	}
 </script>
 
-<div class="grid items-end gap-6 md:grid-cols-3">
+<div class="grid items-center justify-items-center gap-6 md:grid-cols-3">
 	<div class="justify-self-center md:justify-self-end">
 		<ModalRecruit numberOfCitizens={1}>
 			<div>
 				<div
 					class="w-fit rounded-xl border-2 border-black bg-background px-4 py-2 transition-all hover:bg-panel"
 				>
-					Purchase 1 citizen for 0.25 SOL
+					Recruit Citizen
 				</div>
 			</div>
 		</ModalRecruit>
 	</div>
-	<p class="text-center text-4xl md:text-start">My Citizens</p>
+	<p class="text-center text-4xl md:text-start">Citizens</p>
 	<button onclick={loadAllAssets}> refresh </button>
 </div>
 <div></div>
