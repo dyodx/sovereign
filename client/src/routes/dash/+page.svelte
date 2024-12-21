@@ -11,7 +11,6 @@
 
 	import { createUmi } from '@metaplex-foundation/umi-bundle-defaults';
 	import { mplCore, fetchAssetsByOwner, type AssetV1 } from '@metaplex-foundation/mpl-core';
-	import { PublicKey } from '@solana/web3.js';
 
 	// Use the RPC endpoint of your choice.
 	const umi = createUmi('http://127.0.0.1:8899').use(mplCore());
