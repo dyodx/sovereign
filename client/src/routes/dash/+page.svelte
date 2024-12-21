@@ -38,7 +38,6 @@
 		});
 
 		if (privy && embeddedWallet === null && address) {
-			console.log('init DEBUG ADDRESS');
 			walletHandler.createEmbeddedWallet({
 				privy: privy as Privy,
 				user: user as PrivyAuthenticatedUser,
@@ -60,7 +59,6 @@
 		let twitterAuthUrl = await authHandler.generateTwitterAuthUrl({
 			privy
 		});
-		console.log('twitter', twitterAuthUrl);
 		window.location = twitterAuthUrl as string & Location;
 	}
 	function openAccount() {

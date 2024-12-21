@@ -21,7 +21,6 @@ async function createEmbeddedWallet(props: {
 	const [account] = getAllUserEmbeddedSolanaWallets(user!.user);
 	const hasEmbeddedWallet = await privy?.embeddedWallet.hasEmbeddedWallet();
 
-	console.log('balance check', account, hasEmbeddedWallet);
 	if (account && hasEmbeddedWallet) {
 		if (props.setAddress) {
 			props.setAddress(account.address);
@@ -36,7 +35,6 @@ async function createEmbeddedWallet(props: {
 			props.setProvider(newProvider);
 		}
 
-		console.log('about to balance');
 		await getWalletBalance(account.address);
 	} else {
 		if (!props.setEmbeddedWallet) return console.error('No embedded wallet');
@@ -56,8 +54,6 @@ async function getWalletBalance(address: string) {
 		const publicKey = new PublicKey(address);
 		const balance = await connection.getBalance(publicKey);
 		const resolvedBalance = balance / LAMPORTS_PER_SOL;
-
-		console.log('im in:got it', resolvedBalance);
 
 		walletStore.update((state) => ({
 			...state,
