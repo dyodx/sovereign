@@ -5,7 +5,13 @@
 		type PrivyEmbeddedSolanaWalletProvider
 	} from '@privy-io/js-sdk-core';
 	import type { PrivyAuthenticatedUser } from '@privy-io/public-api';
-	import { Connection, PublicKey } from '@solana/web3.js';
+	import {
+		Connection,
+		PublicKey,
+		SystemProgram,
+		TransactionMessage,
+		VersionedTransaction
+	} from '@solana/web3.js';
 	import { onDestroy, onMount } from 'svelte';
 	import { authHandler } from '$lib/wallet/authStateHelpers';
 	import { buildTransaction } from '$lib/wallet/txHelpers';
@@ -69,10 +75,22 @@
 				account.address,
 				'solana-address-verifier'
 			);
-			const connection = new Connection('https://api.devnet.solana.com');
+			const connection = new Connection('http://127.0.0.1:8899');
 			const pkey = new PublicKey(address);
-			const { tx, serialized } = await buildTransaction.sendOneLamportToSelf(connection, address);
 
+			const tx = new VersionedTransaction(
+				new TransactionMessage({
+					payerKey: pkey,
+					recentBlockhash: (await connection.getLatestBlockhash()).blockhash,
+					instructions: [
+						SystemProgram.transfer({
+							fromPubkey: pkey,
+							toPubkey: pkey,
+							lamports: 1
+						})
+					]
+				}).compileToLegacyMessage()
+			);
 			const message = Buffer.from(tx.message.serialize()).toString('base64');
 			const simpleSig = (
 				await provider.request({
@@ -82,27 +100,12 @@
 					}
 				})
 			).signature;
-			console.log('signature: ', simpleSig);
+			console.log('Message Signature: ', simpleSig);
 			tx.addSignature(pkey, Uint8Array.from(Buffer.from(simpleSig, 'base64')));
 			console.log('Signed: ', Buffer.from(tx.serialize()).toString('base64'));
 			// sign that message ^^^ and attach the signature
 			const confirmedSentTx = await connection.sendTransaction(tx);
 			confirmedTx = confirmedSentTx;
-			// const signature = (
-			// 	await provider.request({
-			// 		method: 'signMessage',
-			// 		params: {
-			// 			message: serialized
-			// 		}
-			// 	})
-			// ).signature;
-			// tx.addSignature(pkey, Uint8Array.from(Buffer.from(signature, 'base64')));
-			// let signedTxPreSend = Buffer.from(tx.serialize()).toString('base64');
-			// console.log('Signed: ', signedTxPreSend);
-			// console.log('SIMULATE', connection.simulateTransaction(tx));
-			// const txnSig = await connection.sendRawTransaction(tx.serialize());
-			// console.log('txnSig: ', txnSig);
-			// confirmedTx = txnSig;
 		} else {
 			embeddedWallet = (await privy?.embeddedWallet.createSolana())!.provider;
 		}
