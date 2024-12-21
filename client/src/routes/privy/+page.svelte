@@ -20,8 +20,11 @@
 	let privy_oauth_code = $page.url.searchParams.get('privy_oauth_code');
 
 	let privy: Privy | null = $state(null);
-	let twitURL = $state('');
+	let twitURL = $state(''); // twitter url to authorize account
 	let user = $state(null as PrivyAuthenticatedUser | null);
+	let provider = $state(
+		null as Awaited<ReturnType<Privy['embeddedWallet']['getSolanaProvider']>> | null
+	);
 	let iframeSrc = $state('');
 	let iframe = $state(null as HTMLIFrameElement | null);
 	let handler: (e: MessageEvent) => void;
@@ -72,25 +75,34 @@
 		const [account] = getAllUserEmbeddedSolanaWallets(user!.user);
 		if (account && privy?.embeddedWallet.hasEmbeddedWallet()) {
 			address = account.address;
-			const provider = await privy.embeddedWallet.getSolanaProvider(
+			const newProvider = await privy.embeddedWallet.getSolanaProvider(
 				account,
 				account.address,
 				'solana-address-verifier'
 			);
-			const connection = new Connection('http://127.0.0.1:8899');
-
-			const { tx, message } = await buildTransaction.sendOneLamportToSelf(connection, address);
-			await buildRequest(provider, tx, message, address);
-			const confirmedSentTx = await connection.sendTransaction(tx);
-			confirmedTx = confirmedSentTx;
+			provider = newProvider;
 		} else {
 			embeddedWallet = (await privy?.embeddedWallet.createSolana())!.provider;
 		}
+	}
+
+	async function sendOneLamportToSelf() {
+		if (!provider) {
+			await createEmbeddedWallet();
+			sendOneLamportToSelf();
+			return;
+		}
+		const connection = new Connection('http://127.0.0.1:8899');
+		const { tx, message } = await buildTransaction.sendOneLamportToSelf(connection, address);
+		await buildRequest(provider, tx, message, address);
+		const confirmedSentTx = await connection.sendTransaction(tx);
+		confirmedTx = confirmedSentTx;
 	}
 </script>
 
 <p>userid: {user?.user.id}</p>
 <p>address:{address}</p>
+<p>hasProvider:{!!provider}</p>
 <p>TXN:{confirmedTx}</p>
 <hr />
 <div class="flex flex-col items-start gap-4 p-4">
@@ -107,6 +119,7 @@
 	</p>
 	<br />
 	<button onclick={createEmbeddedWallet} class="bg-panel p-2"> createEmbeddedWallet </button> <br />
+	<button onclick={sendOneLamportToSelf} class="bg-panel p-2"> send lamport </button> <br />
 	<iframe
 		bind:this={iframe}
 		src={iframeSrc}
