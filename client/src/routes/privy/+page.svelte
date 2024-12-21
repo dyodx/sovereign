@@ -2,72 +2,13 @@
 	import { page } from '$app/stores';
 	import Privy, {
 		getAllUserEmbeddedSolanaWallets,
-		getUserEmbeddedEthereumWallet,
-		getUserEmbeddedSolanaWallet,
-		LocalStorage,
 		type PrivyEmbeddedSolanaWalletProvider
 	} from '@privy-io/js-sdk-core';
 	import type { PrivyAuthenticatedUser } from '@privy-io/public-api';
-	import {
-		ComputeBudgetProgram,
-		Connection,
-		PublicKey,
-		SystemProgram,
-		Transaction,
-		TransactionMessage,
-		VersionedTransaction
-	} from '@solana/web3.js';
+	import { Connection, PublicKey } from '@solana/web3.js';
 	import { onDestroy, onMount } from 'svelte';
-
-	// Auth state store
-	const AUTH_STORAGE_KEY = 'privy_auth_state';
-
-	// Save auth state
-	function saveAuthState(authUser: PrivyAuthenticatedUser) {
-		if (typeof window !== 'undefined') {
-			localStorage.setItem(
-				AUTH_STORAGE_KEY,
-				JSON.stringify({
-					user: authUser,
-					timestamp: new Date().getTime()
-				})
-			);
-		}
-	}
-
-	// Load auth state
-	async function loadAuthState(privyInstance: Privy): Promise<PrivyAuthenticatedUser | null> {
-		if (typeof window === 'undefined') return null;
-
-		const stored = localStorage.getItem(AUTH_STORAGE_KEY);
-		if (!stored) return null;
-
-		const { user: storedUser, timestamp } = JSON.parse(stored);
-
-		// Check if the stored state is less than 24 hours old
-		const now = new Date().getTime();
-		const expired = now - timestamp > 24 * 60 * 60 * 1000;
-
-		if (expired) {
-			localStorage.removeItem(AUTH_STORAGE_KEY);
-			return null;
-		}
-
-		try {
-			// Verify the stored auth state is still valid
-			const isAuthenticated = await privyInstance.embeddedWallet.hasEmbeddedWallet();
-			if (!isAuthenticated) {
-				localStorage.removeItem(AUTH_STORAGE_KEY);
-				return null;
-			}
-
-			return storedUser;
-		} catch (error) {
-			console.error('Error verifying auth state:', error);
-			localStorage.removeItem(AUTH_STORAGE_KEY);
-			return null;
-		}
-	}
+	import { authHandler } from '$lib/wallet/authStateHelpers';
+	import { buildTransaction } from '$lib/wallet/txHelpers';
 
 	let privy_oauth_state = $page.url.searchParams.get('privy_oauth_state');
 	let privy_oauth_code = $page.url.searchParams.get('privy_oauth_code');
@@ -83,27 +24,13 @@
 	let confirmedTx = $state('');
 
 	onMount(async () => {
-		const newPrivy = new Privy({
-			appId: 'cm4rluhru04zmuj8pzs0hklmk',
-			storage: new LocalStorage()
+		await authHandler.initializePrivy({
+			setUser: (newUser: PrivyAuthenticatedUser | null) => (user = newUser),
+			setPrivy: (newPrivy: Privy | null) => (privy = newPrivy),
+			setAddress: (newAddress: string | null) => (address = newAddress as string)
 		});
-		privy = newPrivy;
-
-		// Try to restore the previous session
-		const storedUser = await loadAuthState(newPrivy);
-		if (storedUser) {
-			user = storedUser;
-			// Initialize wallet if needed
-			if (await newPrivy.embeddedWallet.hasEmbeddedWallet()) {
-				const accounts = getAllUserEmbeddedSolanaWallets(storedUser.user);
-				if (accounts.length > 0) {
-					address = accounts[0].address;
-				}
-			}
-		}
 
 		iframeSrc = privy?.embeddedWallet.getURL()! as string;
-		console.log('iframeSrc', iframeSrc);
 		if (iframe?.contentWindow) {
 			privy!.setMessagePoster(iframe.contentWindow as any);
 			handler = (e: MessageEvent) => privy!.embeddedWallet.onMessage(e.data);
@@ -122,62 +49,30 @@
 			.url as string;
 	}
 
-	// async function loginWithCode() {
-	// 	privy?.auth.oauth
-	// 		.loginWithCode(privy_oauth_code as string, privy_oauth_state as string, 'twitter')
-	// 		.then((e) => {
-	// 			user = e;
-	// 			console.log('USER', user);
-	// 		});
-	// }
-	// Modified login function
 	async function loginWithCode() {
-		try {
-			const authenticatedUser = await privy?.auth.oauth.loginWithCode(
-				privy_oauth_code as string,
-				privy_oauth_state as string,
-				'twitter'
-			);
+		if (!privy) return console.error('privy not initialized');
 
-			if (authenticatedUser) {
-				user = authenticatedUser;
-				saveAuthState(authenticatedUser);
-				console.log('USER', user);
-			}
-		} catch (error) {
-			console.error('Login failed:', error);
-			localStorage.removeItem(AUTH_STORAGE_KEY);
-		}
+		await authHandler.loginWithCode({
+			privy: privy,
+			privy_oauth_code: privy_oauth_code as string,
+			privy_oauth_state: privy_oauth_state as string,
+			setUser: (newUser: PrivyAuthenticatedUser | null) => (user = newUser)
+		});
 	}
 
 	async function createEmbeddedWallet() {
-		if (privy?.embeddedWallet.hasEmbeddedWallet()) {
-			const accounts = getAllUserEmbeddedSolanaWallets(user!.user);
-			address = accounts[0].address;
+		const [account] = getAllUserEmbeddedSolanaWallets(user!.user);
+		if (account && privy?.embeddedWallet.hasEmbeddedWallet()) {
+			address = account.address;
 			const provider = await privy.embeddedWallet.getSolanaProvider(
-				accounts[0],
-				accounts[0].address,
+				account,
+				account.address,
 				'solana-address-verifier'
 			);
 			const connection = new Connection('https://api.devnet.solana.com');
 			const pkey = new PublicKey(address);
+			const { tx, serialized } = await buildTransaction.sendOneLamportToSelf(connection, address);
 
-			const tx = new VersionedTransaction(
-				new TransactionMessage({
-					payerKey: pkey,
-					recentBlockhash: (await connection.getLatestBlockhash()).blockhash,
-					instructions: [
-						ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 1_000_000 }),
-						ComputeBudgetProgram.setComputeUnitLimit({ units: 100000 }),
-						SystemProgram.transfer({
-							fromPubkey: pkey,
-							toPubkey: pkey,
-							lamports: 1
-						})
-					]
-				}).compileToV0Message()
-			);
-			const serialized = Buffer.from(tx.serialize()).toString('base64');
 			console.log('Pre signed: ', serialized);
 			const signature = (
 				await provider.request({
@@ -188,51 +83,36 @@
 				})
 			).signature;
 			tx.addSignature(pkey, Uint8Array.from(Buffer.from(signature, 'base64')));
-			console.log('Signed: ', Buffer.from(tx.serialize()).toString('base64'));
+			let signedTxPreSend = Buffer.from(tx.serialize()).toString('base64');
+			console.log('Signed: ', signedTxPreSend);
+			confirmedTx = signedTxPreSend;
 			console.log('SIMULATE', connection.simulateTransaction(tx));
 			const txnSig = await connection.sendRawTransaction(tx.serialize());
-			confirmedTx = txnSig;
 			console.log('txnSig: ', txnSig);
-
-			/*	
-			const transaction = new Transaction()
-			transaction.feePayer = pkey;
-			transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-			transaction.add(
-			SystemProgram.transfer({
-			fromPubkey: pkey,
-			toPubkey: pkey,
-			lamports: 1
-			})
-			)
-			const serializedTransaction = transaction.serialize({requireAllSignatures: false, verifySignatures: false}).toString('base64');
-			console.log(serializedTransaction);
-			console.log("trying things");
-			const signedTxn = (await provider.request({
-			method: "signMessage",
-			params: {
-			message: serializedTransaction
-			}
-			})).signature;
-			console.log(signedTxn);
-			const txnSig = await connection.sendRawTransaction(Uint8Array.from(atob(signedTxn), c => c.charCodeAt(0)));
-			console.log(txnSig);
-			*/
 		} else {
 			embeddedWallet = (await privy?.embeddedWallet.createSolana())!.provider;
 		}
 	}
 </script>
 
+<p>userid: {user?.user.id}</p>
 <p>address:{address}</p>
 <p>TXN:{confirmedTx}</p>
 <hr />
-<div>
-	<button onclick={generateURL}> generateURL </button> <br />
-	<a href={twitURL}>Go To Twitter {twitURL}</a> <br />
-	<button onclick={loginWithCode}> loginWithCode {privy_oauth_state} {privy_oauth_code} </button>
+<div class="flex flex-col items-start gap-4 p-4">
+	<button onclick={generateURL} class="bg-panel p-2"> generateURL </button> <br />
+	<a href={twitURL}>
+		<p class="bg-panel p-2">Go To Twitter</p>
+		<p class="line-clamp-2 max-w-[400px] overflow-hidden opacity-50">{twitURL}</p>
+	</a>
 	<br />
-	<button onclick={createEmbeddedWallet}> createEmbeddedWallet {user?.user.id} </button> <br />
+	<button onclick={loginWithCode} class="bg-panel p-2"> loginWithCode </button>
+	<p>
+		{privy_oauth_state?.substring(0, 8)}...
+		{privy_oauth_code?.substring(0, 8)}...
+	</p>
+	<br />
+	<button onclick={createEmbeddedWallet} class="bg-panel p-2"> createEmbeddedWallet </button> <br />
 	<iframe
 		bind:this={iframe}
 		src={iframeSrc}
