@@ -98,7 +98,7 @@
 					tab = 'state';
 				}}
 			>
-				NATION STATE
+				STATES
 			</button>
 		</div>
 		<div class="flex items-center pt-4 md:pt-0">
@@ -106,7 +106,6 @@
 				<button onclick={openAccount} class="rounded-xl bg-panel px-4 py-2">
 					<div class="group flex items-center gap-4">
 						<span class="tracking-tight">
-							{balance} SOL |
 							{address.substring(0, 4)}
 							{address.substring(address.length - 4, address.length)}
 						</span>
@@ -124,10 +123,16 @@
 					onclick={login}
 					class="scale-100 rounded-xl bg-panel px-4 py-2 group-hover:scale-110"
 				>
-					login
+					{#if !privy}
+						<p>loading..</p>
+					{:else}
+						login
+					{/if}
 				</button>
 			{/if}
 		</div>
+
+		<!-- MOBILE TABS -->
 		<Tabs.Root bind:value={tab} class="w-full py-4 md:hidden">
 			<Tabs.List class="justify-self-end">
 				<Tabs.Trigger value="dash">Dashboard</Tabs.Trigger>
