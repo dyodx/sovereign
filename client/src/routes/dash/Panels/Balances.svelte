@@ -4,11 +4,9 @@
 	import { walletStore } from '$lib/stores/wallet.svelte';
 	import { walletHandler } from '$lib/wallet/walletHelpers';
 
-	// let balance = $derived.by(() => ($walletStore.connected ? $walletStore.balance : '0'));
 	let balance = $derived.by(() =>
 		$walletStore.connected && $walletStore.balance > 0 ? $walletStore.balance : 0
 	);
-	$inspect('balances component balance', balance, $walletStore.connected);
 
 	let data = [
 		{
