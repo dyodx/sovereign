@@ -1,10 +1,11 @@
+import { PUBLIC_RPC_URL } from '$env/static/public';
 import { walletStore } from '$lib/stores/wallet.svelte';
 import Privy, {
 	getAllUserEmbeddedSolanaWallets,
 	type PrivyEmbeddedSolanaWalletProvider
 } from '@privy-io/js-sdk-core';
 import type { PrivyAuthenticatedUser } from '@privy-io/public-api';
-import { LAMPORTS_PER_SOL, PublicKey, type Connection } from '@solana/web3.js';
+import { Connection, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
 
 async function createEmbeddedWallet(props: {
 	privy: Privy;
@@ -19,6 +20,8 @@ async function createEmbeddedWallet(props: {
 	if (!user || !privy) return console.error('No user or privy');
 	const [account] = getAllUserEmbeddedSolanaWallets(user!.user);
 	const hasEmbeddedWallet = await privy?.embeddedWallet.hasEmbeddedWallet();
+
+	console.log('balance check', account, hasEmbeddedWallet);
 	if (account && hasEmbeddedWallet) {
 		if (props.setAddress) {
 			props.setAddress(account.address);
@@ -32,6 +35,9 @@ async function createEmbeddedWallet(props: {
 		if (props.setProvider) {
 			props.setProvider(newProvider);
 		}
+
+		console.log('about to balance');
+		await getWalletBalance(account.address);
 	} else {
 		if (!props.setEmbeddedWallet) return console.error('No embedded wallet');
 		const solanaProvider = await privy?.embeddedWallet.createSolana();
@@ -39,25 +45,30 @@ async function createEmbeddedWallet(props: {
 	}
 }
 
-async function getWalletBalance(connection: Connection, address: string) {
-	let resolvedBalance = 0;
-	if (connection && address !== '') {
-		const publicKey = new PublicKey(address as string);
-		connection // connection to solana rpc endpoint
-			.getBalance(publicKey as PublicKey) // fetch balance from connection
-			.then((data) => {
-				resolvedBalance = data / LAMPORTS_PER_SOL; // correct the decimal placement
-				walletStore.update((state) => ({
-					...state,
-					balance: resolvedBalance
-				}));
-			})
-			.catch((error) => {
-				console.error('Error fetching balance:', error);
-				resolvedBalance = 0; // or whatever error value you want
-			});
+async function getWalletBalance(address: string) {
+	const connection = new Connection(PUBLIC_RPC_URL as string);
+
+	if (!connection || !address) {
+		return 0;
 	}
-	return resolvedBalance;
+
+	try {
+		const publicKey = new PublicKey(address);
+		const balance = await connection.getBalance(publicKey);
+		const resolvedBalance = balance / LAMPORTS_PER_SOL;
+
+		console.log('im in:got it', resolvedBalance);
+
+		walletStore.update((state) => ({
+			...state,
+			balance: resolvedBalance
+		}));
+
+		return resolvedBalance;
+	} catch (error) {
+		console.error('Error fetching balance:', error);
+		return 0;
+	}
 }
 
 export const walletHandler = {

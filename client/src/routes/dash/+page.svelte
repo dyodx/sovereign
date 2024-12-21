@@ -11,6 +11,9 @@
 	import { authHandler } from '$lib/wallet/authStateHelpers';
 	import { redirect } from '@sveltejs/kit';
 	import { goto } from '$app/navigation';
+	import { PUBLIC_RPC_URL } from '$env/static/public';
+	import { Connection } from '@solana/web3.js';
+	import { walletHandler } from '$lib/wallet/walletHelpers';
 
 	let privy_oauth_state = $page.url.searchParams.get('privy_oauth_state');
 	let privy_oauth_code = $page.url.searchParams.get('privy_oauth_code');
@@ -24,6 +27,7 @@
 	let iframe = $state(null as HTMLIFrameElement | null);
 	let handler: (e: MessageEvent) => void;
 	let embeddedWallet = $state(null as PrivyEmbeddedSolanaWalletProvider | null);
+	let address = $state('');
 	let confirmedTx = $state('');
 
 	onMount(async () => {
@@ -32,6 +36,16 @@
 			setPrivy: (newPrivy: Privy | null) => (privy = newPrivy),
 			setAddress: (newAddress: string | null) => (address = newAddress as string)
 		});
+
+		if (privy && embeddedWallet === null && address) {
+			console.log('init DEBUG ADDRESS');
+			walletHandler.createEmbeddedWallet({
+				privy: privy as Privy,
+				user: user as PrivyAuthenticatedUser,
+				setProvider: (e) => (provider = e),
+				setEmbeddedWallet: (e) => (embeddedWallet = e)
+			});
+		}
 
 		iframeSrc = privy?.embeddedWallet.getURL()! as string;
 		if (iframe?.contentWindow) {
@@ -53,13 +67,14 @@
 		// open account modal
 	}
 
-	// const rpc = PUBLIC_RPC_URL as string;
-	// const connection = new Connection(rpc, 'confirmed');
-	// let publicKey = $derived(address === '' ? null : new PublicKey(address as string));
-	// let resolvedBalance = $state(0);
-	let balance = 0;
+	const connection = new Connection(PUBLIC_RPC_URL as string, 'confirmed');
 	let tab: 'dash' | 'news' | 'state' = $state('dash');
-	let address = $derived.by(() => ($walletStore.connected ? $walletStore.address : ''));
+	// let address = $derived.by(() => ($walletStore.connected ? $walletStore.address : ''));
+	let balance = $derived.by(() => {
+		if (connection && address !== '') {
+			return walletHandler.getWalletBalance(connection, address as string);
+		}
+	});
 </script>
 
 <iframe

@@ -5,6 +5,7 @@ import Privy, {
 	LocalStorage,
 	type PrivyEmbeddedSolanaWalletProvider
 } from '@privy-io/js-sdk-core';
+import { walletStore } from '$lib/stores/wallet.svelte';
 
 // Auth state store
 const AUTH_STORAGE_KEY = 'privy_auth_state';
@@ -34,6 +35,10 @@ async function initializePrivy(props: initProps) {
 			const accounts = getAllUserEmbeddedSolanaWallets(storedUser.user);
 			if (accounts.length > 0) {
 				props.setAddress(accounts[0].address);
+				walletStore.update((state) => ({
+					...state,
+					connected: true
+				}));
 			}
 		}
 	}
