@@ -10,7 +10,7 @@
 			<Panel_Balances />
 		</div>
 
-		<div class="rounded-xl border-2 border-black bg-panel p-4 shadow-flat">
+		<div class="max-w-[400px] rounded-xl border-2 border-black bg-panel p-4 shadow-flat">
 			<Panel_SwapCoins />
 		</div>
 	</div>

@@ -1,24 +1,15 @@
 <script lang="ts">
-	import { page } from '$app/stores';
 	import { cn } from '$lib/utils.js';
 	import Body from './Body.svelte';
 	import News from './News.svelte';
 	import * as Tabs from '$lib/components/ui/tabs';
-	import { walletStore } from '$lib/stores/wallet.svelte';
 	import Privy, { type PrivyEmbeddedSolanaWalletProvider } from '@privy-io/js-sdk-core';
 	import type { PrivyAuthenticatedUser } from '@privy-io/public-api';
 	import { onMount } from 'svelte';
 	import { authHandler } from '$lib/wallet/authStateHelpers';
-	import { redirect } from '@sveltejs/kit';
-	import { goto } from '$app/navigation';
-	import { PUBLIC_RPC_URL } from '$env/static/public';
-	import { Connection } from '@solana/web3.js';
 	import { walletHandler } from '$lib/wallet/walletHelpers';
 
-	let privy_oauth_state = $page.url.searchParams.get('privy_oauth_state');
-	let privy_oauth_code = $page.url.searchParams.get('privy_oauth_code');
 	let privy: Privy | null = $state(null);
-	let twitURL = $state(''); // twitter url to authorize account
 	let user = $state(null as PrivyAuthenticatedUser | null);
 	let provider = $state(
 		null as Awaited<ReturnType<Privy['embeddedWallet']['getSolanaProvider']>> | null
@@ -28,7 +19,6 @@
 	let handler: (e: MessageEvent) => void;
 	let embeddedWallet = $state(null as PrivyEmbeddedSolanaWalletProvider | null);
 	let address = $state('');
-	let confirmedTx = $state('');
 
 	onMount(async () => {
 		await authHandler.initializePrivy({
@@ -65,14 +55,7 @@
 		// open account modal
 	}
 
-	const connection = new Connection(PUBLIC_RPC_URL as string, 'confirmed');
 	let tab: 'dash' | 'news' | 'state' = $state('dash');
-	// let address = $derived.by(() => ($walletStore.connected ? $walletStore.address : ''));
-	let balance = $derived.by(() => {
-		if (connection && address !== '') {
-			return walletHandler.getWalletBalance(connection, address as string);
-		}
-	});
 </script>
 
 <iframe
