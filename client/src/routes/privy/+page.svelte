@@ -51,8 +51,10 @@
 	});
 
 	async function generateURL() {
-		twitURL = (await privy?.auth.oauth.generateURL('twitter', 'http://localhost:5173/privy'))!
-			.url as string;
+		if (!privy) return console.error('privy not initialized');
+		twitURL = await authHandler.generateTwitterAuthUrl({
+			privy
+		});
 	}
 
 	async function loginWithCode() {

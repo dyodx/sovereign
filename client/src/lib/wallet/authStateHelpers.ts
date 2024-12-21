@@ -39,6 +39,23 @@ async function initializePrivy(props: initProps) {
 	}
 }
 
+// Generate Twitter Oauth URL
+async function generateTwitterAuthUrl(props: {
+	privy: Privy;
+	setTwitterAuthUrl?: (newTwitterAuthUrl: string) => void;
+}) {
+	let twitterAuthUrl = (await props.privy?.auth.oauth.generateURL(
+		'twitter',
+		'http://localhost:5173/privy'
+	))!.url as string;
+
+	if (props.setTwitterAuthUrl) {
+		props.setTwitterAuthUrl(twitterAuthUrl);
+	}
+
+	return twitterAuthUrl;
+}
+
 // Save auth state
 function saveAuthState(authUser: PrivyAuthenticatedUser) {
 	if (typeof window !== 'undefined') {
@@ -124,5 +141,6 @@ export const authHandler = {
 	initializePrivy, // initialize privy
 	saveAuthState, // save existing state to local storage
 	loadAuthState, // load existing state from local storage
-	loginWithCode
+	loginWithCode, // login with a Twitter Oauth token
+	generateTwitterAuthUrl //generate Twitter Oauth URL
 };
