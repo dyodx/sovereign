@@ -2,10 +2,32 @@
 	import * as Dialog from '$lib/components/ui/dialog';
 	import Combobox from '$lib/components/molecules/Combobox/Combobox.svelte';
 	import { currencies } from '$lib/constants/currencies';
+	import { fetchAssetV1, mplCore, type AssetV1 } from '@metaplex-foundation/mpl-core';
+	import { createUmi } from '@metaplex-foundation/umi-bundle-defaults';
+	import { PUBLIC_RPC_URL } from '$env/static/public';
+	import { generateNamePair } from '$lib/constants/names';
 
 	let { citizenId, children } = $props();
+	const { firstName, lastName } = generateNamePair(citizenId);
+
+	// prepare umi to fetch assets
+	const umi = createUmi(PUBLIC_RPC_URL).use(mplCore());
+	const asset = fetchAssetV1(umi, citizenId);
+	console.log({ citizenId, asset });
 
 	let selectedCurrency: string = $state('');
+
+	type CitizenAttributes =
+		| 'game'
+		| 'nation_state'
+		| 'gdp_fix'
+		| 'healthcare_fix'
+		| 'environment_fix'
+		| 'stability_fix';
+
+	function getAttribute(key: CitizenAttributes, asset: AssetV1) {
+		return asset.attributes?.attributeList.find((e) => e.key === key)?.value;
+	}
 </script>
 
 <Dialog.Root>
@@ -18,6 +40,17 @@
 			<Dialog.Description>
 				<div class="flex flex-col gap-4">
 					<p>citizenId: {citizenId}</p>
+					{#await asset then data}
+						<p>{firstName} {lastName}</p>
+						<p>Citizen of: {getAttribute('nation_state', data)}</p>
+						<div class="grid grid-cols-4">
+							<p>GDP: {getAttribute('gdp_fix', data)}</p>
+							<p>HEALTH: {getAttribute('healthcare_fix', data)}</p>
+							<p>ENVIRONMENT: {getAttribute('environment_fix', data)}</p>
+							<p>STABILITY: {getAttribute('stability_fix', data)}</p>
+						</div>
+					{/await}
+					<div></div>
 
 					<div class="grid grid-cols-2 items-start gap-4">
 						<div class="flex w-full flex-col gap-4">
