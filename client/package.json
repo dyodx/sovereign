@@ -7,18 +7,22 @@
 		"dev": "vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
+		"start": "vite build && vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"format": "prettier --write .",
 		"lint": "prettier --check . && eslint ."
 	},
 	"devDependencies": {
+		"@esbuild-plugins/node-globals-polyfill": "^0.2.3",
 		"@eslint/compat": "^1.2.3",
+		"@rollup/plugin-inject": "^5.0.5",
 		"@sveltejs/adapter-auto": "^3.0.0",
 		"@sveltejs/kit": "^2.9.0",
 		"@sveltejs/vite-plugin-svelte": "^5.0.0",
+		"@vite-pwa/sveltekit": "^0.6.6",
 		"autoprefixer": "^10.4.20",
-		"bits-ui": "^0.21.16",
+		"bits-ui": "next",
 		"clsx": "^2.1.1",
 		"eslint": "^9.7.0",
 		"eslint-config-prettier": "^9.1.0",
@@ -28,6 +32,7 @@
 		"prettier": "^3.3.2",
 		"prettier-plugin-svelte": "^3.2.6",
 		"prettier-plugin-tailwindcss": "^0.6.5",
+		"rollup-plugin-node-polyfills": "^0.2.1",
 		"svelte": "^5.0.0",
 		"svelte-check": "^4.0.0",
 		"tailwind-merge": "^2.5.5",
@@ -38,7 +43,16 @@
 		"vite": "^6.0.0"
 	},
 	"dependencies": {
+		"@privy-io/js-sdk-core": "^0.36.0",
+		"@privy-io/public-api": "^2.15.8",
+		"@solana/wallet-adapter-base": "^0.9.23",
+		"@solana/wallet-adapter-wallets": "^0.19.32",
+		"@solana/web3.js": "^1.98.0",
+		"@svelte-on-solana/wallet-adapter-core": "^1.0.11-alpha.0",
+		"@svelte-on-solana/wallet-adapter-ui": "^1.0.21-alpha.0",
 		"@tailwindcss/container-queries": "^0.1.1",
-		"@tailwindcss/typography": "^0.5.15"
+		"@tailwindcss/typography": "^0.5.15",
+		"tailwindcss-animate": "^1.0.7",
+		"vite-plugin-node-polyfills": "^0.22.0"
 	}
 }
