@@ -13,7 +13,7 @@ import {
 //
 //@ts-expect-error: todo fix types later
 import { serializeUint64, ByteifyEndianess } from 'byteify';
-import { estimateCU } from './txUtilities';
+import { estimateCU, getGameAccount } from './txUtilities';
 
 async function sendOneLamportToSelf(connection: Connection, address: string) {
 	const { SVPRGM } = initAnchor();
@@ -41,25 +41,46 @@ async function sendOneLamportToSelf(connection: Connection, address: string) {
 	};
 }
 
-async function mintNewCitizen(connection: Connection, address: string) {
+async function registerPlayer(
+	connection: Connection,
+	address: string,
+	twitterHandle: string
+) {
 	const { SVPRGM } = initAnchor();
 
-	const pkey = new PublicKey(address);
+	const pkey = new PublicKey(address); // authority
+	let x_username = '';
 	const currentGameId = 0n;
+
+	// convert currentGameId to bytes
 	const gameId = Uint8Array.from(
 		serializeUint64(currentGameId, {
 			endianess: ByteifyEndianess.LITTLE_ENDIAN
 		})
 	);
 
-	// todo: create store for gameid, and game account (metadata)
-	const gameAccountKey = anchor.web3.PublicKey.findProgramAddressSync(
-		[Buffer.from('game'), gameId],
+	// todo: move to register player
+	// check if registered
+	let playerAccountKey = anchor.web3.PublicKey.findProgramAddressSync(
+		[Buffer.from('player'), gameId, pkey.toBytes()],
 		SVPRGM.programId
 	)[0];
+	const playerAccount =
+		await SVPRGM.account.player.fetchNullable(playerAccountKey);
+	// end todo
+}
 
-	const gameMetaData = await SVPRGM.account.game.fetch(gameAccountKey);
+async function mintNewCitizen(connection: Connection, address: string) {
+	const { SVPRGM } = initAnchor();
 
+	const pkey = new PublicKey(address);
+	const {
+		Uint8Array: gameIdInBytes,
+		gameAccountKey,
+		getGameMetaData
+	} = getGameAccount();
+
+	const gameMetaData = await getGameMetaData();
 	const citizenAsset = anchor.web3.Keypair.generate();
 
 	const citizenMintIx = await SVPRGM.methods
@@ -68,13 +89,15 @@ async function mintNewCitizen(connection: Connection, address: string) {
 			playerAuthority: pkey,
 			gameAccount: gameAccountKey, // get admin key
 			worldAgentWallet: anchor.web3.PublicKey.findProgramAddressSync(
-				[Buffer.from('wallet'), gameId, gameMetaData.worldAgent.toBytes()],
+				[
+					Buffer.from('wallet'),
+					gameIdInBytes,
+					gameMetaData.worldAgent.toBytes()
+				],
 				SVPRGM.programId
 			)[0],
 			collection: gameMetaData.collection,
 			citizenAsset: citizenAsset.publicKey // check metaplex
-			// mplCoreProgram: '',
-			// systemProgram: ''
 		})
 		.signers([citizenAsset])
 		.instruction();
@@ -134,8 +157,6 @@ export async function buildRequest(
 		})
 	).signature;
 	return simpleSig;
-	// tx.addSignature(pkey, Uint8Array.from(Buffer.from(simpleSig, 'base64')));
-	// sign that message ^^^ and attach the signature
 }
 
 export const buildTransaction = {

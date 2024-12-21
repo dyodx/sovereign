@@ -1,5 +1,10 @@
+import { initAnchor } from '$lib/deps';
+import * as anchor from '@coral-xyz/anchor';
 import type { Connection } from '@solana/web3.js';
 import { web3 } from '@coral-xyz/anchor';
+import { GAME_ID } from './constants';
+//@ts-expect-error: todo fix types later
+import { serializeUint64, ByteifyEndianess } from 'byteify';
 
 export async function estimateCU(
 	feePayer: web3.PublicKey,
@@ -29,4 +34,31 @@ export async function estimateCU(
 	} catch (e) {
 		throw e;
 	}
+}
+
+export function getGameAccount() {
+	const { SVPRGM } = initAnchor();
+
+	const InBigInt = BigInt(GAME_ID);
+	const InBytes = Uint8Array.from(
+		serializeUint64(InBigInt, {
+			endianess: ByteifyEndianess.LITTLE_ENDIAN
+		})
+	);
+
+	const gameAccountKey = anchor.web3.PublicKey.findProgramAddressSync(
+		[Buffer.from('game'), InBytes],
+		SVPRGM.programId
+	)[0];
+
+	async function getGameMetaData() {
+		return await SVPRGM.account.game.fetch(gameAccountKey);
+	}
+
+	return {
+		BigInt: InBigInt,
+		Uint8Array: InBytes,
+		gameAccountKey: gameAccountKey,
+		getGameMetaData: getGameMetaData
+	};
 }
