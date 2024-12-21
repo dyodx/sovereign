@@ -1591,6 +1591,11 @@ export type Programs = {
       "code": 6014,
       "name": "gameNotOver",
       "msg": "Game Not Over"
+    },
+    {
+      "code": 6015,
+      "name": "invalidCollectionKey",
+      "msg": "Invalid Collection Key"
     }
   ],
   "types": [
@@ -2073,6 +2078,14 @@ export type Programs = {
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "gameId",
+            "type": "u64"
+          },
+          {
+            "name": "nationId",
+            "type": "u8"
+          },
           {
             "name": "player",
             "type": "string"

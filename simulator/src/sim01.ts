@@ -17,7 +17,9 @@ main().then(() => {
 
 async function main(){
     // Create a Game As Admin    
-    await createGame();
+    const gameSetup = await createGame();
+    await Bun.sleep(5000);
+    await mintCitizen(gameSetup, gameSetup.adminKey);
     // Nations Register
         // Generate Keypair && Store in DB
         // Start Nation Worker (Use BullMQ on the backend)
@@ -95,7 +97,7 @@ async function createGame(){
     .instruction();
     
     // Create DB Entries
-    const result = await db.insert(db.common.Game, {
+    await db.insert(db.common.Game, {
         game_id: newGameId,
         admin_private_key: bs58.encode(adminKey.secretKey),
         world_agent_private_key: bs58.encode(worldAgentKey.secretKey),
@@ -117,6 +119,52 @@ async function createGame(){
     tx.sign([adminKey, collectionKey]);
     const sig = await CONNECTION.sendTransaction(tx);
     console.log("Initialized Game Sig: ", sig);
+    return {
+        gameId: newGameId,
+        adminKey: adminKey,
+        worldAgentKey: worldAgentKey,
+        brokerKey: brokerKey,
+        journalistKey: journalistKey,
+        collectionKey: collectionKey,
+    }
+}
+
+async function mintCitizen(gameSetup: any, playerKey: web3.Keypair){
+    const citizenKey = web3.Keypair.generate();
+    const gameAccountKey = web3.PublicKey.findProgramAddressSync(
+        [Buffer.from("game"), Uint8Array.from(serializeUint64(gameSetup.gameId,{endianess: ByteifyEndianess.LITTLE_ENDIAN}))],
+        SVPRGM.programId
+    )[0];
+    const worldAgentWalletKey = web3.PublicKey.findProgramAddressSync(
+        [Buffer.from("wallet"), Uint8Array.from(serializeUint64(gameSetup.gameId,{endianess: ByteifyEndianess.LITTLE_ENDIAN})), gameSetup.worldAgentKey.publicKey.toBuffer()],
+        SVPRGM.programId
+    )[0];
+
+    const citizenIx = await SVPRGM.methods
+    .mintCitizen()
+    .accountsPartial({
+        playerAuthority: playerKey.publicKey,
+        worldAgentWallet: worldAgentWalletKey,
+        collection: gameSetup.collectionKey.publicKey,
+        citizenAsset: citizenKey.publicKey,
+        gameAccount: gameAccountKey,
+    })
+    .instruction();
+
+    const estimatedCU = await estimateCU(playerKey.publicKey, [citizenIx]);
+    // Send Transaction To Chain
+    const tx = new web3.VersionedTransaction(new web3.TransactionMessage({
+        payerKey: playerKey.publicKey,
+        recentBlockhash: (await CONNECTION.getLatestBlockhash()).blockhash,
+        instructions: [
+            web3.ComputeBudgetProgram.setComputeUnitPrice({microLamports: COMPUTE_UNIT_PRICE}),
+            web3.ComputeBudgetProgram.setComputeUnitLimit({units: estimatedCU}),
+            citizenIx
+        ]
+    }).compileToV0Message());    
+    tx.sign([playerKey, citizenKey]);
+    const sig = await CONNECTION.sendTransaction(tx);
+    console.log("Minted Citizen Sig: ", sig);
 }
 
 // 8k h/s was what hash_test ran on macos without any optimizations (multi threading and so on)
