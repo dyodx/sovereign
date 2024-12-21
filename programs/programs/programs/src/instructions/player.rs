@@ -1,6 +1,7 @@
 use std::fmt::Debug;
 
 use anchor_lang::{prelude::*, system_program::{transfer, Transfer}};
+use anchor_lang::solana_program::hash::hash;
 use mpl_core::{accounts::{BaseAssetV1, BaseCollectionV1}, fetch_plugin, instructions::{CreateV2CpiBuilder, UpdatePluginV1CpiBuilder}, types::{Attribute, Attributes, FreezeDelegate, Plugin, PluginAuthority, PluginAuthorityPair, PluginType}, ID as MPL_CORE_ID};
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use groth16_solana::groth16::Groth16Verifier;
@@ -69,10 +70,15 @@ pub fn mint_citizen(ctx: Context<MintCitizen>) -> Result<()> {
     ];
 
     let clock = Clock::get()?;
-    let gdp_fix = clock.slot.to_be_bytes()[0] as u8;
-    let healthcare_fix = clock.slot.to_be_bytes()[1] as u8;
-    let environment_fix = clock.slot.to_be_bytes()[2] as u8;
-    let stability_fix = clock.slot.to_be_bytes()[3] as u8;
+    let mut hash_input = Vec::with_capacity(40); // 32 + 8 bytes
+    hash_input.extend_from_slice(&ctx.accounts.player_authority.key().to_bytes());
+    hash_input.extend_from_slice(&clock.slot.to_le_bytes());
+    let hash = hash(&hash_input);
+    let hash_bytes = hash.to_bytes(); // Convert Hash to [u8; 32]
+    let gdp_fix = hash_bytes[0] as u8;
+    let healthcare_fix = hash_bytes[1] as u8;
+    let environment_fix = hash_bytes[2] as u8;
+    let stability_fix = hash_bytes[3] as u8;
     let nation_state_idx = u32::from_be_bytes(clock.slot.to_be_bytes()[4..8].try_into().unwrap()) as usize % NATION_STATES.len();
     let nation_state = NATION_STATES[nation_state_idx];
 
