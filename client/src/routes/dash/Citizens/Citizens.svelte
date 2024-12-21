@@ -1,34 +1,26 @@
 <script lang="ts">
-	import { IconExchange } from '$lib/components/atoms/icons';
-	import IconGavel from '$lib/components/atoms/icons/IconGavel.svelte';
-	import IconLeaf from '$lib/components/atoms/icons/IconLeaf.svelte';
-	import IconMoneyBag from '$lib/components/atoms/icons/IconMoneyBag.svelte';
-	import IconStethoscope from '$lib/components/atoms/icons/IconStethoscope.svelte';
 	import ModalCitizen from '../Modals/ModalCitizen.svelte';
 	import ModalRecruit from '../Modals/ModalRecruit.svelte';
+	import { flags } from './constants';
 
-	const flags = [
-		'🇦🇺', // Australia
-		'🇧🇷', // Brazil
-		'🇨🇦', // Canada
-		'🇨🇳', // China
-		'🇫🇷', // France
-		'🇩🇪', // Germany
-		'🇮🇳', // India
-		'🇮🇹', // Italy
-		'🇯🇵', // Japan
-		'🇲🇽', // Mexico
-		'🇳🇱', // Netherlands
-		'🇳🇴', // Norway
-		'🇷🇺', // Russia
-		'🇪🇸', // Spain
-		'🇸🇪', // Sweden
-		'🇨🇭', // Switzerland
-		'🇹🇷', // Turkey
-		'🇬🇧', // United Kingdom
-		'🇺🇸', // United States
-		'🇰🇷' // South Korea
-	];
+	import { createUmi } from '@metaplex-foundation/umi-bundle-defaults';
+	import { mplCore, fetchAssetsByOwner, type AssetV1 } from '@metaplex-foundation/mpl-core';
+	import { walletStore } from '$lib/stores/wallet.svelte';
+	import { PUBLIC_RPC_URL } from '$env/static/public';
+
+	let address = $derived.by(() =>
+		$walletStore.connected && !!$walletStore.address ? $walletStore.address : null
+	);
+	const umi = createUmi(PUBLIC_RPC_URL).use(mplCore());
+
+	async function getAllAssets() {
+		if (!address) return console.error('GetAllAssets: address not set');
+		let assets: AssetV1[] | null = $state(null);
+		let data = await fetchAssetsByOwner(umi, address);
+		console.log({ data });
+		assets = data;
+		return data;
+	}
 </script>
 
 <div class="grid items-end gap-6 md:grid-cols-3">
@@ -44,6 +36,13 @@
 		</ModalRecruit>
 	</div>
 	<p class="text-center text-4xl md:text-start">My Citizens</p>
+</div>
+<div>
+	{#await getAllAssets() then data}
+		{#each data ?? [] as asset}
+			{asset.publicKey}
+		{/each}
+	{/await}
 </div>
 
 <div class="mt-8 grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-6">
