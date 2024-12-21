@@ -1,6 +1,5 @@
 <script lang="ts">
 	import * as Dialog from '$lib/components/ui/dialog';
-	import * as Table from '$lib/components/ui/table';
 
 	import { buildRequest, buildTransaction } from '$lib/wallet/txHelpers';
 	import { PUBLIC_RPC_URL } from '$env/static/public';
@@ -10,7 +9,6 @@
 	import Privy from '@privy-io/js-sdk-core';
 	import { walletHandler } from '$lib/wallet/walletHelpers';
 	import type { PrivyAuthenticatedUser } from '@privy-io/public-api';
-	import { onDestroy } from 'svelte';
 
 	let { numberOfCitizens = 1, children } = $props();
 
