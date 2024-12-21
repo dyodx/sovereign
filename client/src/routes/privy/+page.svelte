@@ -124,3 +124,13 @@
 	>
 	</iframe>
 </div>
+
+<hr />
+
+<div class="mx-auto grid h-[300px] w-screen max-w-[500px] place-items-center">
+	<!-- IF NOT LOGGED IN - SHOW STEPS FOR LOGIN -->
+	{#if user?.user.id}
+		<!-- PRIVY READY -->
+		<button class="rounded bg-panel p-2" onclick={sendOneLamportToSelf}> Send Lamport </button>
+	{/if}
+</div>
