@@ -1,7 +1,6 @@
 <script lang="ts">
 	import ModalCitizen from '../Modals/ModalCitizen.svelte';
 	import ModalRecruit from '../Modals/ModalRecruit.svelte';
-	import { flags } from './constants';
 
 	import { createUmi } from '@metaplex-foundation/umi-bundle-defaults';
 	import { mplCore, fetchAssetsByOwner, type AssetV1 } from '@metaplex-foundation/mpl-core';

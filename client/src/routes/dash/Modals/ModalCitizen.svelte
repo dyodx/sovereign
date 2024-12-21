@@ -7,6 +7,7 @@
 	import { createUmi } from '@metaplex-foundation/umi-bundle-defaults';
 	import { PUBLIC_RPC_URL } from '$env/static/public';
 	import { generateNamePair } from '$lib/constants/names';
+	import IconCopy from '$lib/components/atoms/icons/IconCopy.svelte';
 
 	let { citizenId, children } = $props();
 	const { firstName, lastName } = generateNamePair(citizenId);
@@ -18,7 +19,18 @@
 
 	let selectedCurrency: string = $state('');
 
-	type CitizenAttributes =
+	let copiedText = '';
+	async function copyToClipboard(text: string) {
+		try {
+			await navigator.clipboard.writeText(text);
+			copiedText = 'Copied to clipboard!';
+		} catch (err) {
+			copiedText = 'Failed to copy!';
+			console.error('Failed to copy: ', err);
+		}
+	}
+
+	type CitizenAttribute =
 		| 'game'
 		| 'nation_state'
 		| 'gdp_fix'
@@ -26,7 +38,7 @@
 		| 'environment_fix'
 		| 'stability_fix';
 
-	function getAttribute(key: CitizenAttributes, asset: AssetV1) {
+	function getAttribute(key: CitizenAttribute, asset: AssetV1) {
 		return asset.attributes?.attributeList.find((e) => e.key === key)?.value;
 	}
 </script>
@@ -42,16 +54,42 @@
 				<div class="flex flex-col gap-4">
 					<p>citizenId: {citizenId}</p>
 					{#await asset then data}
-						<p>{firstName} {lastName}</p>
-						<p>
-							Citizen of: {getCountryFlag(getAttribute('nation_state', data) ?? 'Solana')}
+						<div class="flex items-center gap-2 rounded bg-panel p-2">
+							<img
+								src={`https://api.dicebear.com/9.x/lorelei-neutral/svg?seed=${citizenId}`}
+								alt="avatar"
+								class="h-[1.5rem] translate-x-[-2px] scale-150 rounded border-2 border-panel"
+							/>
+							<p>{firstName} {lastName}</p>
+							<button
+								class="group flex flex-grow cursor-pointer items-end justify-end gap-2 text-background"
+								onclick={() => copyToClipboard(citizenId)}
+							>
+								<p>{citizenId.substring(0, 8)}</p>
+								<span class="transition-all group-hover:scale-125 group-active:scale-110">
+									<IconCopy />
+								</span>
+							</button>
+						</div>
+						<p class="rounded bg-panel p-2">
+							Citizen of: <span class="group-hover:scale-125"
+								>{getCountryFlag(getAttribute('nation_state', data) ?? 'Solana')}</span
+							>
 							{getAttribute('nation_state', data)}
 						</p>
-						<div class="grid grid-cols-4">
-							<p>GDP: {getAttribute('gdp_fix', data)}</p>
-							<p>HEALTH: {getAttribute('healthcare_fix', data)}</p>
-							<p>ENVIRONMENT: {getAttribute('environment_fix', data)}</p>
-							<p>STABILITY: {getAttribute('stability_fix', data)}</p>
+
+						<div class="grid grid-cols-2 rounded bg-panel p-2">
+							{#snippet stat(key: CitizenAttribute, text: string)}
+								<div class="flex flex-col">
+									<p>{text}</p>
+									<p>{getAttribute(key, data)}</p>
+								</div>
+							{/snippet}
+
+							{@render stat('gdp_fix', 'GDP:')}
+							{@render stat('healthcare_fix', 'HEALTH:')}
+							{@render stat('environment_fix', 'ENVIRONMENT: ')}
+							{@render stat('stability_fix', 'STABILITY:')}
 						</div>
 					{/await}
 					<div></div>
