@@ -24,6 +24,7 @@ async function createEmbeddedWallet(props: {
 	if (account && hasEmbeddedWallet) {
 		if (props.setAddress) {
 			props.setAddress(account.address);
+			walletStore.update((state) => ({ ...state, address: account.address }));
 		}
 
 		const newProvider = await privy.embeddedWallet.getSolanaProvider(
@@ -57,7 +58,8 @@ async function getWalletBalance(address: string) {
 
 		walletStore.update((state) => ({
 			...state,
-			balance: resolvedBalance
+			balance: resolvedBalance,
+			address: state.address ?? address
 		}));
 
 		return resolvedBalance;

@@ -1,9 +1,82 @@
 <script lang="ts">
 	import * as Dialog from '$lib/components/ui/dialog';
-	import * as Table from '$lib/components/ui/table';
+
+	import { buildRequest, buildTransaction } from '$lib/wallet/txHelpers';
+	import { PUBLIC_RPC_URL } from '$env/static/public';
+	import { walletStore } from '$lib/stores/wallet.svelte';
+	import { privyStore } from '$lib/stores/privy.svelte';
+	import { Connection, PublicKey } from '@solana/web3.js';
+	import Privy from '@privy-io/js-sdk-core';
+	import { walletHandler } from '$lib/wallet/walletHelpers';
+	import type { PrivyAuthenticatedUser } from '@privy-io/public-api';
 
 	let { numberOfCitizens = 1, children } = $props();
-	let pricePerCitizen = 0.25;
+
+	const connection = new Connection(PUBLIC_RPC_URL as string); // todo figure out how make this everywhere
+
+	let address = $derived.by(() => $walletStore.address ?? null);
+
+	$inspect('recruit modal address:', address);
+
+	let privy: Privy | null = $derived.by(() =>
+		$privyStore.isInitialized ? $privyStore.privy : null
+	);
+
+	let user: PrivyAuthenticatedUser | null = $derived.by(() =>
+		$privyStore.isInitialized ? $privyStore.user : null
+	);
+	let provider = $state(
+		null as Awaited<ReturnType<Privy['embeddedWallet']['getSolanaProvider']>> | null
+	);
+
+	let confirmedTx = $state('');
+
+	async function createEmbeddedWallet() {
+		await walletHandler.createEmbeddedWallet({
+			privy: privy as Privy,
+			user: user as PrivyAuthenticatedUser,
+			setProvider: (e) => (provider = e)
+		});
+	}
+
+	async function sendOneLamportToSelf() {
+		if (!provider) {
+			console.error('no provider');
+			await createEmbeddedWallet();
+			sendOneLamportToSelf();
+			return;
+		}
+		if (!address || address === '')
+			return console.error('Sending Lamport Error: no address:', address);
+		const connection = new Connection(PUBLIC_RPC_URL as string);
+		const { tx, message } = await buildTransaction.sendOneLamportToSelf(connection, address);
+		const signed = await buildRequest(provider, message, address);
+
+		const pkey = new PublicKey(address);
+		tx.addSignature(pkey, Uint8Array.from(Buffer.from(signed, 'base64')));
+
+		const confirmedSentTx = await connection.sendTransaction(tx);
+		confirmedTx = confirmedSentTx;
+	}
+
+	async function mintNewCitizen() {
+		if (!provider) {
+			console.error('no provider');
+			await createEmbeddedWallet();
+			mintNewCitizen();
+			return;
+		}
+		if (!address || address === '')
+			return console.error('Sending Lamport Error: no address:', address);
+
+		const { tx, message } = await buildTransaction.mintNewCitizen(connection, address);
+		const pkey = new PublicKey(address);
+		const signed = await buildRequest(provider, message, address);
+		tx.addSignature(pkey, Uint8Array.from(Buffer.from(signed, 'base64')));
+
+		const confirmedSentTx = await connection.sendTransaction(tx);
+		confirmedTx = confirmedSentTx;
+	}
 </script>
 
 <Dialog.Root>
@@ -12,53 +85,20 @@
 	</Dialog.Trigger>
 	<Dialog.Content class="max-h-[90vh] overflow-y-auto">
 		<Dialog.Header>
-			<Dialog.Title>Review your Purchase</Dialog.Title>
+			<Dialog.Title>Pay to recruit a citizen</Dialog.Title>
 			<Dialog.Description>
 				<div>
-					<!-- TABLE -->
-					<Table.Root>
-						<Table.Caption class="rounded bg-blue-100 p-2">
-							Do you wish to purchase {numberOfCitizens} citizen(s) NFTs <br />for {pricePerCitizen *
-								numberOfCitizens} SOL?
-						</Table.Caption>
-						<Table.Header>
-							<Table.Row>
-								<Table.Head></Table.Head>
-								<Table.Head></Table.Head>
-								<Table.Head class="text-right">Amount</Table.Head>
-							</Table.Row>
-						</Table.Header>
-						<Table.Body>
-							{#each Array.from({ length: numberOfCitizens }).map((_, i) => i) as citizenNumber}
-								<Table.Row>
-									<Table.Cell>
-										<div class="h-8 w-8 rounded-full bg-white"></div>
-									</Table.Cell>
-									<Table.Cell>
-										<p>Citizen: 1 random skill</p>
-									</Table.Cell>
-									<Table.Cell class="text-right">{pricePerCitizen} SOL</Table.Cell>
-								</Table.Row>
-							{/each}
-
-							{#if numberOfCitizens > 1}
-								<Table.Row class="bg-black">
-									<Table.Cell></Table.Cell>
-									<Table.Cell>
-										<p>{numberOfCitizens} Citizens</p>
-									</Table.Cell>
-									<Table.Cell class="text-right"
-										>{pricePerCitizen * numberOfCitizens} SOL</Table.Cell
-									>
-								</Table.Row>
-							{/if}
-						</Table.Body>
-					</Table.Root>
-					<!-- TABLE -->
+					<p>Address: {$walletStore.address}</p>
+					<p class="max-w-[300px] overflow-x-auto">Confirm: {confirmedTx}</p>
 					<button
-						class="mt-4 w-full rounded-xl border-2 border-black bg-black p-2 transition-all hover:bg-black"
+						onclick={mintNewCitizen}
+						class="mt-4 w-full rounded-xl border-2 border-black bg-black p-2 transition-all hover:bg-black disabled:opacity-75"
 					>
-						Purchase
+						{#if confirmedTx === ''}
+							Purchase
+						{:else}
+							Purchased another
+						{/if}
 					</button>
 				</div>
 			</Dialog.Description>
