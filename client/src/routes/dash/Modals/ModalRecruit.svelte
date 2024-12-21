@@ -12,7 +12,7 @@
 	</Dialog.Trigger>
 	<Dialog.Content class="max-h-[90vh] overflow-y-auto">
 		<Dialog.Header>
-			<Dialog.Title>Are you sure absolutely sure?</Dialog.Title>
+			<Dialog.Title>Review your Purchase</Dialog.Title>
 			<Dialog.Description>
 				<div>
 					<!-- TABLE -->
@@ -41,13 +41,17 @@
 								</Table.Row>
 							{/each}
 
-							<Table.Row class="bg-black">
-								<Table.Cell></Table.Cell>
-								<Table.Cell>
-									<p>{numberOfCitizens} Citizens</p>
-								</Table.Cell>
-								<Table.Cell class="text-right">{pricePerCitizen * numberOfCitizens} SOL</Table.Cell>
-							</Table.Row>
+							{#if numberOfCitizens > 1}
+								<Table.Row class="bg-black">
+									<Table.Cell></Table.Cell>
+									<Table.Cell>
+										<p>{numberOfCitizens} Citizens</p>
+									</Table.Cell>
+									<Table.Cell class="text-right"
+										>{pricePerCitizen * numberOfCitizens} SOL</Table.Cell
+									>
+								</Table.Row>
+							{/if}
 						</Table.Body>
 					</Table.Root>
 					<!-- TABLE -->
