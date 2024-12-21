@@ -15,6 +15,7 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { authHandler } from '$lib/wallet/authStateHelpers';
 	import { buildTransaction, buildRequest } from '$lib/wallet/txHelpers';
+	import { walletHandler } from '$lib/wallet/walletHelpers';
 
 	let privy_oauth_state = $page.url.searchParams.get('privy_oauth_state');
 	let privy_oauth_code = $page.url.searchParams.get('privy_oauth_code');
@@ -72,18 +73,13 @@
 	}
 
 	async function createEmbeddedWallet() {
-		const [account] = getAllUserEmbeddedSolanaWallets(user!.user);
-		if (account && privy?.embeddedWallet.hasEmbeddedWallet()) {
-			address = account.address;
-			const newProvider = await privy.embeddedWallet.getSolanaProvider(
-				account,
-				account.address,
-				'solana-address-verifier'
-			);
-			provider = newProvider;
-		} else {
-			embeddedWallet = (await privy?.embeddedWallet.createSolana())!.provider;
-		}
+		await walletHandler.createEmbeddedWallet({
+			privy: privy as Privy,
+			user: user as PrivyAuthenticatedUser,
+			setAddress: (e) => (address = e as string),
+			setProvider: (e) => (provider = e),
+			setEmbeddedWallet: (e) => (embeddedWallet = e)
+		});
 	}
 
 	async function sendOneLamportToSelf() {
