@@ -34,7 +34,7 @@
 	</div>
 {/snippet}
 
-<div class="flex flex-col py-4 md:items-center">
+<div class="flex flex-col py-4">
 	{@render trade('Sell')}
 	<div class="relative mt-3 flex justify-center">
 		<div

@@ -85,7 +85,7 @@
 	</Dialog.Trigger>
 	<Dialog.Content class="max-h-[90vh] overflow-y-auto">
 		<Dialog.Header>
-			<Dialog.Title>Review your Purchase</Dialog.Title>
+			<Dialog.Title>Pay to recruit a citizen</Dialog.Title>
 			<Dialog.Description>
 				<div>
 					<p>Address: {$walletStore.address}</p>

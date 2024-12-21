@@ -9,18 +9,6 @@
 	import { authHandler } from '$lib/wallet/authStateHelpers';
 	import { walletHandler } from '$lib/wallet/walletHelpers';
 
-	import { createUmi } from '@metaplex-foundation/umi-bundle-defaults';
-	import { mplCore, fetchAssetsByOwner, type AssetV1 } from '@metaplex-foundation/mpl-core';
-
-	// Use the RPC endpoint of your choice.
-	const umi = createUmi('http://127.0.0.1:8899').use(mplCore());
-	async function getAllAssets() {
-		let assets: AssetV1[] | null = $state(null);
-		let data = await fetchAssetsByOwner(umi, '8LmYF6q3GvMtT8AbpwrUxrGMiABhNESsb9HKCN649QoQ');
-		console.log({ data });
-		assets = data;
-	}
-
 	let privy: Privy | null = $state(null);
 	let user = $state(null as PrivyAuthenticatedUser | null);
 	let provider = $state(
@@ -108,7 +96,6 @@
 			>
 				STATES
 			</button>
-			<button onclick={getAllAssets}> Test </button>
 		</div>
 		<div class="flex items-center pt-4 md:pt-0">
 			{#if !!address}
