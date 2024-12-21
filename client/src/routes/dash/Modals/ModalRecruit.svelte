@@ -10,11 +10,13 @@
 	import Privy from '@privy-io/js-sdk-core';
 	import { walletHandler } from '$lib/wallet/walletHelpers';
 	import type { PrivyAuthenticatedUser } from '@privy-io/public-api';
+	import { onDestroy } from 'svelte';
 
 	let { numberOfCitizens = 1, children } = $props();
 
-	let address = $walletStore.address;
+	let address = $derived.by(() => $walletStore.address ?? null);
 
+	$inspect('recruit modal address:', address);
 	let privy: Privy | null = $derived.by(() =>
 		$privyStore.isInitialized ? $privyStore.privy : null
 	);
@@ -43,7 +45,8 @@
 			sendOneLamportToSelf();
 			return;
 		}
-		if (!address || address === '') return console.error('No address');
+		if (!address || address === '')
+			return console.error('Sending Lamport Error: no address:', address);
 		const connection = new Connection(PUBLIC_RPC_URL as string);
 		const { tx, message } = await buildTransaction.sendOneLamportToSelf(connection, address);
 		await buildRequest(provider, tx, message, address);
