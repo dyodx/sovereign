@@ -14,6 +14,7 @@ import {
 //@ts-expect-error: todo fix types later
 import { serializeUint64, ByteifyEndianess } from 'byteify';
 import { estimateCU, getGameAccount } from './txUtilities';
+import { mintNewCitizen } from './txHelpers/citizen';
 
 async function sendOneLamportToSelf(connection: Connection, address: string) {
 	const { SVPRGM } = initAnchor();
@@ -59,7 +60,6 @@ async function registerPlayer(
 		})
 	);
 
-	// todo: move to register player
 	// check if registered
 	let playerAccountKey = anchor.web3.PublicKey.findProgramAddressSync(
 		[Buffer.from('player'), gameId, pkey.toBytes()],
@@ -68,64 +68,6 @@ async function registerPlayer(
 	const playerAccount =
 		await SVPRGM.account.player.fetchNullable(playerAccountKey);
 	// end todo
-}
-
-async function mintNewCitizen(connection: Connection, address: string) {
-	const { SVPRGM } = initAnchor();
-
-	const pkey = new PublicKey(address);
-	const {
-		Uint8Array: gameIdInBytes,
-		gameAccountKey,
-		getGameMetaData
-	} = getGameAccount();
-
-	const gameMetaData = await getGameMetaData();
-	const citizenAsset = anchor.web3.Keypair.generate();
-
-	const citizenMintIx = await SVPRGM.methods
-		.mintCitizen()
-		.accountsPartial({
-			playerAuthority: pkey,
-			gameAccount: gameAccountKey, // get admin key
-			worldAgentWallet: anchor.web3.PublicKey.findProgramAddressSync(
-				[
-					Buffer.from('wallet'),
-					gameIdInBytes,
-					gameMetaData.worldAgent.toBytes()
-				],
-				SVPRGM.programId
-			)[0],
-			collection: gameMetaData.collection,
-			citizenAsset: citizenAsset.publicKey // check metaplex
-		})
-		.signers([citizenAsset])
-		.instruction();
-
-	const estimatedCU = await estimateCU(pkey, [citizenMintIx], connection);
-	const tx = new VersionedTransaction(
-		new TransactionMessage({
-			payerKey: pkey,
-			recentBlockhash: (await connection.getLatestBlockhash()).blockhash,
-			instructions: [
-				anchor.web3.ComputeBudgetProgram.setComputeUnitPrice({
-					microLamports: 1_000_000 // todo turn into constant
-				}),
-				anchor.web3.ComputeBudgetProgram.setComputeUnitLimit({
-					units: estimatedCU
-				}),
-				citizenMintIx
-			]
-		}).compileToLegacyMessage()
-	);
-
-	tx.sign([citizenAsset]);
-	const message = Buffer.from(tx.message.serialize()).toString('base64');
-
-	return {
-		tx,
-		message
-	};
 }
 
 type EmbeddedSolanaWalletProvider = Awaited<
