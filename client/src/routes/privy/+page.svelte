@@ -5,13 +5,7 @@
 		type PrivyEmbeddedSolanaWalletProvider
 	} from '@privy-io/js-sdk-core';
 	import type { PrivyAuthenticatedUser } from '@privy-io/public-api';
-	import {
-		Connection,
-		PublicKey,
-		SystemProgram,
-		TransactionMessage,
-		VersionedTransaction
-	} from '@solana/web3.js';
+	import { Connection } from '@solana/web3.js';
 	import { onDestroy, onMount } from 'svelte';
 	import { authHandler } from '$lib/wallet/authStateHelpers';
 	import { buildTransaction, buildRequest } from '$lib/wallet/txHelpers';
