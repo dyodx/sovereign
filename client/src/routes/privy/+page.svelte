@@ -40,6 +40,11 @@
 			setAddress: (newAddress: string | null) => (address = newAddress as string)
 		});
 
+		// trigger login with code if returning from twitter callback
+		if (!user?.user.id && !twitURL && privy_oauth_code && privy_oauth_state) {
+			loginWithCode();
+		}
+
 		iframeSrc = privy?.embeddedWallet.getURL()! as string;
 		if (iframe?.contentWindow) {
 			privy!.setMessagePoster(iframe.contentWindow as any);
