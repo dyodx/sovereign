@@ -73,22 +73,36 @@
 			const pkey = new PublicKey(address);
 			const { tx, serialized } = await buildTransaction.sendOneLamportToSelf(connection, address);
 
-			console.log('Pre signed: ', serialized);
-			const signature = (
+			const message = Buffer.from(tx.message.serialize()).toString('base64');
+			const simpleSig = (
 				await provider.request({
 					method: 'signMessage',
 					params: {
-						message: serialized
+						message: message
 					}
 				})
 			).signature;
-			tx.addSignature(pkey, Uint8Array.from(Buffer.from(signature, 'base64')));
-			let signedTxPreSend = Buffer.from(tx.serialize()).toString('base64');
-			console.log('Signed: ', signedTxPreSend);
-			confirmedTx = signedTxPreSend;
-			console.log('SIMULATE', connection.simulateTransaction(tx));
-			const txnSig = await connection.sendRawTransaction(tx.serialize());
-			console.log('txnSig: ', txnSig);
+			console.log('signature: ', simpleSig);
+			tx.addSignature(pkey, Uint8Array.from(Buffer.from(simpleSig, 'base64')));
+			console.log('Signed: ', Buffer.from(tx.serialize()).toString('base64'));
+			// sign that message ^^^ and attach the signature
+			const confirmedSentTx = await connection.sendTransaction(tx);
+			confirmedTx = confirmedSentTx;
+			// const signature = (
+			// 	await provider.request({
+			// 		method: 'signMessage',
+			// 		params: {
+			// 			message: serialized
+			// 		}
+			// 	})
+			// ).signature;
+			// tx.addSignature(pkey, Uint8Array.from(Buffer.from(signature, 'base64')));
+			// let signedTxPreSend = Buffer.from(tx.serialize()).toString('base64');
+			// console.log('Signed: ', signedTxPreSend);
+			// console.log('SIMULATE', connection.simulateTransaction(tx));
+			// const txnSig = await connection.sendRawTransaction(tx.serialize());
+			// console.log('txnSig: ', txnSig);
+			// confirmedTx = txnSig;
 		} else {
 			embeddedWallet = (await privy?.embeddedWallet.createSolana())!.provider;
 		}

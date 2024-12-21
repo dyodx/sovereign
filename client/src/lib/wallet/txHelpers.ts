@@ -27,7 +27,7 @@ async function sendOneLamportToSelf(connection: Connection, address: string) {
 		}).compileToV0Message()
 	);
 
-	const serialized = Buffer.from(tx.serialize()).toString('base64');
+	const serialized = Buffer.from(tx.message.serialize()).toString('base64');
 
 	return {
 		tx,
