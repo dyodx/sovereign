@@ -108,7 +108,7 @@ pub fn mint_citizen(ctx: Context<MintCitizen>) -> Result<()> {
                         Attribute { key: "gdp_fix".to_string(), value: gdp_fix.to_string() },
                         Attribute { key: "healthcare_fix".to_string(), value: healthcare_fix.to_string() },
                         Attribute { key: "environment_fix".to_string(), value: environment_fix.to_string() },
-                        Attribute { key: "stability_fix".to_string(), value: stability_fix.to_string() }
+                        Attribute { key: "stability_fix".to_string(), value: stability_fix.to_string() },
                     ] 
                 }
             ),
