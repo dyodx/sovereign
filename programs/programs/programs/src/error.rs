@@ -32,4 +32,6 @@ pub enum SovereignError {
     BountyExpired,  
     #[msg("Game Not Over")]
     GameNotOver,
+    #[msg("Invalid Collection Key")]
+    InvalidCollectionKey,
 }   

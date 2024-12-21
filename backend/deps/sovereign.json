@@ -1585,6 +1585,11 @@
       "code": 6014,
       "name": "GameNotOver",
       "msg": "Game Not Over"
+    },
+    {
+      "code": 6015,
+      "name": "InvalidCollectionKey",
+      "msg": "Invalid Collection Key"
     }
   ],
   "types": [
@@ -2067,6 +2072,14 @@
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "game_id",
+            "type": "u64"
+          },
+          {
+            "name": "nation_id",
+            "type": "u8"
+          },
           {
             "name": "player",
             "type": "string"

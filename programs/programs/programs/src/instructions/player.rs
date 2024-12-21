@@ -140,7 +140,10 @@ pub struct MintCitizen<'info> {
         bump
     )]
     pub world_agent_wallet: Account<'info, Wallet>,
-    #[account(mut)]
+    #[account(
+        mut,
+        constraint = collection.key() == game_account.collection @ SovereignError::InvalidCollectionKey,
+    )]
     pub collection: Account<'info, BaseCollectionV1>,
     #[account(mut)]
     pub citizen_asset: Signer<'info>,
