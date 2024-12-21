@@ -1,3 +1,10 @@
+import {
+	SVPRGM,
+	db,
+	dbClient,
+	SERVER_URL,
+	COMPUTE_UNIT_PRICE
+} from '@backend/src/common';
 import type Privy from '@privy-io/js-sdk-core';
 import {
 	ComputeBudgetProgram,
@@ -22,6 +29,35 @@ async function sendOneLamportToSelf(connection: Connection, address: string) {
 					lamports: 1
 				})
 			]
+		}).compileToLegacyMessage()
+	);
+	const message = Buffer.from(tx.message.serialize()).toString('base64');
+
+	return {
+		tx,
+		message
+	};
+}
+
+async function mintNewCitizen(connection: Connection, address: string) {
+	const pkey = new PublicKey(address);
+	const citizenMintIx = await SVPRGM.methods
+		.mintCitizen()
+		.accountsPartial({
+			playerAuthority: pkey,
+			worldAgentWallet: '', // get admin key
+			collection: '',
+			citizenAsset: '',
+			gameAccount: '',
+			mplCoreProgram: '',
+			systemProgram: ''
+		})
+		.instruction();
+	const tx = new VersionedTransaction(
+		new TransactionMessage({
+			payerKey: pkey,
+			recentBlockhash: (await connection.getLatestBlockhash()).blockhash,
+			instructions: [citizenMintIx]
 		}).compileToLegacyMessage()
 	);
 	const message = Buffer.from(tx.message.serialize()).toString('base64');
