@@ -76,17 +76,8 @@
 				'solana-address-verifier'
 			);
 			const connection = new Connection('http://127.0.0.1:8899');
-			const pkey = new PublicKey(address);
 
 			const { tx, message } = await buildTransaction.sendOneLamportToSelf(connection, address);
-			// const simpleSig = (
-			// 	await provider.request({
-			// 		method: 'signMessage',
-			// 		params: { message }
-			// 	})
-			// ).signature;
-			// tx.addSignature(pkey, Uint8Array.from(Buffer.from(simpleSig, 'base64')));
-			// // sign that message ^^^ and attach the signature
 			await buildRequest(provider, tx, message, address);
 			const confirmedSentTx = await connection.sendTransaction(tx);
 			confirmedTx = confirmedSentTx;

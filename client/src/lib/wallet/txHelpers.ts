@@ -35,6 +35,18 @@ async function sendOneLamportToSelf(connection: Connection, address: string) {
 type EmbeddedSolanaWalletProvider = Awaited<
 	ReturnType<Privy['embeddedWallet']['getSolanaProvider']>
 >;
+/**
+ * Prepares an unsigned VersionedTransaction
+ * and signs it with the privy embedded wallet
+ * updates the tx with necessary signatures
+ *
+ * @example
+ * ```ts
+			const { tx, message } = await buildTransaction.sendOneLamportToSelf(connection, address);
+			await buildRequest(provider, tx, message, address);
+			const confirmedSentTx = await connection.sendTransaction(tx);
+ * ```
+ * */
 export async function buildRequest(
 	provider: EmbeddedSolanaWalletProvider,
 	tx: VersionedTransaction,
