@@ -34,10 +34,12 @@
 <div class="grid items-end gap-6 md:grid-cols-3">
 	<div class="justify-self-center md:justify-self-end">
 		<ModalRecruit numberOfCitizens={1}>
-			<div
-				class="w-fit rounded-xl border-2 border-black bg-background px-4 py-2 transition-all hover:bg-panel"
-			>
-				Purchase 1 citizen for 0.25 SOL
+			<div>
+				<div
+					class="w-fit rounded-xl border-2 border-black bg-background px-4 py-2 transition-all hover:bg-panel"
+				>
+					Purchase 1 citizen for 0.25 SOL
+				</div>
 			</div>
 		</ModalRecruit>
 	</div>
