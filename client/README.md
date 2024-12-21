@@ -8,7 +8,7 @@ for development
 `pnpm run dev`
 
 
-# Reown
+# Reown (@deprecated - removed and replace with @privy-io)
 - using js implementation (no svelte)
 - use the appkit actions to manually open stuff https://docs.reown.com/appkit/javascript/core/actions#open-and-close-the-modal
 

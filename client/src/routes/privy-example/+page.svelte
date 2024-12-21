@@ -16,7 +16,6 @@
 	import { authHandler } from '$lib/wallet/authStateHelpers';
 	import { buildTransaction, buildRequest } from '$lib/wallet/txHelpers';
 	import { walletHandler } from '$lib/wallet/walletHelpers';
-	import { goto } from '$app/navigation';
 
 	let privy_oauth_state = $page.url.searchParams.get('privy_oauth_state');
 	let privy_oauth_code = $page.url.searchParams.get('privy_oauth_code');
@@ -137,7 +136,6 @@
 	<!-- IF NOT LOGGED IN - SHOW STEPS FOR LOGIN -->
 	{#if user?.user.id}
 		<!-- PRIVY READY -->
-		<button class="rounded bg-panel p-2" onclick={() => goto('/dash')}> Back to Dash </button>
 		<button class="rounded bg-panel p-2" onclick={sendOneLamportToSelf}> Send Lamport </button>
 	{/if}
 </div>

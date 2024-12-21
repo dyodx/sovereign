@@ -1,57 +1,74 @@
 <script lang="ts">
-	import { PUBLIC_RPC_URL } from '$env/static/public';
+	import { page } from '$app/stores';
 	import { cn } from '$lib/utils.js';
 	import Body from './Body.svelte';
 	import News from './News.svelte';
 	import * as Tabs from '$lib/components/ui/tabs';
 	import { walletStore } from '$lib/stores/wallet.svelte';
-	import { Connection, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
+	import Privy, { type PrivyEmbeddedSolanaWalletProvider } from '@privy-io/js-sdk-core';
+	import type { PrivyAuthenticatedUser } from '@privy-io/public-api';
 	import { onMount } from 'svelte';
-	import type { AppKit } from '@reown/appkit';
-	import Privy from '@privy-io/js-sdk-core';
+	import { authHandler } from '$lib/wallet/authStateHelpers';
+	import { redirect } from '@sveltejs/kit';
+	import { goto } from '$app/navigation';
 
-	let appkit: AppKit | null = $state(null);
-	let address = $derived.by(() => ($walletStore.connected ? $walletStore.address : ''));
+	let privy_oauth_state = $page.url.searchParams.get('privy_oauth_state');
+	let privy_oauth_code = $page.url.searchParams.get('privy_oauth_code');
+	let privy: Privy | null = $state(null);
+	let twitURL = $state(''); // twitter url to authorize account
+	let user = $state(null as PrivyAuthenticatedUser | null);
+	let provider = $state(
+		null as Awaited<ReturnType<Privy['embeddedWallet']['getSolanaProvider']>> | null
+	);
+	let iframeSrc = $state('');
+	let iframe = $state(null as HTMLIFrameElement | null);
+	let handler: (e: MessageEvent) => void;
+	let embeddedWallet = $state(null as PrivyEmbeddedSolanaWalletProvider | null);
+	let confirmedTx = $state('');
 
-	function login() {
-		appkit?.open();
+	onMount(async () => {
+		await authHandler.initializePrivy({
+			setUser: (newUser: PrivyAuthenticatedUser | null) => (user = newUser),
+			setPrivy: (newPrivy: Privy | null) => (privy = newPrivy),
+			setAddress: (newAddress: string | null) => (address = newAddress as string)
+		});
+
+		iframeSrc = privy?.embeddedWallet.getURL()! as string;
+		if (iframe?.contentWindow) {
+			privy!.setMessagePoster(iframe.contentWindow as any);
+			handler = (e: MessageEvent) => privy!.embeddedWallet.onMessage(e.data);
+			window.addEventListener('message', handler);
+		}
+	});
+
+	async function login() {
+		if (!privy) return console.error('privy not initialized');
+		let twitterAuthUrl = await authHandler.generateTwitterAuthUrl({
+			privy
+		});
+		console.log('twitter', twitterAuthUrl);
+		window.location = twitterAuthUrl as string & Location;
 	}
 	function openAccount() {
-		appkit?.open({ view: 'Account' });
+		// open account modal
 	}
 
+	// const rpc = PUBLIC_RPC_URL as string;
+	// const connection = new Connection(rpc, 'confirmed');
+	// let publicKey = $derived(address === '' ? null : new PublicKey(address as string));
+	// let resolvedBalance = $state(0);
+	let balance = 0;
 	let tab: 'dash' | 'news' | 'state' = $state('dash');
-
-	onMount(() => {
-		const privy = new Privy({
-			clientId: 'cm4rluhru04zmuj8pzs0hklmk'
-		});
-	});
-
-	const rpc = PUBLIC_RPC_URL as string;
-	const connection = new Connection(rpc, 'confirmed');
-	let publicKey = $derived(address === '' ? null : new PublicKey(address as string));
-	let resolvedBalance = $state(0);
-
-	let balance = $derived.by(() => {
-		if (connection && address !== '') {
-			connection // connection to solana rpc endpoint
-				.getBalance(publicKey as PublicKey) // fetch balance from connection
-				.then((data) => {
-					resolvedBalance = data / LAMPORTS_PER_SOL; // correct the decimal placement
-					walletStore.update((state) => ({
-						...state,
-						balance: resolvedBalance
-					}));
-				})
-				.catch((error) => {
-					console.error('Error fetching balance:', error);
-					resolvedBalance = 0; // or whatever error value you want
-				});
-		}
-		return resolvedBalance;
-	});
+	let address = $derived.by(() => ($walletStore.connected ? $walletStore.address : ''));
 </script>
+
+<iframe
+	bind:this={iframe}
+	src={iframeSrc}
+	style="width: 0; height: 0; border: none;"
+	title="Privy embedded wallet"
+>
+</iframe>
 
 <div
 	class="grid h-screen w-screen md:grid-cols-[2fr_1fr] md:grid-rows-[5rem_1fr] md:overflow-x-hidden"
