@@ -52,10 +52,8 @@
 		const { tx, message } = await buildTransaction.sendOneLamportToSelf(connection, address);
 		const signed = await buildRequest(provider, message, address);
 
-		console.log('BEFORE: ', Buffer.from(tx.serialize()).toString('base64'));
 		const pkey = new PublicKey(address);
 		tx.addSignature(pkey, Uint8Array.from(Buffer.from(signed, 'base64')));
-		console.log('AFTER: ', Buffer.from(tx.serialize()).toString('base64'));
 
 		const confirmedSentTx = await connection.sendTransaction(tx);
 		confirmedTx = confirmedSentTx;
@@ -65,6 +63,7 @@
 		if (!provider) {
 			console.error('no provider');
 			await createEmbeddedWallet();
+			mintNewCitizen();
 			return;
 		}
 		if (!address || address === '')
@@ -73,9 +72,7 @@
 		const { tx, message } = await buildTransaction.mintNewCitizen(connection, address);
 		const pkey = new PublicKey(address);
 		const signed = await buildRequest(provider, message, address);
-		console.log('BEFORE: ', Buffer.from(tx.serialize()).toString('base64'));
 		tx.addSignature(pkey, Uint8Array.from(Buffer.from(signed, 'base64')));
-		console.log('AFTER: ', Buffer.from(tx.serialize()).toString('base64'));
 
 		const confirmedSentTx = await connection.sendTransaction(tx);
 		confirmedTx = confirmedSentTx;
@@ -95,9 +92,13 @@
 					<p class="max-w-[300px] overflow-x-auto">Confirm: {confirmedTx}</p>
 					<button
 						onclick={mintNewCitizen}
-						class="mt-4 w-full rounded-xl border-2 border-black bg-black p-2 transition-all hover:bg-black"
+						class="mt-4 w-full rounded-xl border-2 border-black bg-black p-2 transition-all hover:bg-black disabled:opacity-75"
 					>
-						Purchase
+						{#if confirmedTx === ''}
+							Purchase
+						{:else}
+							Purchased another
+						{/if}
 					</button>
 				</div>
 			</Dialog.Description>

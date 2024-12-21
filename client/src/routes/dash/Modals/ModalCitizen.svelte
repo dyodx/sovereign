@@ -90,9 +90,9 @@
 								</div>
 							{/snippet}
 
+							{@render stat('environment_fix', 'ENVIRONMENT: ')}
 							{@render stat('gdp_fix', 'GDP:')}
 							{@render stat('healthcare_fix', 'HEALTH:')}
-							{@render stat('environment_fix', 'ENVIRONMENT: ')}
 							{@render stat('stability_fix', 'STABILITY:')}
 						</div>
 					{/await}

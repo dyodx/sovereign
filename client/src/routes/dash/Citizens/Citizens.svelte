@@ -41,8 +41,15 @@
 		return data;
 	}
 
+	type CitizenAttribute =
+		| 'game'
+		| 'nation_state'
+		| 'gdp_fix'
+		| 'healthcare_fix'
+		| 'environment_fix'
+		| 'stability_fix';
 	// CITIZEN HELPERS
-	function getAttribute(key: string, asset: AssetV1) {
+	function getAttribute(key: CitizenAttribute, asset: AssetV1) {
 		return asset.attributes?.attributeList.find((e) => e.key === key)?.value;
 	}
 </script>
@@ -86,10 +93,13 @@
 					<div
 						class="grid w-full grid-cols-2 items-center justify-items-center overflow-hidden rounded-r-[inherit] text-center text-sm font-thin"
 					>
-						<p class="h-full w-full bg-red-900 p-1">87</p>
-						<p class="h-full w-full bg-green-900 p-1">87</p>
-						<p class="h-full w-full bg-blue-900 p-1">87</p>
-						<p class="h-full w-full bg-violet-900 p-1">87</p>
+						{#snippet stat(key: CitizenAttribute)}
+							<p class="h-full w-6 bg-background p-1">{getAttribute(key, asset)}</p>
+						{/snippet}
+						{@render stat('environment_fix')}
+						{@render stat('gdp_fix')}
+						{@render stat('healthcare_fix')}
+						{@render stat('stability_fix')}
 					</div>
 				</div>
 			</ModalCitizen>
