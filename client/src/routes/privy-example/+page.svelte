@@ -95,6 +95,7 @@
 		}
 		const connection = new Connection('http://127.0.0.1:8899');
 		const { tx, message } = await buildTransaction.sendOneLamportToSelf(connection, address);
+
 		await buildRequest(provider, tx, message, address);
 		const confirmedSentTx = await connection.sendTransaction(tx);
 		confirmedTx = confirmedSentTx;

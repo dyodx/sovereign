@@ -5,16 +5,19 @@
 	import { PUBLIC_RPC_URL } from '$env/static/public';
 	import { walletStore } from '$lib/stores/wallet.svelte';
 	import { privyStore } from '$lib/stores/privy.svelte';
-	import { Connection } from '@solana/web3.js';
+	import { Connection, PublicKey } from '@solana/web3.js';
 	import Privy from '@privy-io/js-sdk-core';
 	import { walletHandler } from '$lib/wallet/walletHelpers';
 	import type { PrivyAuthenticatedUser } from '@privy-io/public-api';
 
 	let { numberOfCitizens = 1, children } = $props();
 
+	const connection = new Connection(PUBLIC_RPC_URL as string); // todo figure out how make this everywhere
+
 	let address = $derived.by(() => $walletStore.address ?? null);
 
 	$inspect('recruit modal address:', address);
+
 	let privy: Privy | null = $derived.by(() =>
 		$privyStore.isInitialized ? $privyStore.privy : null
 	);
@@ -47,7 +50,33 @@
 			return console.error('Sending Lamport Error: no address:', address);
 		const connection = new Connection(PUBLIC_RPC_URL as string);
 		const { tx, message } = await buildTransaction.sendOneLamportToSelf(connection, address);
-		await buildRequest(provider, tx, message, address);
+		const signed = await buildRequest(provider, message, address);
+
+		console.log('BEFORE: ', Buffer.from(tx.serialize()).toString('base64'));
+		const pkey = new PublicKey(address);
+		tx.addSignature(pkey, Uint8Array.from(Buffer.from(signed, 'base64')));
+		console.log('AFTER: ', Buffer.from(tx.serialize()).toString('base64'));
+
+		const confirmedSentTx = await connection.sendTransaction(tx);
+		confirmedTx = confirmedSentTx;
+	}
+
+	async function mintNewCitizen() {
+		if (!provider) {
+			console.error('no provider');
+			await createEmbeddedWallet();
+			return;
+		}
+		if (!address || address === '')
+			return console.error('Sending Lamport Error: no address:', address);
+
+		const { tx, message } = await buildTransaction.mintNewCitizen(connection, address);
+		const pkey = new PublicKey(address);
+		const signed = await buildRequest(provider, message, address);
+		console.log('BEFORE: ', Buffer.from(tx.serialize()).toString('base64'));
+		tx.addSignature(pkey, Uint8Array.from(Buffer.from(signed, 'base64')));
+		console.log('AFTER: ', Buffer.from(tx.serialize()).toString('base64'));
+
 		const confirmedSentTx = await connection.sendTransaction(tx);
 		confirmedTx = confirmedSentTx;
 	}
@@ -65,7 +94,7 @@
 					<p>Address: {$walletStore.address}</p>
 					<p class="max-w-[300px] overflow-x-auto">Confirm: {confirmedTx}</p>
 					<button
-						onclick={sendOneLamportToSelf}
+						onclick={mintNewCitizen}
 						class="mt-4 w-full rounded-xl border-2 border-black bg-black p-2 transition-all hover:bg-black"
 					>
 						Purchase
