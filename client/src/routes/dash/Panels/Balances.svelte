@@ -1,8 +1,6 @@
 <script lang="ts">
 	import * as Table from '$lib/components/ui/table';
-	import TipCitizensExplained from '../Tooltips/TipCitizensExplained.svelte';
 	import { walletStore } from '$lib/stores/wallet.svelte';
-	import { walletHandler } from '$lib/wallet/walletHelpers';
 	import TipBalancesPanel from '../Tooltips/TipBalancesPanel.svelte';
 
 	let balance = $derived.by(() =>
