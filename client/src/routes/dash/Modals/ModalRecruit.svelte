@@ -13,7 +13,7 @@
 	import IconSolana from '$lib/components/atoms/icons/IconSolana.svelte';
 	import { copyToClipboard } from '$lib/utils';
 
-	let { numberOfCitizens = 1, children } = $props();
+	let { children } = $props();
 
 	const connection = new Connection(PUBLIC_RPC_URL as string); // todo figure out how make this everywhere
 

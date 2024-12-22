@@ -9,6 +9,7 @@
 	import { generateNamePair } from '$lib/constants/names';
 	import { getCountryFlag } from '$lib/constants/flags';
 	import { GAME_ID } from '$lib/wallet/constants';
+	import { CITIZEN_IMG_URL } from '$lib/constants/citizens';
 
 	let address = $derived.by(() =>
 		$walletStore.connected && !!$walletStore.address ? $walletStore.address : null
@@ -60,7 +61,7 @@
 
 <div class="grid items-center justify-items-center gap-6 md:grid-cols-3">
 	<div class="justify-self-center md:justify-self-end">
-		<ModalRecruit numberOfCitizens={1}>
+		<ModalRecruit>
 			<div>
 				<div
 					class="w-fit rounded-xl border-2 border-black bg-background px-4 py-2 transition-all hover:bg-panel"
@@ -92,7 +93,7 @@
 							{getCountryFlag(getAttribute('nation_state', asset) ?? 'Solana')}
 						</p>
 						<img
-							src={`https://api.dicebear.com/9.x/lorelei-neutral/svg?seed=${asset.publicKey}`}
+							src={`${CITIZEN_IMG_URL}${asset.publicKey}`}
 							alt="avatar"
 							class="h-[3rem] translate-x-[-2px] scale-150 rounded-full border-2 border-panel"
 						/>

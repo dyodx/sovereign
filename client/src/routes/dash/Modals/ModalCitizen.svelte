@@ -8,7 +8,8 @@
 	import { PUBLIC_RPC_URL } from '$env/static/public';
 	import { generateNamePair } from '$lib/constants/names';
 	import IconCopy from '$lib/components/atoms/icons/IconCopy.svelte';
-	import toast, { Toaster } from 'svelte-french-toast';
+	import toast from 'svelte-french-toast';
+	import { CITIZEN_IMG_URL } from '$lib/constants/citizens';
 
 	let { citizenId, children } = $props();
 	const { firstName, lastName } = generateNamePair(citizenId);
@@ -55,7 +56,7 @@
 					{#await asset then data}
 						<div class="flex items-center gap-2 rounded bg-panel p-2">
 							<img
-								src={`https://api.dicebear.com/9.x/lorelei-neutral/svg?seed=${citizenId}`}
+								src={`${CITIZEN_IMG_URL}${citizenId}`}
 								alt="avatar"
 								class="h-[1.5rem] translate-x-[-2px] scale-150 rounded border-2 border-panel"
 							/>
