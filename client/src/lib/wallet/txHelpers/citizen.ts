@@ -2,6 +2,7 @@ import { initAnchor } from '$lib/deps';
 import * as anchor from '@coral-xyz/anchor';
 import {
 	Connection,
+	LAMPORTS_PER_SOL,
 	PublicKey,
 	TransactionMessage,
 	VersionedTransaction
@@ -19,6 +20,10 @@ export async function mintNewCitizen(connection: Connection, address: string) {
 	} = getGameAccount();
 
 	const gameMetaData = await getGameMetaData();
+	console.log({
+		gameMetaData,
+		bigNumber: gameMetaData.mintCost / LAMPORTS_PER_SOL
+	});
 	const citizenAsset = anchor.web3.Keypair.generate();
 
 	const citizenMintIx = await SVPRGM.methods

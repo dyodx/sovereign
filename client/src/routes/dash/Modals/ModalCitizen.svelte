@@ -8,7 +8,16 @@
 	import { PUBLIC_RPC_URL } from '$env/static/public';
 	import { generateNamePair } from '$lib/constants/names';
 	import IconCopy from '$lib/components/atoms/icons/IconCopy.svelte';
-	import toast, { Toaster } from 'svelte-french-toast';
+	import toast from 'svelte-french-toast';
+	import { CITIZEN_IMG_URL } from '$lib/constants/citizens';
+	import {
+		IconExchange,
+		IconGavel,
+		IconLeaf,
+		IconMoneyBag,
+		IconSolana,
+		IconStethoscope
+	} from '$lib/components/atoms/icons';
 
 	let { citizenId, children } = $props();
 	const { firstName, lastName } = generateNamePair(citizenId);
@@ -43,8 +52,6 @@
 	}
 </script>
 
-<Toaster />
-
 <Dialog.Root>
 	<Dialog.Trigger class="w-full">
 		{@render children?.()}
@@ -57,7 +64,7 @@
 					{#await asset then data}
 						<div class="flex items-center gap-2 rounded bg-panel p-2">
 							<img
-								src={`https://api.dicebear.com/9.x/lorelei-neutral/svg?seed=${citizenId}`}
+								src={`${CITIZEN_IMG_URL}${citizenId}`}
 								alt="avatar"
 								class="h-[1.5rem] translate-x-[-2px] scale-150 rounded border-2 border-panel"
 							/>
@@ -81,11 +88,28 @@
 							{getAttribute('nation_state', data)}
 						</p>
 
-						<div class="grid grid-cols-2 rounded bg-panel p-2">
+						<div class="grid grid-cols-2 gap-2">
 							{#snippet stat(key: CitizenAttribute, text: string)}
-								<div class="flex flex-col">
-									<p>{text}</p>
-									<p>{getAttribute(key, data)}</p>
+								<div>
+									<p class="text-xs">{text}</p>
+									<div
+										class="flex min-h-10 items-center justify-center gap-2 rounded bg-panel text-lg"
+									>
+										<span class="rounded-full text-background">
+											{#if key === 'environment_fix'}
+												<IconLeaf />
+											{:else if key === 'gdp_fix'}
+												<IconMoneyBag />
+											{:else if key === 'healthcare_fix'}
+												<IconStethoscope />
+											{:else if key === 'stability_fix'}
+												<IconGavel />
+											{:else}
+												{' '}
+											{/if}
+										</span>
+										<p>{getAttribute(key, data)}</p>
+									</div>
 								</div>
 							{/snippet}
 
