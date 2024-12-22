@@ -9,8 +9,9 @@
   },
   "private": true,
   "scripts": {
-    "generate-prisma": "cd backend && bun install && bunx prisma generate && bunx prisma db push",
-    "up": "bun run generate-prisma && docker compose up -d --build" 
+    "generate-prisma": "cd backend && bun install && bunx prisma generate",
+    "simulator-install": "cd simulator && bun install",
+    "up": "bun run generate-prisma && bun run simulator-install && docker compose up -d --build" 
   },
   "type": "module",
   "workspaces": [

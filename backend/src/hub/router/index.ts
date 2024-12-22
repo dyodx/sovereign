@@ -19,12 +19,14 @@ const REMOVE_OPTS = {
 const WORKER_COUNT = 10;
 
 export class Router implements SERVICE {
+    private receiver: Redis;
     private router: Redis;
     private JOBS_QUEUE: Queue;
     private WORKERS: Worker[];
 
     constructor() {
-        this.router = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
+        this.router = new Redis(process.env.REDIS_URL || "redis://localhost:6379", { maxRetriesPerRequest: null });
+        this.receiver = new Redis(process.env.REDIS_URL || "redis://localhost:6379", { maxRetriesPerRequest: null });
         this.JOBS_QUEUE = new Queue(REDIS_CHANNELS.JOBS_QUEUE, {connection: this.router});
         this.JOBS_QUEUE.setGlobalConcurrency(10); //todo: experiment with how many jobs can be run at once
         this.WORKERS = [];
@@ -39,10 +41,10 @@ export class Router implements SERVICE {
         // For each RECIEVER, add a JOB to the JOBS_QUEUE
         console.log(`Router listening on ${this.router.options.host}:${this.router.options.port}`);
         try { 
-            await this.router.subscribe(REDIS_CHANNELS.EVENTS_QUEUE, () => {
+            await this.receiver.subscribe(REDIS_CHANNELS.EVENTS_QUEUE, () => {
                 console.log(`Router subscribed to ${REDIS_CHANNELS.EVENTS_QUEUE}`);
                 
-                this.router.on('message', (channel, message) => {
+                this.receiver.on('message', (channel, message) => {
                     console.log(`Received event: ${message}`);
                 });
             });
