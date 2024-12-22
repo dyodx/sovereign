@@ -1,32 +1,29 @@
-# Build stage
-FROM rust:slim-bookworm as builder
-
-# Install build dependencies
-RUN apt-get update && apt-get install -y pkg-config build-essential libudev-dev
-
-# Install Solana tools
-RUN sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
-ENV PATH="/root/.local/share/solana/install/active_release/bin:${PATH}"
-RUN cargo install cargo-build-sbf
-#RUN cargo install --git https://github.com/coral-xyz/anchor avm --force
-#RUN avm install 0.30.1 && avm use 0.30.1
-
-# Build your programs
-WORKDIR /solana/app
-COPY ./programs ./programs
-RUN cd programs && anchor build
-
-# Final stage
 FROM ghcr.io/beeman/solana-test-validator:latest
 
-# Just copy the built programs
-COPY --from=builder /solana/app/programs /solana/app/programs
+USER root
+
+# Install system dependencies first
+RUN apt-get update && \
+    apt-get install -y \
+        curl \
+        build-essential \
+        pkg-config \
+        libudev-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+# Set up directory structure
+RUN mkdir -p /solana/app /solana/test-ledger
+
+WORKDIR /solana/app
+
+# Copy programs first
+COPY ./programs ./programs
 
 # Create startup script
 RUN echo '#!/bin/bash\n\
 solana-test-validator --reset \
     --bpf-program "CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d" ./programs/deps/mpl_core_program.so \
-    --bpf-program "4oVhv3o16X3XR99UgbFrWNKptoNBkg2hsbNY2nYPpv4a" ./programs/target/deploy/programs.so \
+    --bpf-program "4oVhv3o16X3XR99UgbFrWNKptoNBkg2hsbNY2nYPpv4a" ./programs/deps/sovereign.so \
     --ledger /solana/test-ledger' > start.sh && \
     chmod +x start.sh
 

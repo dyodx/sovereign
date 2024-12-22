@@ -26,6 +26,7 @@
     "bootstrap": "bun src/bootstrap.ts",
     "hub": "bun src/hub/index.ts",
     "api": "bun src/api/index.ts",
-    "prod": "bun run bootstrap && bun start.ts"
+    "prisma": "bunx prisma generate && bunx prisma db push --force-reset",
+    "prod": "bun run prisma && bun run bootstrap && bun start.ts"
   }
 }

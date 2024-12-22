@@ -3,7 +3,10 @@ import { address, lamports } from "@solana/web3.js";
 import { CONNECTION, SERVER_URL } from "../common.ts";
 
 const app = new Hono();
-export default app;
+export default {
+    port: 5600,
+    fetch: app.fetch,
+};
 
 /// ROUTES ///
 app.get("/", (c) => c.text("Hello World")); // heartbeat

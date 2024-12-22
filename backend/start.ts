@@ -1,63 +1,51 @@
-import { spawn, type Subprocess } from "bun";
+import { spawn, type ChildProcess } from 'child_process';
 
-async function startService(name: string, path: string): Promise<Subprocess> {
-  const proc = spawn(["bun", path], {
-    stdio: ["inherit", "pipe", "pipe"], // Pipe stdout and stderr so we can prefix them
-    env: { ...process.env, FORCE_COLOR: "1" }
-  });
+// Configuration
+const processes = [
+    { name: 'hub', command: 'bun', args: ['src/hub/index.ts'] },
+    { name: 'router', command: 'bun', args: ['src/api/index.ts'] }
+];
 
-  if (!proc.stdout || !proc.stderr) {
-    console.error(`${name} streams not available`);
-    process.exit(1);
-  }
+// Store process references
+const runningProcesses: ChildProcess[] = [];
 
-  // Prefix stdout
-  proc.stdout.getReader().read().then(function process({value, done}) {
-    if (!done && value) {
-      const lines = new TextDecoder().decode(value).split('\n');
-      lines.forEach(line => {
-        if (line) console.log(`[${name}] ${line}`);
-      });
-    }
-    if (!done) proc.stdout?.getReader().read().then(process);
-  });
+// Function to start a single process
+function startProcess(name: string, command: string, args: string[]) {
+    const process = spawn(command, args, {
+        stdio: 'inherit',
+        shell: true
+    });
 
-  // Prefix stderr
-  proc.stderr.getReader().read().then(function process({value, done}) {
-    if (!done && value) {
-      const lines = new TextDecoder().decode(value).split('\n');
-      lines.forEach(line => {
-        if (line) console.error(`[${name}] ${line}`);
-      });
-    }
-    if (!done) proc.stderr?.getReader().read().then(process);
-  });
+    runningProcesses.push(process);
 
-  if (!proc.pid) {
-    console.error(`[${name}] Failed to start`);
-    process.exit(1);
-  }
+    process.on('error', (err) => {
+        console.error(`Failed to start ${name}:`, err);
+    });
 
-  return proc;
+    process.on('exit', (code, signal) => {
+        if (code !== 0) {
+            console.error(`${name} exited with code ${code}, signal: ${signal}`);
+        }
+    });
+
+    return process;
 }
 
-// Start both services
-const hubProc = await startService("hub", "src/hub/index.ts");
-const apiProc = await startService("api", "src/api/index.ts");
+// Function to cleanup processes
+function cleanup() {
+    console.log('\nShutting down processes...');
+    runningProcesses.forEach(process => {
+        process.kill();
+    });
+}
 
-// Handle process termination
-process.on("SIGTERM", () => {
-  console.log("Received SIGTERM, shutting down...");
-  hubProc.kill();
-  apiProc.kill();
-  process.exit(0);
+// Handle interrupts
+process.on('SIGINT', cleanup);
+process.on('SIGTERM', cleanup);
+
+// Start all processes
+console.log('Starting processes...');
+processes.forEach(({ name, command, args }) => {
+    console.log(`Starting ${name}...`);
+    startProcess(name, command, args);
 });
-
-process.on("SIGINT", () => {
-  console.log("Received SIGINT, shutting down...");
-  hubProc.kill();
-  apiProc.kill();
-  process.exit(0);
-});
-
-console.log("🚀 All services started");

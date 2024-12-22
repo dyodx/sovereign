@@ -2,8 +2,9 @@ import { address, createSolanaRpcSubscriptions } from "@solana/web3.js";
 import { SovereignIDL, WS_URL, SVPRGM, REDIS_CHANNELS } from "../../common.ts";
 import type { SolanaEvent } from "../interfaces/solana.ts";
 import Redis from 'ioredis';
+import type { SERVICE } from "../interfaces";
 
-export class SolanaIngress {
+export class SolanaIngress implements SERVICE {
     private rpcSubscriptions: any;
     private abortController: AbortController;
     private redis: Redis;
@@ -15,6 +16,7 @@ export class SolanaIngress {
 
     async start() {
         console.log("Starting Monitor for Sovereign (Program ID: " + SovereignIDL.address + ")");
+        console.log(`SolanaIngress listening on ${WS_URL}`);
         try {
             const logsSubscription = await this.rpcSubscriptions
             .logsNotifications(
