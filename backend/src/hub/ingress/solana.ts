@@ -1,5 +1,5 @@
 import { Connection } from "@solana/web3.js";
-import { SovereignIDL, WS_URL, SVPRGM, REDIS_CHANNELS } from "../../common";
+import { SovereignIDL, WS_URL, SVPRGM, REDIS_CHANNELS, RPC_URL } from "../../common";
 import type { SolanaEvent } from "../interfaces/solana";
 import Redis from 'ioredis';
 import type { SERVICE } from "../interfaces";
@@ -20,7 +20,7 @@ export class SolanaIngress implements SERVICE {
 
     constructor(retryConfig: Partial<RetryConfig> = {}) {
         this.wsConnection = null;
-        this.redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
+        this.redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379", { maxRetriesPerRequest: null });
         this.isRunning = false;
         this.reconnectTimeout = null;
         this.logSubscriptionId = null;
@@ -37,7 +37,7 @@ export class SolanaIngress implements SERVICE {
     }
 
     private async createConnection(): Promise<Connection> {
-        return new Connection(WS_URL, {
+        return new Connection(RPC_URL, {
             commitment: "confirmed",
             wsEndpoint: WS_URL,
             confirmTransactionInitialTimeout: 60000,
