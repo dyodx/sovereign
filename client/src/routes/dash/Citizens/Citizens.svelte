@@ -37,7 +37,6 @@
 		}
 
 		let data = await fetchAssetsByOwner(umi, address);
-		console.log({ citizens: data, address });
 		return data;
 	}
 
@@ -66,7 +65,14 @@
 			</div>
 		</ModalRecruit>
 	</div>
-	<p class="text-center text-4xl md:text-start">Citizens</p>
+	<div class="flex flex-col items-center">
+		<p class="text-center text-4xl md:text-start">Citizens</p>
+		<span>
+			{#await assetsPromise then data}
+				{data?.length ?? 0} in wallet
+			{/await}
+		</span>
+	</div>
 	<button onclick={loadAllAssets}> refresh </button>
 </div>
 <div></div>

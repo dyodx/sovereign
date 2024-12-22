@@ -16,7 +16,6 @@
 	// prepare umi to fetch assets
 	const umi = createUmi(PUBLIC_RPC_URL).use(mplCore());
 	const asset = fetchAssetV1(umi, citizenId);
-	console.log({ citizenId, asset });
 
 	let selectedCurrency: string = $state('');
 
