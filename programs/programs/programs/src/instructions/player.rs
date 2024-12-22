@@ -426,6 +426,7 @@ pub struct CompleteStake<'info> {
     )]
     pub nation: Account<'info, Nation>,
     #[account(
+        mut,
         seeds = [
             STAKED_CITIZEN_SEED.as_bytes(),
             &game.id.to_le_bytes(), 
@@ -433,7 +434,8 @@ pub struct CompleteStake<'info> {
             citizen_asset.key().as_ref()
         ],
         bump,
-        constraint = staked_citizen.citizen_asset == citizen_asset.key() @ SovereignError::InvalidCitizenAsset
+        constraint = staked_citizen.citizen_asset == citizen_asset.key() @ SovereignError::InvalidCitizenAsset,
+        close = player_authority
     )]
     pub staked_citizen: Account<'info, StakedCitizen>,
     pub player_wallet: Account<'info, Wallet>,
