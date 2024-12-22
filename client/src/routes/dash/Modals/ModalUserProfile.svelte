@@ -1,84 +1,14 @@
 <script lang="ts">
 	import * as Dialog from '$lib/components/ui/dialog';
-
 	import { copyToClipboard } from '$lib/utils';
-	import { buildRequest, buildTransaction } from '$lib/wallet/txHelpers';
-	import { PUBLIC_RPC_URL } from '$env/static/public';
 	import { walletStore } from '$lib/stores/wallet.svelte';
-	import { privyStore } from '$lib/stores/privy.svelte';
-	import { Connection, PublicKey } from '@solana/web3.js';
-	import Privy from '@privy-io/js-sdk-core';
-	import { walletHandler } from '$lib/wallet/walletHelpers';
-	import type { PrivyAuthenticatedUser } from '@privy-io/public-api';
 	import { getPlayerAccount } from '$lib/wallet/txUtilities';
 	import { IconCopy, IconTwitter } from '$lib/components/atoms/icons';
 	import IconSolana from '$lib/components/atoms/icons/IconSolana.svelte';
 
-	let { numberOfCitizens = 1, children } = $props();
-
-	const connection = new Connection(PUBLIC_RPC_URL as string); // todo figure out how make this everywhere
+	let { children } = $props();
 
 	let address = $derived.by(() => $walletStore.address ?? null);
-
-	let privy: Privy | null = $derived.by(() =>
-		$privyStore.isInitialized ? $privyStore.privy : null
-	);
-
-	let user: PrivyAuthenticatedUser | null = $derived.by(() =>
-		$privyStore.isInitialized ? $privyStore.user : null
-	);
-	let provider = $state(
-		null as Awaited<ReturnType<Privy['embeddedWallet']['getSolanaProvider']>> | null
-	);
-
-	let confirmedTx = $state('');
-
-	async function createEmbeddedWallet() {
-		await walletHandler.createEmbeddedWallet({
-			privy: privy as Privy,
-			user: user as PrivyAuthenticatedUser,
-			setProvider: (e) => (provider = e)
-		});
-	}
-
-	async function sendOneLamportToSelf() {
-		if (!provider) {
-			console.error('no provider');
-			await createEmbeddedWallet();
-			sendOneLamportToSelf();
-			return;
-		}
-		if (!address || address === '')
-			return console.error('Sending Lamport Error: no address:', address);
-		const connection = new Connection(PUBLIC_RPC_URL as string);
-		const { tx, message } = await buildTransaction.sendOneLamportToSelf(connection, address);
-		const signed = await buildRequest(provider, message, address);
-
-		const pkey = new PublicKey(address);
-		tx.addSignature(pkey, Uint8Array.from(Buffer.from(signed, 'base64')));
-
-		const confirmedSentTx = await connection.sendTransaction(tx);
-		confirmedTx = confirmedSentTx;
-	}
-
-	async function mintNewCitizen() {
-		if (!provider) {
-			console.error('no provider, trying again');
-			await createEmbeddedWallet();
-			mintNewCitizen();
-			return;
-		}
-		if (!address || address === '')
-			return console.error('Sending Lamport Error: no address:', address);
-
-		const { tx, message } = await buildTransaction.mintNewCitizen(connection, address);
-		const pkey = new PublicKey(address);
-		const signed = await buildRequest(provider, message, address);
-		tx.addSignature(pkey, Uint8Array.from(Buffer.from(signed, 'base64')));
-
-		const confirmedSentTx = await connection.sendTransaction(tx);
-		confirmedTx = confirmedSentTx;
-	}
 </script>
 
 <Dialog.Root>
@@ -107,7 +37,12 @@
 							>
 								{@render copy()}
 								<span><IconSolana /></span>
-								<span class="overflow-x-auto">{address}</span>
+								<span class="justify-self-start"
+									>{address.substring(0, 10)}...{address.substring(
+										address.length - 10,
+										address.length
+									)}</span
+								>
 							</button>
 
 							{#await getPlayerAccount(address) then data}
