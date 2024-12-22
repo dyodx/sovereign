@@ -61,8 +61,9 @@
 			return console.error('Register X: no twitter handle:', linkedTwitterHandle);
 
 		if (!provider) {
-			console.error('no provider');
+			console.error('no provider: creating and trying again');
 			await createEmbeddedWallet();
+			registerXAccount();
 			return;
 		}
 		if (!address || address === '') return console.error('Register X: no address:', address);
@@ -84,8 +85,10 @@
 </script>
 
 <Dialog.Root>
-	<Dialog.Trigger class="w-full">
-		{@render children?.()}
+	<Dialog.Trigger class={`${confirmedTx === '' ? 'w-full' : 'hidden'}`}>
+		{#if confirmedTx === ''}
+			{@render children?.()}
+		{/if}
 	</Dialog.Trigger>
 	<Dialog.Content class="max-h-[90vh] overflow-y-auto">
 		<Dialog.Header>
@@ -97,13 +100,26 @@
 						state ai on X.
 					</p>
 					<p class="rounded-lg bg-panel p-4">@{linkedTwitterHandle}</p>
-					<p>{confirmedTx}</p>
+
 					<button
 						class="rounded-xl bg-black p-4 text-white transition-all hover:scale-105 active:scale-100"
 						onclick={registerXAccount}
 					>
 						register @{linkedTwitterHandle}
 					</button>
+
+					{#if !!confirmedTx && confirmedTx !== ''}
+						<div class="w-full max-w-[350px] overflow-x-auto">
+							<p>Confirmation Tx:</p>
+							<a
+								href={`https://explorer.solana.com/tx/${confirmedTx}`}
+								target="_blank"
+								rel="noreferrer"
+							>
+								<p class="underline">{confirmedTx}</p>
+							</a>
+						</div>
+					{/if}
 				</div>
 			</Dialog.Description>
 		</Dialog.Header>

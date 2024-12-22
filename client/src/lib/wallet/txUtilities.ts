@@ -49,14 +49,6 @@ export async function getPlayerAccount(address: string) {
 	const playerAccount =
 		await SVPRGM.account.player.fetchNullable(playerAccountKey);
 
-	console.log({ playerAccount });
-
-	console.log({
-		data: 'data',
-		address,
-		playerAccountKey,
-		playerAccount
-	});
 	return {
 		Uint8Array: playerAccountKey,
 		Account: playerAccount

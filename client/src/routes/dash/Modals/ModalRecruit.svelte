@@ -9,12 +9,18 @@
 	import Privy from '@privy-io/js-sdk-core';
 	import { walletHandler } from '$lib/wallet/walletHelpers';
 	import type { PrivyAuthenticatedUser } from '@privy-io/public-api';
+	import { getPlayerAccount } from '$lib/wallet/txUtilities';
 
 	let { numberOfCitizens = 1, children } = $props();
 
 	const connection = new Connection(PUBLIC_RPC_URL as string); // todo figure out how make this everywhere
 
 	let address = $derived.by(() => $walletStore.address ?? null);
+	let playerAccountPromise: ReturnType<typeof getPlayerAccount> | null = $state(null);
+	$effect(() => {
+		if (!address) return;
+		playerAccountPromise = getPlayerAccount(address);
+	});
 
 	let privy: Privy | null = $derived.by(() =>
 		$privyStore.isInitialized ? $privyStore.privy : null
@@ -88,18 +94,28 @@
 			<Dialog.Title>Pay to recruit a citizen</Dialog.Title>
 			<Dialog.Description>
 				<div>
-					<p>Address: {$walletStore.address}</p>
-					<p class="max-w-[300px] overflow-x-auto">Confirm: {confirmedTx}</p>
-					<button
-						onclick={mintNewCitizen}
-						class="mt-4 w-full rounded-xl border-2 border-black bg-black p-2 transition-all hover:bg-black disabled:opacity-75"
-					>
-						{#if confirmedTx === ''}
-							Purchase
-						{:else}
-							Purchased another
-						{/if}
-					</button>
+					{#if !address}
+						<p>Please connect your wallet to recruit citizens</p>
+					{:else}
+						{#await getPlayerAccount(address) then data}
+							{#if !data?.Account?.xUsername}
+								<p>You must register your twitter account to recruit citizens</p>
+							{:else}
+								<p>Address: {$walletStore.address}</p>
+								<p class="max-w-[300px] overflow-x-auto">Confirm: {confirmedTx}</p>
+								<button
+									onclick={mintNewCitizen}
+									class="mt-4 w-full rounded-xl border-2 border-black bg-black p-2 transition-all hover:bg-black disabled:opacity-75"
+								>
+									{#if confirmedTx === ''}
+										Purchase
+									{:else}
+										Purchased another
+									{/if}
+								</button>
+							{/if}
+						{/await}
+					{/if}
 				</div>
 			</Dialog.Description>
 		</Dialog.Header>
