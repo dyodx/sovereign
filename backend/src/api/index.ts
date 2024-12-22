@@ -12,7 +12,7 @@ export default {
 app.get("/", (c) => c.text("Hello World")); // heartbeat
 
 app.get("/airdrop", async (c) => {
-  const publicKey = c.req.param("publicKey");
+  const publicKey = c.req.query("publicKey");
   if (!publicKey) {
     return c.text("Missing publicKey parameter", 400);
   }
@@ -30,7 +30,7 @@ app.get("/airdrop", async (c) => {
 
 // Collection JSON
 app.get("/collection", async (c) => {
-  const gameId = c.req.param("gameId");
+  const gameId = c.req.query("gameId");
   if (!gameId) {
     return c.text("Missing gameId parameter", 400);
   }
@@ -57,7 +57,10 @@ app.get("/collection", async (c) => {
 });
 
 app.get("/nations", async (c) => {
-  const gameId = c.req.param("gameId");
+  const gameId = c.req.query("gameId");
+
+  console.log("GAME_ID", gameId, typeof gameId);
+
   if (gameId === undefined || gameId === "") {
     return c.text("Missing gameId parameter", 400);
   }
