@@ -40,34 +40,6 @@ async function sendOneLamportToSelf(connection: Connection, address: string) {
 	};
 }
 
-// async function registerPlayer(
-// 	connection: Connection,
-// 	address: string,
-// 	twitterHandle: string
-// ) {
-// 	const { SVPRGM } = initAnchor();
-
-// 	const pkey = new PublicKey(address); // authority
-// 	let x_username = '';
-// 	const currentGameId = 0n;
-
-// 	// convert currentGameId to bytes
-// 	const gameId = Uint8Array.from(
-// 		serializeUint64(currentGameId, {
-// 			endianess: ByteifyEndianess.LITTLE_ENDIAN
-// 		})
-// 	);
-
-// 	// check if registered
-// 	let playerAccountKey = anchor.web3.PublicKey.findProgramAddressSync(
-// 		[Buffer.from('player'), gameId, pkey.toBytes()],
-// 		SVPRGM.programId
-// 	)[0];
-// 	const playerAccount =
-// 		await SVPRGM.account.player.fetchNullable(playerAccountKey);
-// 	// end todo
-// }
-
 type EmbeddedSolanaWalletProvider = Awaited<
 	ReturnType<Privy['embeddedWallet']['getSolanaProvider']>
 >;
