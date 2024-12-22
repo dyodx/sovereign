@@ -4,10 +4,6 @@ import bs58 from "bs58";
 import {web3} from "@coral-xyz/anchor";
 import OpenAI from "openai";
 
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
-
 // Bootstrap the environment
 (() => {
     initalizeAgents();
@@ -37,6 +33,10 @@ async function initalizeAgents() {
 }
 
 async function generateAgentPersonalities(){
+    const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+    });
+    
     const system =
     `
 You are a world leader generator for a geopolitical strategy game. 
