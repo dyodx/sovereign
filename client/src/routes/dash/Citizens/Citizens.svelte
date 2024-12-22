@@ -10,6 +10,14 @@
 	import { getCountryFlag } from '$lib/constants/flags';
 	import { GAME_ID } from '$lib/wallet/constants';
 	import { CITIZEN_IMG_URL } from '$lib/constants/citizens';
+	import {
+		IconExchange,
+		IconGavel,
+		IconLeaf,
+		IconMoneyBag,
+		IconSolana,
+		IconStethoscope
+	} from '$lib/components/atoms/icons';
 
 	let address = $derived.by(() =>
 		$walletStore.connected && !!$walletStore.address ? $walletStore.address : null
@@ -57,6 +65,10 @@
 	function matchesGameId(asset: AssetV1) {
 		return getAttribute('game', asset) === GAME_ID.toString();
 	}
+	function convertToPercentage(num: string | undefined) {
+		if (!num) return 0;
+		return Math.round(1 + (+num / 255) * 99);
+	}
 </script>
 
 <div class="grid items-center justify-items-center gap-6 md:grid-cols-3">
@@ -103,11 +115,32 @@
 						</p>
 					</div>
 					<div
-						class="grid w-full grid-cols-2 items-center justify-items-center overflow-hidden rounded-r-[inherit] text-center text-sm font-thin"
+						class="grid w-full grid-cols-1 grid-rows-[repeat(4,15px)] items-center justify-items-center overflow-hidden rounded-r-[inherit] text-center text-sm font-thin"
 					>
 						{#snippet stat(key: CitizenAttribute)}
-							<p class="h-full w-6 bg-background p-1">{getAttribute(key, asset)}</p>
+							<div class=" grid grid-cols-[10px_1fr] gap-x-2">
+								<span class="translate-y-[-1.5px] scale-50 rounded-full text-black">
+									{#if key === 'environment_fix'}
+										<IconLeaf />
+									{:else if key === 'gdp_fix'}
+										<IconMoneyBag />
+									{:else if key === 'healthcare_fix'}
+										<IconStethoscope />
+									{:else if key === 'stability_fix'}
+										<IconGavel />
+									{:else}
+										{' '}
+									{/if}
+								</span>
+								<div class="h-full w-6 border-l-[1px] border-l-background bg-panel">
+									<div
+										class={`h-full border-r-[1px] border-r-foreground bg-black`}
+										style={`width: ${convertToPercentage(getAttribute(key, asset))}%`}
+									></div>
+								</div>
+							</div>
 						{/snippet}
+
 						{@render stat('environment_fix')}
 						{@render stat('gdp_fix')}
 						{@render stat('healthcare_fix')}
