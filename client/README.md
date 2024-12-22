@@ -7,37 +7,28 @@
 for development
 `pnpm run dev`
 
-
-# Reown (@deprecated - removed and replace with @privy-io)
-- using js implementation (no svelte)
-- use the appkit actions to manually open stuff https://docs.reown.com/appkit/javascript/core/actions#open-and-close-the-modal
-
-# Todo
-- [x] add toggle to show news on mobile view (root layout design)
-
+# wallet - @privy-io
+- uses twitter for the authentication
+- `$lib/wallet/txHelpers.ts` is the main file for interacting with the chain
+- privy initiated on `/dash` page and passed around via `walletStore` and `privyStore`
 
 
 # TODO PWA
-- [ ] add notifications
+- [ ] add notifications (working but need to link it to something dynamic)
+    - check `/` (landing page) to test the notifications. Open in chrome and install as PWA.
+    - on mac, open Notifications & Focus, enable Chrome and Google Chrome Helper
 
 # TODO 2
-- [x] recruit citizen: move everything to the button
-    - move it above my citizens with recruit
-    - ditch modal and just go to confirmation screen
 - [ ] balances
-    - add a "your total sol balance" (maybe where question mark is?)
-    - need a deposit sol button
+    - [x] add a "your total sol balance" (maybe where question mark is?)
+    - need a copy/paste of address
     - withdrawl sol
-- [x] add reown wallet - https://reown.com/
 - [ ] deposit sol
-- [ ] add twitter auth to confirm your account
-- [ ] add stake modal to citizen (design). Just stake or not stake to a certain nation
     - modal should show stats
 - [ ] inbox for bounties
     - bounties are where you can trigger PoW
 
 
-- [ ] make wallet persistent?
 
 
 
@@ -61,3 +52,13 @@ for development
     - [ ] clean up the stats on citizen  (big number)
     - [ ] make copy/paste of address
 
+
+---
+- [x] add reown wallet - https://reown.com/
+- [x] recruit citizen: move everything to the button
+- [x] add toggle to show news on mobile view (root layout design)
+- [x] add twitter auth to confirm your account
+- [x] add stake modal to citizen (design). Just stake or not stake to a certain nation
+- [x] move citizen panel to citizens page as just a button
+- [x] make wallet persistent (reloads on refresh, new tab if previously logged in)
+- [x] show citizens minted for current game
