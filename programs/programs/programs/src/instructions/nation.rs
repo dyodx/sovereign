@@ -20,6 +20,7 @@ pub fn init_nation(ctx: Context<InitNation>, init_nation_args: InitNationArgs) -
     ctx.accounts.nation.is_alive = true;
     ctx.accounts.game.nations_alive += 1;
     ctx.accounts.nation.minted_tokens_total = 0;
+
     Ok(())
 }
 
