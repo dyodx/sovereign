@@ -18,8 +18,8 @@ main().then(() => {
 async function main(){
     // Create a Game As Admin    
     const gameSetup = await createGame();
-    await Bun.sleep(5000);
-    await mintCitizen(gameSetup, gameSetup.adminKey);
+    //await Bun.sleep(5000);
+    //await mintCitizen(gameSetup, gameSetup.adminKey);
     // Nations Register
         // Generate Keypair && Store in DB
         // Start Nation Worker (Use BullMQ on the backend)
