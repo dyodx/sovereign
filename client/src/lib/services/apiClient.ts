@@ -5,7 +5,7 @@ const apiClient = axios.create({
 	baseURL: 'http://localhost:5173/api' // TODO: replace with env. Proxy in VITE
 });
 
-type NationDTO = {
+export type NationDTO = {
 	pubkey: string;
 	gameId: string;
 	nationId: number;
