@@ -23,7 +23,7 @@ model Game {
 }
 
 // AGENTS \\
-model Agent {
+model WorldLeaders {
   nationId   Int    @id
   privateKey String
   character  Json

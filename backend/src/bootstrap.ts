@@ -15,7 +15,7 @@ const openai = new OpenAI({
 
 async function initalizeAgents() {
     // Check if agents already exist
-    const agentsCheck = await DB.agent.findMany({take: 1});
+    const agentsCheck = await DB.worldLeaders.findMany({take: 1});
     if(agentsCheck.length > 0){
         console.log(`Agents already exist, skipping creation`);
         return;
@@ -30,7 +30,7 @@ async function initalizeAgents() {
             character: characters[i],
         });
     }
-    await DB.agent.createMany({
+    await DB.worldLeaders.createMany({
         data: agents,
     });
     console.log(`Created ${agents.length} agents`);

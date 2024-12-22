@@ -1,4 +1,7 @@
+import {z} from 'zod';
+
 export interface SolanaEvent {
+    txn: string;
     name: string;
     data: any;
 }
@@ -20,67 +23,78 @@ export interface AccountUpdate {
     }
 }
 
-export interface NewGameEvent {
-    game_id: string;
-    authority: string;
-}
+export const NewGameEvent = z.object({
+    gameId: z.string(),
+    authority: z.string(),
+});
 
-export interface MintTokensToPlayerWalletEvent {
-    game_id: string;
-    nation_id: number;
-    player: string;
-    player_wallet: string;
-    amount: string;
-    slot: string;
-}
+export const MintTokensToPlayerWalletEvent = z.object({
+    gameId: z.string(),
+    nationId: z.number(),
+    playerAuthority: z.string(),
+    playerWallet: z.string(),
+    amount: z.string(),
+    slot: z.string(),
+});
 
-export interface DepositToBrokerEvent {
-    game_id: string;
-    nation_id: number;
-    amount: string;
-}
+export const DepositToBrokerEvent = z.object({
+    gameId: z.string(),
+    nationId: z.number(),
+    amount: z.string(),
+});
 
-export  interface GameOverEvent {
-    game_id: string;
-}
+export const GameOverEvent = z.object({
+    gameId: z.string(),
+});
 
-export interface ClaimBountyEvent {
-    game_id: string;
-    bounty_hash: string;
-    player: string;
-}
+export const ClaimBountyEvent = z.object({
+    gameId: z.string(),
+    bountyHash: z.string(),
+    playerAuthority: z.string(),
+    amount: z.string(),
+    citizenAssetId: z.string(),
+});
 
-export  interface MintCitizenEvent {
-    game_id: string;
-    player: string;
-    asset_id: string;
-    nation_state_idx: number;
-}
+export const MintCitizenEvent = z.object({
+    gameId: z.string(),
+    playerAuthority: z.string(),
+    assetId: z.string(),
+    nationStateIdx: z.number(),
+});
 
-export  interface StakeOrUnstakeCitizenEvent {
-    game_id: string;
-    player: string;
-    asset_id: string;
-    is_staked: boolean;
-    slot: string;
-}
+export const WorldDisasterEvent = z.object({
+    gameId: z.string(),
+    nationId: z.number(),
+    gdpDamage: z.string(),
+    healthDamage: z.string(),
+    environmentDamage: z.string(),
+    stabilityDamage: z.string(),
+});
 
-export  interface NationDissolutionEvent {
-    game_id: string;
-    nation_id: number;
-}
+export const NationBoostEvent = z.object({
+    gameId: z.string(),
+    nationId: z.number(),
+    lamportsAmount: z.string(),
+});
 
-export interface WorldDisasterEvent {
-    game_id: string;
-    nation_id: number;
-    gdp_damage: string;
-    health_damage: string;
-    environment_damage: string;
-    stability_damage: string;
-}
+export const StakeCitizenEvent = z.object({
+    gameId: z.string(),
+    playerAuthority: z.string(),
+    citizenAssetId: z.string(),
+    nationId: z.number(),
+    slot: z.string(),
+});
 
-export interface NationBoostEvent {
-    game_id: string;
-    nation_id: number;
-    lamports_amount: string;
-}
+export const CompleteStakeEvent = z.object({
+    gameId: z.string(),
+    playerAuthority: z.string(),
+    citizenAssetId: z.string(),
+    nationId: z.number(),
+    rewardAmount: z.string(),
+    slot: z.string(),
+});
+
+export const NationDissolutionEvent = z.object({
+    gameId: z.string(),
+    nationId: z.number(),
+});

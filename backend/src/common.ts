@@ -1,7 +1,7 @@
 import {Program, AnchorProvider, Wallet, web3} from "@coral-xyz/anchor";
 import type { Programs as Sovereign } from "../deps/sovereign.ts"; // unfortuntely need to cp instead of rebuilding because when deploying we don't recompile on railway
 import IDL from "../deps/sovereign.json";
-import { createSolanaRpc } from "@solana/web3.js";
+import { Connection } from "@solana/web3.js";
 import { PrismaClient } from "@prisma/client";
 
 export const DB = new PrismaClient({
@@ -14,7 +14,7 @@ export const DB = new PrismaClient({
 export const RPC_URL:string = process.env.SOLANA_RPC_URL || "http://localhost:8899";
 export const WS_URL:string = process.env.SOLANA_WS_URL || "ws://localhost:8900";
 export const SERVER_URL = process.env.SERVER_URL || "http://localhost:3000";
-export const CONNECTION = createSolanaRpc(RPC_URL);
+export const CONNECTION = new Connection(RPC_URL, {commitment: "confirmed"});
 export const COMPUTE_UNIT_PRICE = 1_000_000; // ~average confirmation times
 export const SovereignIDL = IDL;
 export const SVPRGM = new Program<Sovereign>(
@@ -69,3 +69,4 @@ export const NATION_STATES = [
     "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Vanuatu", 
     "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
 ];
+

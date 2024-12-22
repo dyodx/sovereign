@@ -281,7 +281,7 @@ pub fn stake_citizen(ctx: Context<StakeCitizen>, _args: StakeCitizenArgs) -> Res
     emit!(StakeCitizenEvent {
         game_id: ctx.accounts.game_account.id,
         player_authority: ctx.accounts.player_authority.key().to_string(),
-        asset_id: ctx.accounts.citizen_asset.key().to_string(),
+        citizen_asset_id: ctx.accounts.citizen_asset.key().to_string(),
         nation_id: ctx.accounts.nation.nation_id,
         slot: clock.slot,
     });
@@ -340,7 +340,7 @@ pub struct StakeCitizen<'info> {
 pub struct StakeCitizenEvent {
     pub game_id: u64,
     pub player_authority: String,
-    pub asset_id: String,
+    pub citizen_asset_id: String,
     pub nation_id: u8,
     pub slot: u64,
 }
@@ -512,7 +512,7 @@ pub fn claim_bounty(ctx: Context<ClaimBounty>, args: ClaimBountyArgs) -> Result<
         bounty_hash: bounty_hash_str,
         player_authority: ctx.accounts.player_authority.key().to_string(),
         amount: ctx.accounts.bounty.amount,
-        citizen_asset: ctx.accounts.citizen_asset.key().to_string(),
+        citizen_asset_id: ctx.accounts.citizen_asset.key().to_string(),
     });
 
     Ok(())
@@ -524,7 +524,7 @@ pub struct ClaimBountyEvent {
     pub bounty_hash: String,
     pub player_authority: String,
     pub amount: u64,
-    pub citizen_asset: String,
+    pub citizen_asset_id: String,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
