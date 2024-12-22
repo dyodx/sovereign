@@ -77,8 +77,6 @@
 		const signed = await buildRequest(provider, message, address);
 		tx.addSignature(pkey, Uint8Array.from(Buffer.from(signed, 'base64')));
 
-		console.log('Signed: ', Buffer.from(tx.serialize()).toString('base64'));
-
 		const confirmedSentTx = await connection.sendTransaction(tx);
 		confirmedTx = confirmedSentTx;
 	}
