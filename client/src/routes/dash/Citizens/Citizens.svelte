@@ -10,14 +10,7 @@
 	import { getCountryFlag } from '$lib/constants/flags';
 	import { GAME_ID } from '$lib/wallet/constants';
 	import { CITIZEN_IMG_URL } from '$lib/constants/citizens';
-	import {
-		IconExchange,
-		IconGavel,
-		IconLeaf,
-		IconMoneyBag,
-		IconSolana,
-		IconStethoscope
-	} from '$lib/components/atoms/icons';
+	import { IconGavel, IconLeaf, IconMoneyBag, IconStethoscope } from '$lib/components/atoms/icons';
 	import IconRefresh from '$lib/components/atoms/icons/IconRefresh.svelte';
 
 	let address = $derived.by(() =>
@@ -25,11 +18,13 @@
 	);
 
 	// prepare umi to fetch assets
-	const umi = createUmi(PUBLIC_RPC_URL).use(mplCore());
+	const umi = createUmi(PUBLIC_RPC_URL, { commitment: 'confirmed' }).use(mplCore());
 	let assetsPromise: Promise<AssetV1[] | null> | null = $state(null);
 
 	// call loadAllAssets on address change
 	$effect(() => {
+		// TODO: add a store object that is incremented when you mint a citizen
+		// that should update and retrigger this effect to load again
 		if (address) {
 			loadAllAssets();
 		}
