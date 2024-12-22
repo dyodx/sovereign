@@ -130,7 +130,7 @@
 
 				<ModalUserProfile>
 					<div class="flex">
-						<button onclick={openAccount} class="rounded-xl bg-panel px-4 py-2">
+						<button class="rounded-xl bg-panel px-4 py-2">
 							<div class="group flex items-center gap-4">
 								<span class="tracking-tight">
 									{address.substring(0, 4)}
