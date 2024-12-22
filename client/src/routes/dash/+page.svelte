@@ -14,7 +14,6 @@
 	import ModalRegisterTwitter from '$lib/components/molecules/RegisterTwitter/ModalRegisterTwitter.svelte';
 
 	let privy: Privy | null = $state(null);
-	$inspect('privy', privy);
 	let user = $state(null as PrivyAuthenticatedUser | null);
 	let provider = $state(
 		null as Awaited<ReturnType<Privy['embeddedWallet']['getSolanaProvider']>> | null
