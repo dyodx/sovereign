@@ -51,7 +51,7 @@ pub struct RegisterPlayer<'info> {
         init,
         payer = player_authority,
         space = 8 + Player::INIT_SPACE,
-        seeds = [PLAYER_SEED.as_bytes(), game.id.to_le_bytes().as_ref(), player_authority.key().as_ref()],
+        seeds = [PLAYER_SEED.as_bytes(), &game.id.to_le_bytes(), &player_authority.key().as_ref()],
         bump
     )]
     pub player: Account<'info, Player>,
@@ -59,7 +59,7 @@ pub struct RegisterPlayer<'info> {
         init,
         payer = player_authority,
         space = 8 + Wallet::INIT_SPACE,
-        seeds = [WALLET_SEED.as_bytes(), game.id.to_le_bytes().as_ref(), player_authority.key().as_ref()],
+        seeds = [WALLET_SEED.as_bytes(), &game.id.to_le_bytes(), player_authority.key().as_ref()],
         bump
     )]
     pub player_wallet: Box<Account<'info, Wallet>>,
@@ -80,15 +80,15 @@ pub fn mint_citizen(ctx: Context<MintCitizen>) -> Result<()> {
                 to: ctx.accounts.world_agent_wallet.to_account_info(),
             },
         ),
-        ctx.accounts.game_account.mint_cost,
+        ctx.accounts.game.mint_cost,
     )?;
     // Mint Price is sent 100% to World Agent as SOL
-    ctx.accounts.world_agent_wallet.balances[0] += ctx.accounts.game_account.mint_cost;
+    ctx.accounts.world_agent_wallet.balances[0] += ctx.accounts.game.mint_cost;
 
     let signers_seeds = &[
         GAME_SEED.as_bytes(),
-        &ctx.accounts.game_account.id.to_le_bytes(),
-        &[ctx.bumps.game_account],
+        &ctx.accounts.game.id.to_le_bytes(),
+        &[ctx.bumps.game],
     ];
 
     let clock = Clock::get()?;
@@ -109,10 +109,10 @@ pub fn mint_citizen(ctx: Context<MintCitizen>) -> Result<()> {
     CreateV2CpiBuilder::new(&ctx.accounts.mpl_core_program.to_account_info())
         .asset(&ctx.accounts.citizen_asset.to_account_info())
         .collection(Some(&ctx.accounts.collection.to_account_info()))
-        .authority(Some(&ctx.accounts.game_account.to_account_info()))
+        .authority(Some(&ctx.accounts.game.to_account_info()))
         .payer(&ctx.accounts.player_authority.to_account_info())
         .system_program(&ctx.accounts.system_program.to_account_info())
-        .name(format!("Citizen - Game {:#}", ctx.accounts.game_account.id).to_string())
+        .name(format!("Citizen - Game {:#}", ctx.accounts.game.id).to_string())
         .uri(ctx.accounts.collection.uri.to_string())
         .plugins(vec![
             PluginAuthorityPair {
@@ -124,7 +124,7 @@ pub fn mint_citizen(ctx: Context<MintCitizen>) -> Result<()> {
                     attribute_list: vec![
                         Attribute {
                             key: "game".to_string(),
-                            value: ctx.accounts.game_account.id.to_string(),
+                            value: ctx.accounts.game.id.to_string(),
                         },
                         Attribute {
                             key: "nation_state".to_string(),
@@ -158,7 +158,7 @@ pub fn mint_citizen(ctx: Context<MintCitizen>) -> Result<()> {
         .invoke_signed(&[signers_seeds])?;
 
     emit!(MintCitizenEvent {
-        game_id: ctx.accounts.game_account.id,
+        game_id: ctx.accounts.game.id,
         player_authority: ctx.accounts.player_authority.key().to_string(),
         asset_id: ctx.accounts.citizen_asset.key().to_string(),
         nation_state_idx: nation_state_idx as u8,
@@ -182,22 +182,22 @@ pub struct MintCitizen<'info> {
     /// CHECK:
     #[account(
         mut,
-        seeds = [WALLET_SEED.as_bytes(), &game_account.id.to_le_bytes(), &game_account.world_agent.to_bytes()],
+        seeds = [WALLET_SEED.as_bytes(), &game.id.to_le_bytes(), &game.world_agent.to_bytes()],
         bump
     )]
     pub world_agent_wallet: Account<'info, Wallet>,
     #[account(
         mut,
-        constraint = collection.key() == game_account.collection @ SovereignError::InvalidCollectionKey,
+        constraint = collection.key() == game.collection @ SovereignError::InvalidCollectionKey,
     )]
     pub collection: Account<'info, BaseCollectionV1>,
     #[account(mut)]
     pub citizen_asset: Signer<'info>,
     #[account(
-        seeds = [GAME_SEED.as_bytes(), &game_account.id.to_le_bytes()],
+        seeds = [GAME_SEED.as_bytes(), &game.id.to_le_bytes()],
         bump,
     )]
-    pub game_account: Account<'info, Game>,
+    pub game: Account<'info, Game>,
     /// CHECK: constraint checks it
     #[account(address = MPL_CORE_ID)]
     pub mpl_core_program: UncheckedAccount<'info>,
@@ -213,13 +213,13 @@ pub fn stake_citizen(ctx: Context<StakeCitizen>, _args: StakeCitizenArgs) -> Res
     require!(!freeze_plugin.frozen, SovereignError::CitizenAlreadyStaked);
     let signers_seeds = &[
         GAME_SEED.as_bytes(),
-        &ctx.accounts.game_account.id.to_le_bytes(),
-        &[ctx.bumps.game_account],
+        &ctx.accounts.game.id.to_le_bytes(),
+        &[ctx.bumps.game],
     ];
     UpdatePluginV1CpiBuilder::new(&ctx.accounts.mpl_core_program.to_account_info())
         .asset(&ctx.accounts.citizen_asset.to_account_info())
         .plugin(Plugin::FreezeDelegate(FreezeDelegate { frozen: true }))
-        .authority(Some(&ctx.accounts.game_account.to_account_info()))
+        .authority(Some(&ctx.accounts.game.to_account_info()))
         .payer(&ctx.accounts.player_authority.to_account_info())
         .system_program(&ctx.accounts.system_program.to_account_info())
         .invoke_signed(&[signers_seeds])?;
@@ -228,58 +228,65 @@ pub fn stake_citizen(ctx: Context<StakeCitizen>, _args: StakeCitizenArgs) -> Res
     let staked_citizen = &mut ctx.accounts.staked_citizen;
     staked_citizen.owner = ctx.accounts.player_authority.key();
     staked_citizen.citizen_asset = ctx.accounts.citizen_asset.key();
-    staked_citizen.game_id = ctx.accounts.game_account.id;
+    staked_citizen.game_id = ctx.accounts.game.id;
     staked_citizen.nation_id = ctx.accounts.nation.nation_id;
     let (_, attribute_plugin, _) = fetch_plugin::<BaseAssetV1, Attributes>(
         &ctx.accounts.citizen_asset.to_account_info(),
         PluginType::Attributes,
     )?;
-    let gdp_reward = attribute_plugin.attribute_list
-        .iter()
-        .find(|attr| attr.key == "gdp_fix")
-        .ok_or(SovereignError::CitizenAttributeNotFound)?
-        .value
-        .parse::<u64>()
-        .map_err(|_| SovereignError::InvalidCitizenAttributeValue)?
-        .checked_mul(ctx.accounts.nation.gdp_reward_rate)
-        .ok_or(SovereignError::MathOverflow)?;
+    let mut rewards = (0, 0, 0, 0); // (gdp, healthcare, environment, stability)
+    let mut found = (false, false, false, false); // Make sure they are all found
 
-    let healthcare_reward = attribute_plugin.attribute_list
-        .iter()
-        .find(|attr| attr.key == "healthcare_fix")
-        .ok_or(SovereignError::CitizenAttributeNotFound)?
-        .value
-        .parse::<u64>()
-        .map_err(|_| SovereignError::InvalidCitizenAttributeValue)?
-        .checked_mul(ctx.accounts.nation.healthcare_reward_rate)
-        .ok_or(SovereignError::MathOverflow)?;
+    for attr in attribute_plugin.attribute_list.iter() {
+        match attr.key.as_str() {
+            "gdp_fix" => {
+                found.0 = true;
+                rewards.0 = attr.value
+                    .parse::<u64>()
+                    .map_err(|_| SovereignError::InvalidCitizenAttributeValue)?
+                    .checked_mul(ctx.accounts.nation.gdp_reward_rate)
+                    .ok_or(SovereignError::MathOverflow)?;
+            },
+            "healthcare_fix" => {
+                found.1 = true;
+                rewards.1 = attr.value
+                    .parse::<u64>()
+                    .map_err(|_| SovereignError::InvalidCitizenAttributeValue)?
+                    .checked_mul(ctx.accounts.nation.healthcare_reward_rate)
+                    .ok_or(SovereignError::MathOverflow)?;
+            },
+            "environment_fix" => {
+                found.2 = true;
+                rewards.2 = attr.value
+                    .parse::<u64>()
+                    .map_err(|_| SovereignError::InvalidCitizenAttributeValue)?
+                    .checked_mul(ctx.accounts.nation.environment_reward_rate)
+                    .ok_or(SovereignError::MathOverflow)?;
+            },
+            "stability_fix" => {
+                found.3 = true;
+                rewards.3 = attr.value
+                    .parse::<u64>()
+                    .map_err(|_| SovereignError::InvalidCitizenAttributeValue)?
+                    .checked_mul(ctx.accounts.nation.stability_reward_rate)
+                    .ok_or(SovereignError::MathOverflow)?;
+            },
+            _ => continue,
+        }
+    }
 
-    let environment_reward = attribute_plugin.attribute_list
-        .iter()
-        .find(|attr| attr.key == "environment_fix")
-        .ok_or(SovereignError::CitizenAttributeNotFound)?
-        .value
-        .parse::<u64>()
-        .map_err(|_| SovereignError::InvalidCitizenAttributeValue)?
-        .checked_mul(ctx.accounts.nation.environment_reward_rate)
-        .ok_or(SovereignError::MathOverflow)?;
+    // Check if we found all required attributes
+    if !found.0 || !found.1 || !found.2 || !found.3 {
+        return Err(SovereignError::CitizenAttributeNotFound.into());
+    }
 
-    let stability_reward = attribute_plugin.attribute_list
-        .iter()
-        .find(|attr| attr.key == "stability_fix")
-        .ok_or(SovereignError::CitizenAttributeNotFound)?
-        .value
-        .parse::<u64>()
-        .map_err(|_| SovereignError::InvalidCitizenAttributeValue)?
-        .checked_mul(ctx.accounts.nation.stability_reward_rate)
-        .ok_or(SovereignError::MathOverflow)?;
-        staked_citizen.reward_amount = gdp_reward + healthcare_reward + environment_reward + stability_reward;  
+    staked_citizen.reward_amount = rewards.0 + rewards.1 + rewards.2 + rewards.3; 
 
     let clock = Clock::get()?;
-    staked_citizen.complete_slot = clock.slot + ctx.accounts.game_account.citizen_stake_length;
+    staked_citizen.complete_slot = clock.slot + ctx.accounts.game.citizen_stake_length;
 
     emit!(StakeCitizenEvent {
-        game_id: ctx.accounts.game_account.id,
+        game_id: ctx.accounts.game.id,
         player_authority: ctx.accounts.player_authority.key().to_string(),
         citizen_asset_id: ctx.accounts.citizen_asset.key().to_string(),
         nation_id: ctx.accounts.nation.nation_id,
@@ -303,15 +310,15 @@ pub struct StakeCitizen<'info> {
     )]
     pub citizen_asset: Account<'info, BaseAssetV1>,
     #[account(
-        seeds = [GAME_SEED.as_bytes(), &game_account.id.to_le_bytes()],
+        seeds = [GAME_SEED.as_bytes(), &game.id.to_le_bytes()],
         bump,
     )]
-    pub game_account: Account<'info, Game>,
+    pub game: Account<'info, Game>,
     #[account(
         seeds = [
             NATION_SEED.as_bytes(), 
-            game_account.id.to_le_bytes().as_ref(), 
-            nation.nation_id.to_le_bytes().as_ref()
+            &game.id.to_le_bytes(), 
+            &nation.nation_id.to_le_bytes()
         ],
         bump,
         constraint = nation.is_alive @ SovereignError::NationIsDead
@@ -320,11 +327,11 @@ pub struct StakeCitizen<'info> {
     #[account(
         init,
         payer = player_authority,
-        space = 8 + std::mem::size_of::<StakedCitizen>(),
+        space = 8 + StakedCitizen::INIT_SPACE,
         seeds = [
             STAKED_CITIZEN_SEED.as_bytes(),
-            game_account.id.to_le_bytes().as_ref(),
-            nation.nation_id.to_le_bytes().as_ref(),
+            &game.id.to_le_bytes(),
+            &nation.nation_id.to_le_bytes(),
             citizen_asset.key().as_ref()
         ],
         bump
@@ -367,19 +374,19 @@ pub fn complete_stake(ctx: Context<CompleteStake>, _args: CompleteStakeArgs) -> 
 
     let signers_seeds = &[
         GAME_SEED.as_bytes(),
-        &ctx.accounts.game_account.id.to_le_bytes(),
-        &[ctx.bumps.game_account],
+        &ctx.accounts.game.id.to_le_bytes(),
+        &[ctx.bumps.game],
     ];
     UpdatePluginV1CpiBuilder::new(&ctx.accounts.mpl_core_program.to_account_info())
         .asset(&ctx.accounts.citizen_asset.to_account_info())
         .plugin(Plugin::FreezeDelegate(FreezeDelegate { frozen: false }))
-        .authority(Some(&ctx.accounts.game_account.to_account_info()))
+        .authority(Some(&ctx.accounts.game.to_account_info()))
         .payer(&ctx.accounts.player_authority.to_account_info())
         .system_program(&ctx.accounts.system_program.to_account_info())
         .invoke_signed(&[signers_seeds])?;
 
     emit!(CompleteStakeEvent {
-        game_id: ctx.accounts.game_account.id,
+        game_id: ctx.accounts.game.id,
         player_authority: ctx.accounts.player_authority.key().to_string(),
         citizen_asset_id: ctx.accounts.citizen_asset.key().to_string(),
         nation_id: ctx.accounts.nation.nation_id,
@@ -404,15 +411,15 @@ pub struct CompleteStake<'info> {
     )]
     pub citizen_asset: Account<'info, BaseAssetV1>,
     #[account(
-        seeds = [GAME_SEED.as_bytes(), &game_account.id.to_le_bytes()],
+        seeds = [GAME_SEED.as_bytes(), &game.id.to_le_bytes()],
         bump,
     )]
-    pub game_account: Account<'info, Game>,
+    pub game: Account<'info, Game>,
     #[account(
         seeds = [
             NATION_SEED.as_bytes(), 
-            game_account.id.to_le_bytes().as_ref(), 
-            nation.nation_id.to_le_bytes().as_ref()
+            &game.id.to_le_bytes(), 
+            &nation.nation_id.to_le_bytes()
         ],
         bump,
         constraint = nation.is_alive @ SovereignError::NationIsDead
@@ -421,8 +428,8 @@ pub struct CompleteStake<'info> {
     #[account(
         seeds = [
             STAKED_CITIZEN_SEED.as_bytes(),
-            game_account.id.to_le_bytes().as_ref(),
-            nation.nation_id.to_le_bytes().as_ref(),
+            &game.id.to_le_bytes(), 
+            &nation.nation_id.to_le_bytes(),
             citizen_asset.key().as_ref()
         ],
         bump,
@@ -553,8 +560,8 @@ pub struct ClaimBounty<'info> {
     #[account(
         seeds = [
             NATION_SEED.as_bytes(), 
-            game.id.to_le_bytes().as_ref(), 
-            nation.nation_id.to_le_bytes().as_ref()
+            &game.id.to_le_bytes(), 
+            &nation.nation_id.to_le_bytes()
         ],
         bump,
     )]
@@ -564,8 +571,8 @@ pub struct ClaimBounty<'info> {
         mut,
         seeds = [
             STAKED_CITIZEN_SEED.as_bytes(),
-            game.id.to_le_bytes().as_ref(),
-            nation.nation_id.to_le_bytes().as_ref(),
+            &game.id.to_le_bytes(),
+            &nation.nation_id.to_le_bytes(),
             citizen_asset.key().as_ref()
         ],
         bump,
