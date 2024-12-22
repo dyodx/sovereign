@@ -6,7 +6,7 @@ use mpl_core::{accounts::{BaseAssetV1, BaseCollectionV1}, fetch_plugin, instruct
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use groth16_solana::groth16::Groth16Verifier;
 
-use crate::{constant::{GAME_SEED, NATION_STATES, PLAYER_SEED, WALLET_SEED}, error::SovereignError, state::{Bounty, BrokerEscrow, Game, Player, Wallet}, verifying_key::VERIFYINGKEY};
+use crate::{constant::{BALANCES_INIT, GAME_SEED, NATION_STATES, PLAYER_SEED, WALLET_SEED}, error::SovereignError, state::{Bounty, BrokerEscrow, Game, Player, Wallet}, verifying_key::VERIFYINGKEY};
 type G1 = ark_bn254::g1::G1Affine;
 
 pub fn register_player(ctx: Context<RegisterPlayer>, args: RegisterPlayerArgs) -> Result<()> {
@@ -16,7 +16,7 @@ pub fn register_player(ctx: Context<RegisterPlayer>, args: RegisterPlayerArgs) -
 
     ctx.accounts.player_wallet.game_id = ctx.accounts.game.id;
     ctx.accounts.player_wallet.authority = ctx.accounts.player_authority.key();
-    ctx.accounts.player_wallet.balances = [0u64; NATION_STATES.len()];
+    ctx.accounts.player_wallet.balances = BALANCES_INIT;
     Ok(())
 }
 
@@ -45,7 +45,7 @@ pub struct RegisterPlayer<'info> {
         seeds = [WALLET_SEED.as_bytes(), game.id.to_le_bytes().as_ref(), player_authority.key().as_ref()],
         bump
     )]
-    pub player_wallet: Account<'info, Wallet>,
+    pub player_wallet: Box<Account<'info, Wallet>>,
     pub system_program: Program<'info, System>,
 }
 

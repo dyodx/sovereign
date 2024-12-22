@@ -4,7 +4,13 @@ import IDL from "../deps/sovereign.json";
 import { createSolanaRpc } from "@solana/web3.js";
 import { PrismaClient } from "@prisma/client";
 
-export const DB = new PrismaClient();
+export const DB = new PrismaClient({
+    datasources: {
+        db: {
+            url: process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/app",
+        },
+    },
+});
 export const RPC_URL:string = process.env.RPC_URL || "http://localhost:8899";
 export const WS_URL:string = process.env.WS_URL || "ws://localhost:8900";
 export const SERVER_URL = process.env.SERVER_URL || "http://localhost:3000";
