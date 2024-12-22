@@ -467,15 +467,6 @@ pub fn claim_bounty(ctx: Context<ClaimBounty>, args: ClaimBountyArgs) -> Result<
         args.bounty_proof,
     )?;
 
-    // Close the StakedCitizen account and return rent to original owner
-    let staked_citizen_info = ctx.accounts.staked_citizen.to_account_info();
-    let dest_starting_lamports = ctx.accounts.citizen_owner.lamports();
-    **ctx.accounts.citizen_owner.lamports.borrow_mut() = dest_starting_lamports
-        .checked_add(staked_citizen_info.lamports())
-        .unwrap();
-    **staked_citizen_info.lamports.borrow_mut() = 0;
-    staked_citizen_info.data.borrow_mut().fill(0);
-
     // Burn citizen asset
     let signers_seeds = &[
         GAME_SEED.as_bytes(),
@@ -522,7 +513,6 @@ pub fn claim_bounty(ctx: Context<ClaimBounty>, args: ClaimBountyArgs) -> Result<
         player_authority: ctx.accounts.player_authority.key().to_string(),
         amount: ctx.accounts.bounty.amount,
         citizen_asset: ctx.accounts.citizen_asset.key().to_string(),
-        citizen_owner: ctx.accounts.citizen_owner.key().to_string(),
     });
 
     Ok(())
@@ -535,7 +525,6 @@ pub struct ClaimBountyEvent {
     pub player_authority: String,
     pub amount: u64,
     pub citizen_asset: String,
-    pub citizen_owner: String,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
@@ -572,6 +561,7 @@ pub struct ClaimBounty<'info> {
     pub nation: Account<'info, Nation>,
     pub citizen_asset: Account<'info, BaseAssetV1>,
     #[account(
+        mut,
         seeds = [
             STAKED_CITIZEN_SEED.as_bytes(),
             game.id.to_le_bytes().as_ref(),
@@ -579,15 +569,10 @@ pub struct ClaimBounty<'info> {
             citizen_asset.key().as_ref()
         ],
         bump,
-        constraint = staked_citizen.citizen_asset == citizen_asset.key() @ SovereignError::InvalidCitizenAsset
+        constraint = staked_citizen.citizen_asset == citizen_asset.key() @ SovereignError::InvalidCitizenAsset,
+        close = player_authority
     )]
     pub staked_citizen: Account<'info, StakedCitizen>,
-    /// CHECK: constraint checks it's the correct owner
-    #[account(
-        mut,
-        address = staked_citizen.owner @ SovereignError::InvalidCitizenOwner
-    )]
-    pub citizen_owner: UncheckedAccount<'info>,
     #[account(
         seeds = [GAME_SEED.as_bytes(), &game.id.to_le_bytes()],
         bump,
