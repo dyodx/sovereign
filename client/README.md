@@ -18,25 +18,17 @@ for development
     - check `/` (landing page) to test the notifications. Open in chrome and install as PWA.
     - on mac, open Notifications & Focus, enable Chrome and Google Chrome Helper
 
-# TODO 2
+# TODO GENERAL
+- [ ] clean up the stats on citizen  (big number)
+- [ ] make copy/paste of address to deposit sol
 - [ ] balances
     - [x] add a "your total sol balance" (maybe where question mark is?)
     - need a copy/paste of address
     - withdrawl sol
-- [ ] deposit sol
-    - modal should show stats
+- [ ] table stats for nation states
+- [ ] replace news with real data
 - [ ] inbox for bounties
     - bounties are where you can trigger PoW
-
-
-
-
-
-    WHEN BACK
-    - citizen: replace icon with number
-    - modal should be for staking to a ccertain nation
-    - balance modal: need to experiment if i can get appkit there locally to open a transaction?
-
 
 - PoW need to add hashing
     - check this implementation: https://github.com/SPCG-NEST/sovereign/blob/develop-v2/circuits/tests/test01/test.ts
@@ -45,12 +37,8 @@ for development
     - ```
         const bountyHash = poseidon4(inputs);
         const bountyHashLimited = reduceTo252Bits(numberToUint8Array(bountyHash));
-        ```
-
     
-    - [ ] make twitter registration block actions (mint, swap etc). check `getPlayerAccount` for the twitter handle
-    - [ ] clean up the stats on citizen  (big number)
-    - [ ] make copy/paste of address
+
 
 
 ---
@@ -62,3 +50,4 @@ for development
 - [x] move citizen panel to citizens page as just a button
 - [x] make wallet persistent (reloads on refresh, new tab if previously logged in)
 - [x] show citizens minted for current game
+- [x] make twitter registration block actions (mint, swap etc). check `getPlayerAccount` for the twitter handle
