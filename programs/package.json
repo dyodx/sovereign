@@ -5,7 +5,8 @@
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
     "start": "bun run cleanup && sh tests/deploy.sh",
     "test": "bun run start && bun test",
-    "cleanup": "sh tests/cleanup.sh"
+    "cleanup": "sh tests/cleanup.sh",
+    "build": "anchor build && cp -r target/deploy/programs.so deps/sovereign.so"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.30.1"

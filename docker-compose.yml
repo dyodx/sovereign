@@ -8,7 +8,7 @@ services:
       - "8899:8899"
       - "8900:8900"
     volumes:
-      - solana-data:/solana/test-ledger
+      - solana-data:/workspace/ledger
     networks:
       - sovereign-network
 
@@ -58,20 +58,5 @@ networks:
 
 volumes:
   solana-data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ./data/solana
   postgres-data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ./data/postgres
   keydb-data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ./data/keydb
