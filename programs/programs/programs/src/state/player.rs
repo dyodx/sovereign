@@ -9,3 +9,13 @@ pub struct Player {
     #[max_len(32)]
     pub x_username: String,
 }
+
+#[account]
+pub struct StakedCitizen {
+    pub citizen: Pubkey,
+    pub owner: Pubkey,
+    pub nation_id: u8,
+    pub game_id: u64,
+    pub reward_amount: u64,
+    pub complete_slot: u64, // the slot when the stake is complete
+}
