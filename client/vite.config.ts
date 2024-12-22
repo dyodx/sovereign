@@ -4,6 +4,15 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 /** @type {import('vite').UserConfig} */
 export default {
+	server: {
+		proxy: {
+			'/api': {
+				target: 'http://localhost:5600',
+				changeOrigin: true,
+				rewrite: (path: string) => path.replace(/^\/api/, '')
+			}
+		}
+	},
 	plugins: [
 		nodePolyfills(),
 		sveltekit(),
