@@ -3,6 +3,7 @@
 	import TipCitizensExplained from '../Tooltips/TipCitizensExplained.svelte';
 	import { walletStore } from '$lib/stores/wallet.svelte';
 	import { walletHandler } from '$lib/wallet/walletHelpers';
+	import TipBalancesPanel from '../Tooltips/TipBalancesPanel.svelte';
 
 	let balance = $derived.by(() =>
 		$walletStore.connected && $walletStore.balance > 0 ? $walletStore.balance : 0
@@ -24,7 +25,7 @@
 
 <div class="flex justify-between">
 	<p class="text-light text-2xl md:text-4xl">Balances</p>
-	<TipCitizensExplained />
+	<TipBalancesPanel />
 </div>
 
 <div class="flex gap-2">

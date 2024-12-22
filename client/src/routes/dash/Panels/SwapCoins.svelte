@@ -3,6 +3,7 @@
 	import IconExchange from '$lib/components/atoms/icons/IconExchange.svelte';
 	import Combobox from '$lib/components/molecules/Combobox/Combobox.svelte';
 	import { currencies } from '$lib/constants/currencies';
+	import TipSwapCoins from '../Tooltips/TipSwapCoins.svelte';
 
 	const options = currencies;
 
@@ -12,7 +13,7 @@
 
 <div class="flex justify-between">
 	<p class="text-light text-2xl md:text-4xl">Swap Coins</p>
-	<TipCitizensExplained />
+	<TipSwapCoins />
 </div>
 
 {#snippet trade(direction: 'Sell' | 'Buy')}
