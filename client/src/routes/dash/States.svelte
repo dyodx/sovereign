@@ -1,5 +1,4 @@
 <script>
-	import TipCitizensExplained from './Tooltips/TipCitizensExplained.svelte';
 	import TipOperations from './Tooltips/TipOperations.svelte';
 </script>
 
