@@ -26,9 +26,13 @@ export async function estimateCU(
 			const unitsConsumed = (await connection.simulateTransaction(tx)).value
 				.unitsConsumed;
 			if (unitsConsumed) return unitsConsumed + 20_000;
-			else throw new Error('Error Estimating CU');
+			else
+				throw new Error(
+					'Error Estimating CU. Maybe you do not have enough SOL?'
+				);
 		} catch (e: any) {
-			console.log('Error Simulating Transaction: ', e.getLogs());
+			console.error('Error Simulating Transaction: ', e);
+			console.error(e?.getLogs());
 			return 0;
 		}
 	} catch (e) {
@@ -40,7 +44,7 @@ export async function getPlayerAccount(address: string) {
 	const { SVPRGM } = initAnchor();
 
 	const pkey = new PublicKey(address); // authority
-	const { Uint8Array: gameIdInBytes, getGameMetaData } = getGameAccount();
+	const { Uint8Array: gameIdInBytes } = getGameAccount();
 
 	let [playerAccountKey] = anchor.web3.PublicKey.findProgramAddressSync(
 		[Buffer.from('player'), gameIdInBytes, pkey.toBytes()],

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Tooltip from '$lib/components/molecules/Tooltip/Tooltip.svelte';
+	import { CITIZEN_IMG_URL } from '$lib/constants/citizens';
 </script>
 
 <Tooltip title="Citizens">
@@ -9,10 +10,7 @@
 				<div
 					class="ml-[-1rem] h-10 w-10 overflow-hidden rounded-full border-2 border-panel bg-foreground"
 				>
-					<img
-						src={`https://api.dicebear.com/9.x/lorelei-neutral/svg?seed=${slotNumber}`}
-						alt="avatar"
-					/>
+					<img src={`${CITIZEN_IMG_URL}${slotNumber}`} alt="avatar" />
 				</div>
 			{/each}
 		</div>

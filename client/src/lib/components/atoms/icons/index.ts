@@ -6,3 +6,5 @@ export { default as IconLeaf } from './IconLeaf.svelte';
 export { default as IconMoneyBag } from './IconMoneyBag.svelte';
 export { default as IconStethoscope } from './IconStethoscope.svelte';
 export { default as IconTwitter } from './IconTwitter.svelte';
+export { default as IconSolana } from './IconSolana.svelte';
+export { default as IconRefresh } from './IconRefresh.svelte';

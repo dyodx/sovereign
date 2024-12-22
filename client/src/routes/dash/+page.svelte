@@ -12,9 +12,10 @@
 	import IconTwitter from '$lib/components/atoms/icons/IconTwitter.svelte';
 	import { getPlayerAccount } from '$lib/wallet/txUtilities';
 	import ModalRegisterTwitter from '$lib/components/molecules/RegisterTwitter/ModalRegisterTwitter.svelte';
+	import ModalUserProfile from './Modals/ModalUserProfile.svelte';
+	import { Toaster } from 'svelte-french-toast';
 
 	let privy: Privy | null = $state(null);
-	$inspect('privy', privy);
 	let user = $state(null as PrivyAuthenticatedUser | null);
 	let provider = $state(
 		null as Awaited<ReturnType<Privy['embeddedWallet']['getSolanaProvider']>> | null
@@ -56,12 +57,11 @@
 		});
 		window.location = twitterAuthUrl as string & Location;
 	}
-	function openAccount() {
-		// open account modal
-	}
 
 	let tab: 'dash' | 'news' | 'state' = $state('dash');
 </script>
+
+<Toaster />
 
 <iframe
 	bind:this={iframe}
@@ -80,8 +80,8 @@
 		<div class="flex items-center">
 			<button
 				class={cn(
-					'hidden text-4xl font-bold md:inline',
-					tab === 'dash' ? 'text-foreground' : 'text-panel'
+					'hidden text-4xl font-bold transition-all md:inline',
+					tab === 'dash' ? 'text-foreground' : 'text-panel hover:text-white'
 				)}
 				onclick={() => {
 					tab = 'dash';
@@ -92,8 +92,8 @@
 			<span class="hidden text-4xl font-bold text-panel md:ml-2 md:inline"> | </span>
 			<button
 				class={cn(
-					'hidden text-4xl font-bold md:inline',
-					tab === 'state' ? 'text-foreground' : 'text-panel'
+					'hidden text-4xl font-bold transition-all md:inline',
+					tab === 'state' ? 'text-foreground' : 'text-panel hover:text-white'
 				)}
 				onclick={() => {
 					tab = 'state';
@@ -125,21 +125,25 @@
 				{/await}
 				<!-- END || TWITTER REGISTER: show if twitter is not linked -->
 
-				<button onclick={openAccount} class="rounded-xl bg-panel px-4 py-2">
-					<div class="group flex items-center gap-4">
-						<span class="tracking-tight">
-							{address.substring(0, 4)}
-							{address.substring(address.length - 4, address.length)}
-						</span>
-						<img
-							class="scale-100 rounded-full bg-background bg-center p-[2px] transition-all group-hover:scale-125"
-							src={`https://api.dicebear.com/9.x/identicon/svg?seed=${address}`}
-							alt="pfp"
-							width="35px"
-							height="35px"
-						/>
+				<ModalUserProfile>
+					<div class="flex">
+						<button class="rounded-xl bg-panel px-4 py-2">
+							<div class="group flex items-center gap-4">
+								<span class="tracking-tight">
+									{address.substring(0, 4)}
+									{address.substring(address.length - 4, address.length)}
+								</span>
+								<img
+									class="scale-100 rounded-full bg-background bg-center p-[2px] transition-all group-hover:scale-125 group-active:scale-105"
+									src={`https://api.dicebear.com/9.x/identicon/svg?seed=${address}`}
+									alt="pfp"
+									width="35px"
+									height="35px"
+								/>
+							</div>
+						</button>
 					</div>
-				</button>
+				</ModalUserProfile>
 			{:else}
 				<button
 					onclick={login}

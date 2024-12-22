@@ -2,6 +2,7 @@ import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { cubicOut } from 'svelte/easing';
 import type { TransitionConfig } from 'svelte/transition';
+import toast from 'svelte-french-toast';
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -61,3 +62,18 @@ export const flyAndScale = (
 		easing: cubicOut
 	};
 };
+
+export async function copyToClipboard(
+	text: string,
+	opts = { isAddress: true }
+) {
+	try {
+		await navigator.clipboard.writeText(text);
+		const message = opts.isAddress
+			? `${text.substring(0, 10)}...${text.substring(text.length - 10, text.length)}`
+			: text;
+		toast.success(`Copied to clipboard: ${message}`);
+	} catch (err) {
+		console.error('Failed to copy: ' + text, err);
+	}
+}
