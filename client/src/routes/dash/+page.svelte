@@ -8,6 +8,7 @@
 	import { onMount } from 'svelte';
 	import { authHandler } from '$lib/wallet/authStateHelpers';
 	import { walletHandler } from '$lib/wallet/walletHelpers';
+	import States from './States.svelte';
 
 	let privy: Privy | null = $state(null);
 	let user = $state(null as PrivyAuthenticatedUser | null);
@@ -153,7 +154,7 @@
 			</div>
 		{:else if tab === 'state'}
 			<div class="flex w-full flex-col gap-2 overflow-y-auto overflow-x-hidden p-4">
-				todo: add state panels
+				<States></States>
 			</div>
 		{/if}
 	</div>
