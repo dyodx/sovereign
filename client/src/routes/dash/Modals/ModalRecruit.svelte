@@ -14,6 +14,7 @@
 	import { copyToClipboard } from '$lib/utils';
 	import { CITIZEN_IMG_URL } from '$lib/constants/citizens';
 	import { onMount } from 'svelte';
+	import { Confetti } from 'svelte-confetti';
 
 	let { children } = $props();
 
@@ -120,6 +121,11 @@
 
 	<!-- TX HASH -->
 	{#if confirmedTx !== ''}
+		{#key confirmedTx}
+			<div class="absolute left-[50%] top-[40%] z-50 flex">
+				<Confetti x={[-0.5, 0.5]} y={[-0.5, 0.5]} />
+			</div>
+		{/key}
 		<div class="flex items-center justify-between pt-2">
 			<button
 				onclick={() => copyToClipboard(confirmedTx)}
