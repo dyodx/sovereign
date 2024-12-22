@@ -1,6 +1,6 @@
 import { initAnchor } from '$lib/deps';
 import * as anchor from '@coral-xyz/anchor';
-import type { Connection } from '@solana/web3.js';
+import { PublicKey, type Connection } from '@solana/web3.js';
 import { web3 } from '@coral-xyz/anchor';
 import { GAME_ID } from './constants';
 //@ts-expect-error: todo fix types later
@@ -34,6 +34,33 @@ export async function estimateCU(
 	} catch (e) {
 		throw e;
 	}
+}
+
+export async function getPlayerAccount(address: string) {
+	const { SVPRGM } = initAnchor();
+
+	const pkey = new PublicKey(address); // authority
+	const { Uint8Array: gameIdInBytes, getGameMetaData } = getGameAccount();
+
+	let [playerAccountKey] = anchor.web3.PublicKey.findProgramAddressSync(
+		[Buffer.from('player'), gameIdInBytes, pkey.toBytes()],
+		SVPRGM.programId
+	);
+	const playerAccount =
+		await SVPRGM.account.player.fetchNullable(playerAccountKey);
+
+	console.log({ playerAccount });
+
+	console.log({
+		data: 'data',
+		address,
+		playerAccountKey,
+		playerAccount
+	});
+	return {
+		Uint8Array: playerAccountKey,
+		Account: playerAccount
+	};
 }
 
 export function getGameAccount() {

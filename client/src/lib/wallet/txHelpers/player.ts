@@ -16,20 +16,15 @@ export async function registerPlayer(
 	const { SVPRGM } = initAnchor();
 
 	const pkey = new PublicKey(address); // authority
-	const {
-		Uint8Array: gameIdInBytes,
-		gameAccountKey: gameAccount,
-		getGameMetaData
-	} = getGameAccount();
-
-	const gameMetaData = await getGameMetaData();
+	const { Uint8Array: gameIdInBytes, gameAccountKey: gameAccount } =
+		getGameAccount();
 
 	let [playerAccountKey] = anchor.web3.PublicKey.findProgramAddressSync(
 		[Buffer.from('player'), gameIdInBytes, pkey.toBytes()],
 		SVPRGM.programId
 	);
 	let [playerWalletKey] = anchor.web3.PublicKey.findProgramAddressSync(
-		[Buffer.from('player_wallet'), gameIdInBytes, pkey.toBytes()],
+		[Buffer.from('wallet'), gameIdInBytes, pkey.toBytes()],
 		SVPRGM.programId
 	);
 
@@ -38,7 +33,7 @@ export async function registerPlayer(
 
 	const registerTwitterIx = await SVPRGM.methods
 		.registerPlayer({
-			x_username: twitterHandle
+			xUsername: twitterHandle
 		})
 		.accountsPartial({
 			playerAuthority: pkey,

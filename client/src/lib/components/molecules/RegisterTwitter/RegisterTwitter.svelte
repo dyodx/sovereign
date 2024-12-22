@@ -57,6 +57,9 @@
 	}
 
 	async function registerXAccount() {
+		if (!linkedTwitterHandle)
+			return console.error('Register X: no twitter handle:', linkedTwitterHandle);
+
 		if (!provider) {
 			console.error('no provider');
 			await createEmbeddedWallet();
@@ -67,14 +70,16 @@
 		const { tx, message } = await buildTransaction.registerPlayer(
 			connection,
 			address,
-			'deandotland'
+			linkedTwitterHandle
 		);
-		// const pkey = new PublicKey(address);
-		// const signed = await buildRequest(provider, message, address);
-		// tx.addSignature(pkey, Uint8Array.from(Buffer.from(signed, 'base64')));
+		const pkey = new PublicKey(address);
+		const signed = await buildRequest(provider, message, address);
+		tx.addSignature(pkey, Uint8Array.from(Buffer.from(signed, 'base64')));
 
-		// const confirmedSentTx = await connection.sendTransaction(tx);
-		// confirmedTx = confirmedSentTx;
+		console.log('Signed: ', Buffer.from(tx.serialize()).toString('base64'));
+
+		const confirmedSentTx = await connection.sendTransaction(tx);
+		confirmedTx = confirmedSentTx;
 	}
 </script>
 
@@ -92,8 +97,10 @@
 						state ai on X.
 					</p>
 					<p class="rounded-lg bg-panel p-4">@{linkedTwitterHandle}</p>
+					<p>{confirmedTx}</p>
 					<button
 						class="rounded-xl bg-black p-4 text-white transition-all hover:scale-105 active:scale-100"
+						onclick={registerXAccount}
 					>
 						register @{linkedTwitterHandle}
 					</button>

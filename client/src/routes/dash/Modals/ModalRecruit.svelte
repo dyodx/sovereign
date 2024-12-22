@@ -61,7 +61,7 @@
 
 	async function mintNewCitizen() {
 		if (!provider) {
-			console.error('no provider');
+			console.error('no provider, trying again');
 			await createEmbeddedWallet();
 			mintNewCitizen();
 			return;
