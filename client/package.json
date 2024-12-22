@@ -56,6 +56,8 @@
     "@svelte-on-solana/wallet-adapter-ui": "^1.0.21-alpha.0",
     "@tailwindcss/container-queries": "^0.1.1",
     "@tailwindcss/typography": "^0.5.15",
+    "@tanstack/svelte-query": "^5.62.8",
+    "axios": "^1.7.9",
     "byteify": "^4.1.4",
     "svelte-confetti": "^2.0.0",
     "svelte-french-toast": "^1.2.0",
