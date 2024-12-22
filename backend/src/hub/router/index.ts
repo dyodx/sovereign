@@ -1,7 +1,8 @@
 import Redis from 'ioredis';
 import { REDIS_CHANNELS } from '../../common';
+import type { SERVICE } from '../interfaces';
 
-export class Router {
+export class Router implements SERVICE {
     private router: Redis;
     constructor() {
         this.router = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
@@ -11,7 +12,7 @@ export class Router {
         // Subscribe to EVENTS_QUEUE
         // For each event, determine RECIEVERS
         // For each RECIEVER, add a JOB to the JOBS_QUEUE
-        console.log("Starting Router");
+        console.log(`Router listening on ${this.router.options.host}:${this.router.options.port}`);
         try { 
             await this.router.subscribe(REDIS_CHANNELS.EVENTS_QUEUE, () => {
                 console.log(`Router subscribed to ${REDIS_CHANNELS.EVENTS_QUEUE}`);

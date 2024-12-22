@@ -11,8 +11,8 @@ export const DB = new PrismaClient({
         },
     },
 });
-export const RPC_URL:string = process.env.RPC_URL || "http://localhost:8899";
-export const WS_URL:string = process.env.WS_URL || "ws://localhost:8900";
+export const RPC_URL:string = process.env.SOLANA_RPC_URL || "http://localhost:8899";
+export const WS_URL:string = process.env.SOLANA_WS_URL || "ws://localhost:8900";
 export const SERVER_URL = process.env.SERVER_URL || "http://localhost:3000";
 export const CONNECTION = createSolanaRpc(RPC_URL);
 export const COMPUTE_UNIT_PRICE = 1_000_000; // ~average confirmation times

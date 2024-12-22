@@ -40,11 +40,13 @@ services:
       dockerfile: Dockerfile.backend
     ports:
       - "5500:5500" # hub
-      - "5600:3000" # api
+      - "5600:5600" # api
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/app
       - REDIS_URL=redis://keydb:6379
       - SOLANA_RPC_URL=http://solana-validator:8899
+      - SOLANA_WS_URL=ws://solana-validator:8900
+      - SERVER_URL=http://backend:5600
     depends_on:
       - postgres
       - keydb

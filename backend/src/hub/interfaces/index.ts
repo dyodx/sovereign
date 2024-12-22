@@ -1,5 +1,10 @@
 export * from "./solana.ts";
 
+export interface SERVICE {
+    start(): Promise<void>;
+    stop?(): Promise<void>;
+}
+
 export interface EVENT_QUEUE_EVENT {
     name: string;
     data: any;

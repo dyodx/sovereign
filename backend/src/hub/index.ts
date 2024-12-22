@@ -1,22 +1,80 @@
+import type { SERVICE } from "./interfaces";
 import { SolanaIngress } from "./ingress";
 import { Router } from "./router";
 
+class ServiceManager {
+    private services: SERVICE[] = [];
+    private running = false;
 
-// Instance all Hub classes and run them
-main();
+    addService(service: SERVICE) {
+        this.services.push(service);
+    }
+
+    async start() {
+        this.running = true;
+        
+        // Start all services
+        const startPromises = this.services.map(async (service) => {
+            try {
+                await service.start();
+                console.log(`Started service: ${service.constructor.name}`);
+            } catch (e) {
+                console.error(`Failed to start service ${service.constructor.name}:`, e);
+                throw e;
+            }
+        });
+
+        // Wait for all services to start
+        await Promise.all(startPromises);
+
+        // Keep the process alive
+        return new Promise<void>((resolve) => {
+            process.on('SIGINT', async () => {
+                console.log('\nReceived SIGINT. Gracefully shutting down...');
+                await this.stop();
+                resolve();
+            });
+            
+            process.on('SIGTERM', async () => {
+                console.log('\nReceived SIGTERM. Gracefully shutting down...');
+                await this.stop();
+                resolve();
+            });
+        });
+    }
+
+    private async stop() {
+        this.running = false;
+        
+        // Gracefully stop all services that have a stop method
+        for (const service of this.services) {
+            if (service.stop) {
+                try {
+                    await service.stop();
+                    console.log(`Stopped service: ${service.constructor.name}`);
+                } catch (e) {
+                    console.error(`Failed to stop service ${service.constructor.name}:`, e);
+                }
+            }
+        }
+    }
+}
 
 async function main() {
     try {
-        // INGRESS
-        const solanaIngress = new SolanaIngress();
-        solanaIngress.start();
+        const manager = new ServiceManager();
 
-        // ROUTER
-        const router = new Router();
-        router.start();
+        // Add services
+        manager.addService(new SolanaIngress());
+        manager.addService(new Router());
 
-        // EGRESS
-    } catch (e: any) {
-        console.error(`Error in main: ${e.message}`);
+        // Start services and keep running
+        await manager.start();
+    } catch (e) {
+        console.error('Error in main:', e);
+        process.exit(1);
     }
 }
+
+// Run the application
+main();
