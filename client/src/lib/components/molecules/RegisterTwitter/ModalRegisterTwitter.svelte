@@ -10,13 +10,15 @@
 	import { walletHandler } from '$lib/wallet/walletHelpers';
 	import type { PrivyAuthenticatedUser } from '@privy-io/public-api';
 	import { getPlayerAccount } from '$lib/wallet/txUtilities';
+	import IconTwitter from '$lib/components/atoms/icons/IconTwitter.svelte';
 
-	let { numberOfCitizens = 1, children } = $props();
+	let { children } = $props();
 
 	const connection = new Connection(PUBLIC_RPC_URL as string); // todo figure out how make this everywhere
 
 	let address = $derived.by(() => $walletStore.address ?? null);
 	let playerAccountPromise: ReturnType<typeof getPlayerAccount> | null = $state(null);
+
 	$effect(() => {
 		if (!address) return;
 		playerAccountPromise = getPlayerAccount(address);
@@ -36,6 +38,15 @@
 	);
 
 	let confirmedTx = $state('');
+	let linkedTwitterHandle = $state('');
+	$effect(() => {
+		let handle = user?.user?.linked_accounts?.find(
+			(account) => account.type === 'twitter_oauth'
+		)?.username;
+		if (handle) {
+			linkedTwitterHandle = handle;
+		}
+	});
 
 	async function createEmbeddedWallet() {
 		await walletHandler.createEmbeddedWallet({
@@ -45,37 +56,23 @@
 		});
 	}
 
-	async function sendOneLamportToSelf() {
+	async function registerXAccount() {
+		if (!linkedTwitterHandle)
+			return console.error('Register X: no twitter handle:', linkedTwitterHandle);
+
 		if (!provider) {
-			console.error('no provider');
+			console.error('no provider: creating and trying again');
 			await createEmbeddedWallet();
-			sendOneLamportToSelf();
+			registerXAccount();
 			return;
 		}
-		if (!address || address === '')
-			return console.error('Sending Lamport Error: no address:', address);
-		const connection = new Connection(PUBLIC_RPC_URL as string);
-		const { tx, message } = await buildTransaction.sendOneLamportToSelf(connection, address);
-		const signed = await buildRequest(provider, message, address);
+		if (!address || address === '') return console.error('Register X: no address:', address);
 
-		const pkey = new PublicKey(address);
-		tx.addSignature(pkey, Uint8Array.from(Buffer.from(signed, 'base64')));
-
-		const confirmedSentTx = await connection.sendTransaction(tx);
-		confirmedTx = confirmedSentTx;
-	}
-
-	async function mintNewCitizen() {
-		if (!provider) {
-			console.error('no provider, trying again');
-			await createEmbeddedWallet();
-			mintNewCitizen();
-			return;
-		}
-		if (!address || address === '')
-			return console.error('Sending Lamport Error: no address:', address);
-
-		const { tx, message } = await buildTransaction.mintNewCitizen(connection, address);
+		const { tx, message } = await buildTransaction.registerPlayer(
+			connection,
+			address,
+			linkedTwitterHandle
+		);
 		const pkey = new PublicKey(address);
 		const signed = await buildRequest(provider, message, address);
 		tx.addSignature(pkey, Uint8Array.from(Buffer.from(signed, 'base64')));
@@ -86,35 +83,40 @@
 </script>
 
 <Dialog.Root>
-	<Dialog.Trigger class="w-full">
-		{@render children?.()}
+	<Dialog.Trigger class={`${confirmedTx === '' ? 'w-full' : 'hidden'}`}>
+		{#if confirmedTx === ''}
+			{@render children?.()}
+		{/if}
 	</Dialog.Trigger>
 	<Dialog.Content class="max-h-[90vh] overflow-y-auto">
 		<Dialog.Header>
-			<Dialog.Title>Pay to recruit a citizen</Dialog.Title>
+			<Dialog.Title class="flex items-center gap-2">Link your <IconTwitter /> Account</Dialog.Title>
 			<Dialog.Description>
-				<div>
-					{#if !address}
-						<p>Please connect your wallet to recruit citizens</p>
-					{:else}
-						{#await getPlayerAccount(address) then data}
-							{#if !data?.Account?.xUsername}
-								<p>You must register your twitter account to recruit citizens</p>
-							{:else}
-								<p>Address: {$walletStore.address}</p>
-								<p class="max-w-[300px] overflow-x-auto">Confirm: {confirmedTx}</p>
-								<button
-									onclick={mintNewCitizen}
-									class="mt-4 w-full rounded-xl border-2 border-black bg-black p-2 transition-all hover:bg-black disabled:opacity-75"
-								>
-									{#if confirmedTx === ''}
-										Purchase
-									{:else}
-										Purchased another
-									{/if}
-								</button>
-							{/if}
-						{/await}
+				<div class="flex flex-col gap-4">
+					<p>
+						Register your X account with the game to receive rewards for interaction with the nation
+						state ai on X.
+					</p>
+					<p class="rounded-lg bg-panel p-4">@{linkedTwitterHandle}</p>
+
+					<button
+						class="rounded-xl bg-black p-4 text-white transition-all hover:scale-105 active:scale-100"
+						onclick={registerXAccount}
+					>
+						register @{linkedTwitterHandle}
+					</button>
+
+					{#if !!confirmedTx && confirmedTx !== ''}
+						<div class="w-full max-w-[350px] overflow-x-auto">
+							<p>Confirmation Tx:</p>
+							<a
+								href={`https://explorer.solana.com/tx/${confirmedTx}`}
+								target="_blank"
+								rel="noreferrer"
+							>
+								<p class="underline">{confirmedTx}</p>
+							</a>
+						</div>
 					{/if}
 				</div>
 			</Dialog.Description>

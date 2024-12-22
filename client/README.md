@@ -57,3 +57,7 @@ for development
         ```
 
     
+    - [ ] make twitter registration block actions (mint, swap etc). check `getPlayerAccount` for the twitter handle
+    - [ ] clean up the stats on citizen  (big number)
+    - [ ] make copy/paste of address
+

@@ -8,8 +8,13 @@
 	import { onMount } from 'svelte';
 	import { authHandler } from '$lib/wallet/authStateHelpers';
 	import { walletHandler } from '$lib/wallet/walletHelpers';
+	import States from './States.svelte';
+	import IconTwitter from '$lib/components/atoms/icons/IconTwitter.svelte';
+	import { getPlayerAccount } from '$lib/wallet/txUtilities';
+	import ModalRegisterTwitter from '$lib/components/molecules/RegisterTwitter/ModalRegisterTwitter.svelte';
 
 	let privy: Privy | null = $state(null);
+	$inspect('privy', privy);
 	let user = $state(null as PrivyAuthenticatedUser | null);
 	let provider = $state(
 		null as Awaited<ReturnType<Privy['embeddedWallet']['getSolanaProvider']>> | null
@@ -97,8 +102,29 @@
 				STATES
 			</button>
 		</div>
-		<div class="flex items-center pt-4 md:pt-0">
+		<div class="flex items-center gap-2 pt-4 md:pt-0">
 			{#if !!address}
+				<!-- TWITTER REGISTER: show if twitter is not linked -->
+				{#await getPlayerAccount(address) then data}
+					{#if !data?.Account?.xUsername}
+						<div>
+							<ModalRegisterTwitter>
+								<button
+									class="relative rounded-xl bg-yellow-500 p-3 text-black transition-all hover:scale-110 active:scale-90"
+								>
+									<span
+										class="absolute left-[-8px] top-[-8px] rounded-lg bg-green-300 px-[8px] py-[1px]"
+									>
+										!
+									</span>
+									<IconTwitter />
+								</button>
+							</ModalRegisterTwitter>
+						</div>
+					{/if}
+				{/await}
+				<!-- END || TWITTER REGISTER: show if twitter is not linked -->
+
 				<button onclick={openAccount} class="rounded-xl bg-panel px-4 py-2">
 					<div class="group flex items-center gap-4">
 						<span class="tracking-tight">
@@ -153,7 +179,7 @@
 			</div>
 		{:else if tab === 'state'}
 			<div class="flex w-full flex-col gap-2 overflow-y-auto overflow-x-hidden p-4">
-				todo: add state panels
+				<States></States>
 			</div>
 		{/if}
 	</div>

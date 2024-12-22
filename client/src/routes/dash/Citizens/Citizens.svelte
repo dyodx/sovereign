@@ -8,6 +8,7 @@
 	import { PUBLIC_RPC_URL } from '$env/static/public';
 	import { generateNamePair } from '$lib/constants/names';
 	import { getCountryFlag } from '$lib/constants/flags';
+	import { GAME_ID } from '$lib/wallet/constants';
 
 	let address = $derived.by(() =>
 		$walletStore.connected && !!$walletStore.address ? $walletStore.address : null
@@ -37,7 +38,6 @@
 		}
 
 		let data = await fetchAssetsByOwner(umi, address);
-		console.log({ citizens: data, address });
 		return data;
 	}
 
@@ -51,6 +51,10 @@
 	// CITIZEN HELPERS
 	function getAttribute(key: CitizenAttribute, asset: AssetV1) {
 		return asset.attributes?.attributeList.find((e) => e.key === key)?.value;
+	}
+	// Only show citizens that are in current game
+	function matchesGameId(asset: AssetV1) {
+		return getAttribute('game', asset) === GAME_ID.toString();
 	}
 </script>
 
@@ -66,14 +70,21 @@
 			</div>
 		</ModalRecruit>
 	</div>
-	<p class="text-center text-4xl md:text-start">Citizens</p>
+	<div class="flex flex-col items-center">
+		<p class="text-center text-4xl md:text-start">Citizens</p>
+		<span>
+			{#await assetsPromise then data}
+				{data?.filter(matchesGameId).length ?? 0} in wallet
+			{/await}
+		</span>
+	</div>
 	<button onclick={loadAllAssets}> refresh </button>
 </div>
 <div></div>
 
 <div class="mt-8 grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-6">
 	{#await assetsPromise then data}
-		{#each data ?? [] as asset}
+		{#each data?.filter(matchesGameId) ?? [] as asset}
 			<ModalCitizen citizenId={asset.publicKey}>
 				<div class="grid w-fit grid-cols-[8rem_1fr] gap-4 justify-self-center rounded bg-panel">
 					<div class="relative flex items-center gap-4">
