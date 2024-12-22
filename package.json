@@ -10,7 +10,8 @@
   "private": true,
   "scripts": {
     "generate-prisma": "cd backend && bun install && bunx prisma generate",
-    "up": "bun run generate-prisma && docker compose up -d --build" 
+    "up": "bun run generate-prisma && docker compose up -d --build" ,
+    "newgame": "bun --cwd=./backend run src/admin/newgame.ts"
   },
   "type": "module",
   "workspaces": [

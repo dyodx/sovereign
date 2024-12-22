@@ -1,4 +1,4 @@
-import {SVPRGM, SERVER_URL, COMPUTE_UNIT_PRICE, DB, CONNECTION} from "../common";
+import {SVPRGM, SERVER_URL, COMPUTE_UNIT_PRICE, DB, CONNECTION, ACCOUNT_SEEDS} from "../common";
 import { web3, BN } from "@coral-xyz/anchor";
 import bs58 from "bs58";
 import { sleep } from "bun";
@@ -18,7 +18,7 @@ async function createGame(){
         },
         take: 1
     });
-
+    
     const newGameId: bigint = maxGameId ? maxGameId.gameId + 1n : 0n;
 
     const adminKey = web3.Keypair.generate();
@@ -43,19 +43,19 @@ async function createGame(){
     .accountsPartial({
         payer: adminKey.publicKey,
         gameAccount: web3.PublicKey.findProgramAddressSync(
-            [Buffer.from("game"), Uint8Array.from(serializeUint64(newGameId,{endianess: ByteifyEndianess.LITTLE_ENDIAN}))],
+            [Buffer.from(ACCOUNT_SEEDS.GAME), Uint8Array.from(serializeUint64(newGameId,{endianess: ByteifyEndianess.LITTLE_ENDIAN}))],
             SVPRGM.programId
         )[0],
         worldAgentWallet: web3.PublicKey.findProgramAddressSync(
-            [Buffer.from("wallet"), Uint8Array.from(serializeUint64(newGameId,{endianess: ByteifyEndianess.LITTLE_ENDIAN})), worldAgentKey.publicKey.toBuffer()],
+            [Buffer.from(ACCOUNT_SEEDS.WALLET), Uint8Array.from(serializeUint64(newGameId,{endianess: ByteifyEndianess.LITTLE_ENDIAN})), worldAgentKey.publicKey.toBuffer()],
             SVPRGM.programId
         )[0],
         gamePool: web3.PublicKey.findProgramAddressSync(
-            [Buffer.from("pool"), Uint8Array.from(serializeUint64(newGameId,{endianess: ByteifyEndianess.LITTLE_ENDIAN}))],
+            [Buffer.from(ACCOUNT_SEEDS.POOL), Uint8Array.from(serializeUint64(newGameId,{endianess: ByteifyEndianess.LITTLE_ENDIAN}))],
             SVPRGM.programId
         )[0],
         brokerEscrow: web3.PublicKey.findProgramAddressSync(
-            [Buffer.from("broker_escrow"), Uint8Array.from(serializeUint64(newGameId,{endianess: ByteifyEndianess.LITTLE_ENDIAN}))],
+            [Buffer.from(ACCOUNT_SEEDS.BROKER_ESCROW), Uint8Array.from(serializeUint64(newGameId,{endianess: ByteifyEndianess.LITTLE_ENDIAN}))],
             SVPRGM.programId
         )[0],
         collection: collectionKey.publicKey,
@@ -65,17 +65,6 @@ async function createGame(){
        collectionKey,
     ])
     .instruction();
-    
-    // Create DB Entries
-    await DB.game.create({
-       data: {
-        gameId: newGameId,
-        adminPrivateKey: bs58.encode(adminKey.secretKey),
-        worldAgentPrivateKey: bs58.encode(worldAgentKey.secretKey),
-        brokerPrivateKey: bs58.encode(brokerKey.secretKey),
-        journalistPrivateKey: bs58.encode(journalistKey.secretKey),
-       }
-    });
 
     const estimatedCU = await estimateCU(adminKey.publicKey, [newGameIx]);
     // Send Transaction To Chain
@@ -90,6 +79,18 @@ async function createGame(){
     }).compileToV0Message());    
     tx.sign([adminKey, collectionKey]);
     const sig = await CONNECTION.sendTransaction(tx);
+
+    // Create DB Entries
+    await DB.game.create({
+        data: {
+            gameId: newGameId,
+            adminPrivateKey: bs58.encode(adminKey.secretKey),
+            worldAgentPrivateKey: bs58.encode(worldAgentKey.secretKey),
+            brokerPrivateKey: bs58.encode(brokerKey.secretKey),
+            journalistPrivateKey: bs58.encode(journalistKey.secretKey),
+        }
+    });
+
     console.log("Initialized Game Sig: ", sig);
     return {
         gameId: newGameId,

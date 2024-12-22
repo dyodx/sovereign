@@ -24,7 +24,7 @@
   "scripts": {
     "copy-program-deps": "cp ../programs/target/idl/programs.json ./deps/sovereign.json && cp ../programs/target/types/programs.ts ./deps/sovereign.ts",
     "bootstrap": "bun src/bootstrap.ts",
-    "prisma": "bunx prisma generate && bunx prisma db push --force-reset",
+    "prisma": "bunx prisma generate && bunx prisma db push",
     "prod": "bun run prisma && bun run bootstrap && bun start.ts"
   }
 }

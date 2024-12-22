@@ -1,7 +1,7 @@
-import {Program, AnchorProvider, Wallet, web3} from "@coral-xyz/anchor";
+import {Program, web3} from "@coral-xyz/anchor";
 import type { Programs as Sovereign } from "../deps/sovereign.ts"; // unfortuntely need to cp instead of rebuilding because when deploying we don't recompile on railway
 import IDL from "../deps/sovereign.json";
-import { Connection } from "@solana/web3.js";
+import { Connection, TransactionInstruction, type Signer } from "@solana/web3.js";
 import { PrismaClient } from "@prisma/client";
 
 export const DB = new PrismaClient({
@@ -17,16 +17,16 @@ export const SERVER_URL = process.env.SERVER_URL || "http://localhost:3000";
 export const CONNECTION = new Connection(RPC_URL, {commitment: "confirmed"});
 export const COMPUTE_UNIT_PRICE = 1_000_000; // ~average confirmation times
 export const SovereignIDL = IDL;
-export const SVPRGM = new Program<Sovereign>(
-    SovereignIDL as Sovereign,  
-    new AnchorProvider(
-        new web3.Connection(RPC_URL),
-        new Wallet(web3.Keypair.generate()
-    ))); // grab admin key from db based on game_id
-
-export const randomU64 = (): bigint => {
-    const max = 2n ** 64n - 1n;
-    return BigInt(Math.floor(Math.random() * Number(max)));
+export const SVPRGM = new Program<Sovereign>(SovereignIDL as Sovereign,  { connection: CONNECTION });
+export const ACCOUNT_SEEDS = {
+    GAME: "game",
+    POOL: "pool",
+    WALLET: "wallet",
+    NATION: "nation",
+    PLAYER: "player",
+    STAKED_CITIZEN: "staked_citizen",
+    BROKER_ESCROW: "broker_escrow",
+    BOUNTY: "bounty",
 }
 
 export const REDIS_CHANNELS = {
@@ -70,3 +70,57 @@ export const NATION_STATES = [
     "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
 ];
 
+export async function estimateCU(feePayer: web3.PublicKey, ixs: web3.TransactionInstruction[]) {
+    try {
+        try {
+            const tx = new web3.VersionedTransaction(new web3.TransactionMessage({
+                payerKey: feePayer,
+                recentBlockhash: (await CONNECTION.getLatestBlockhash()).blockhash,
+                instructions: ixs
+            }).compileToV0Message());
+            await CONNECTION.simulateTransaction(tx);
+            const unitsConsumed = (await CONNECTION.simulateTransaction(tx)).value.unitsConsumed;
+            if(unitsConsumed) return unitsConsumed + 20_000; 
+            else throw new Error("Error Estimating CU")
+        } catch (e: any) {
+            console.log("Error Simulating Transaction: ", e.getLogs());
+            return 0;
+        }
+    } catch (e) {
+        throw e;
+    }
+}
+
+export async function buildTxn(feePayer: web3.PublicKey, ixs: web3.TransactionInstruction[]) {
+    const tx = new web3.VersionedTransaction(new web3.TransactionMessage({
+        payerKey: feePayer,
+        recentBlockhash: (await CONNECTION.getLatestBlockhash()).blockhash,
+        instructions: [
+            web3.ComputeBudgetProgram.setComputeUnitPrice({microLamports: COMPUTE_UNIT_PRICE}),
+            web3.ComputeBudgetProgram.setComputeUnitLimit({units: await estimateCU(feePayer, ixs)}),
+            ...ixs
+        ]
+    }).compileToV0Message());
+    return tx;
+}
+
+export const randomU64 = (): bigint => {
+    const max = 2n ** 64n - 1n;
+    return BigInt(Math.floor(Math.random() * Number(max)));
+}
+
+export const TRANSACTION_SIZE_LIMIT = 1000; // Maximum size in bytes (is actually 1232)
+export const BASE_TRANSACTION_SIZE = 100;   // Approximate size of an empty transaction
+export const SIGNER_SIZE = 64;
+export function estimateInstructionSize(ix: TransactionInstruction): number {
+    // Base instruction size
+    let size = 40; // Approximate size for program id and accounts metadata
+    
+    // Add size of accounts
+    size += ix.keys.length * 32; // 32 bytes per public key
+    
+    // Add size of data buffer
+    size += ix.data.length;
+    
+    return size;
+}

@@ -1,4 +1,3 @@
-export interface RegisterNationJob {
+export interface RegisterAllNationsJob {
     gameId: string;
-    nationId: number;
 }

@@ -21,3 +21,21 @@ export interface TASKS_QUEUE_EVENT {
     actionType: string;
     data: any;
 }
+
+export interface WorldLeader {
+    nation: string;
+    name: string;
+    bio: string[];
+    lore: string[];
+    strengths: string[];
+    weaknesses: string[];
+    stats: {
+        gdp: number;
+        healthcare: number;
+        environment: number;
+        politicalStability: number;
+    };
+    adjectives: string[];
+    sampleMessages: string[];
+    sampleBroadcasts: string[];
+}

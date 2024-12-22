@@ -1,9 +1,10 @@
 import Redis from 'ioredis';
-import { NATION_STATES, REDIS_CHANNELS } from '../../common';
+import { REDIS_CHANNELS } from '../../common';
 import type { SERVICE } from '../interfaces';
 import { Queue, Worker } from 'bullmq';
 import * as SolanaEvents from '../interfaces/solana';
 import * as Jobs from '../interfaces/jobs';
+import worker from './worker';
 
 const REMOVE_OPTS = {
     removeOnComplete: {
@@ -31,7 +32,7 @@ export class Router implements SERVICE {
         this.JOBS_QUEUE.setGlobalConcurrency(10); //todo: experiment with how many jobs can be run at once
         this.WORKERS = [];
         for(let i = 0; i < WORKER_COUNT; i++) {
-            this.WORKERS.push(new Worker(REDIS_CHANNELS.JOBS_QUEUE, "./src/hub/router/worker.ts", { concurrency: 10, connection: this.router}));
+            this.WORKERS.push(new Worker(REDIS_CHANNELS.JOBS_QUEUE, worker, { concurrency: 5, connection: this.router}));
         }
     }
 
@@ -46,6 +47,7 @@ export class Router implements SERVICE {
                 
                 this.receiver.on('message', (channel, message) => {
                     console.log(`Received event: ${message}`);
+                    this.createJobs(JSON.parse(message));
                 });
             });
         } catch (e: any) {
@@ -53,24 +55,23 @@ export class Router implements SERVICE {
         }
     }
 
-    async createJobs(event: {name: string, data: any}) {
+    async createJobs(event: {name: string, data: any, txn: string}) {
         // For each event, determine RECIEVERS
         // For each RECIEVER, add a JOB to the JOBS_QUEUE
         try {
             switch (event.name) {
                 case "newGameEvent":
                     const evt = SolanaEvents.NewGameEvent.parse(event.data);
-                    // Create a job for each agent to register itself with the game
-                    for(let i = 1; i < NATION_STATES.length; i++) {
-                        await this.JOBS_QUEUE.add(
-                            "registerNation",
-                            {
-                                gameId: evt.gameId,
-                                nationId: i,
-                            } as Jobs.RegisterNationJob,
-                            REMOVE_OPTS
-                        );
-                    }
+                    // This is a unique event where we need to batch register all nations
+                    // Normally we'd fire a job per agent, but here we just want the worker to take care of it
+                    // No need to invoke any agents 
+                    await this.JOBS_QUEUE.add(
+                        "registerAllNations",
+                        {
+                            gameId: evt.gameId,
+                        } as Jobs.RegisterAllNationsJob,
+                        REMOVE_OPTS
+                    );
                     break;
                 default:
                     throw new Error(`Unknown event: ${event.name}`);
