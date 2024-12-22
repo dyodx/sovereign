@@ -493,7 +493,8 @@ pub struct CompleteStake<'info> {
         close = player_authority
     )]
     pub staked_citizen: Account<'info, StakedCitizen>,
-    pub player_wallet: Account<'info, Wallet>,
+    #[account(mut)]
+    pub player_wallet: Box<Account<'info, Wallet>>,
     /// CHECK: constraint checks it
     #[account(address = MPL_CORE_ID)]
     pub mpl_core_program: UncheckedAccount<'info>,
