@@ -29,7 +29,7 @@ export class Router implements SERVICE {
         this.JOBS_QUEUE.setGlobalConcurrency(10); //todo: experiment with how many jobs can be run at once
         this.WORKERS = [];
         for(let i = 0; i < WORKER_COUNT; i++) {
-            this.WORKERS.push(new Worker(REDIS_CHANNELS.JOBS_QUEUE, "./worker.ts", { concurrency: 10, connection: this.router}));
+            this.WORKERS.push(new Worker(REDIS_CHANNELS.JOBS_QUEUE, "./src/hub/router/worker.ts", { concurrency: 10, connection: this.router}));
         }
     }
 

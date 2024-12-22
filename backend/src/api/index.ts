@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { address, lamports } from "@solana/web3.js";
+import { PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { CONNECTION, SERVER_URL } from "../common.ts";
 
 const app = new Hono();
@@ -18,7 +18,7 @@ app.get("/airdrop", async (c) => {
     }
 
     try {
-        const signature = CONNECTION.requestAirdrop(address(publicKey), lamports(BigInt(10_00_000_000))); //10 SOL
+        const signature = await CONNECTION.requestAirdrop(new PublicKey(publicKey), 10*LAMPORTS_PER_SOL); //10 SOL
         return c.json({ signature });
     } catch (error: any) {
         return c.text("Failed to request airdrop: " + error.message, 500);
