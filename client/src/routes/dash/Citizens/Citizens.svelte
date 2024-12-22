@@ -18,6 +18,7 @@
 		IconSolana,
 		IconStethoscope
 	} from '$lib/components/atoms/icons';
+	import IconRefresh from '$lib/components/atoms/icons/IconRefresh.svelte';
 
 	let address = $derived.by(() =>
 		$walletStore.connected && !!$walletStore.address ? $walletStore.address : null
@@ -85,15 +86,19 @@
 	</div>
 	<div class="flex flex-col items-center">
 		<p class="text-center text-4xl md:text-start">Citizens</p>
-		<span>
+		<span class="min-h-10">
 			{#await assetsPromise then data}
 				{data?.filter(matchesGameId).length ?? 0} in wallet
 			{/await}
 		</span>
 	</div>
-	<button onclick={loadAllAssets}> refresh </button>
+	<div class="group flex items-center gap-2">
+		<span class="select-none"> Refresh </span>
+		<button class="transition-all sm:group-hover:animate-spin" onclick={loadAllAssets}>
+			<IconRefresh />
+		</button>
+	</div>
 </div>
-<div></div>
 
 <div class="mt-8 grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-6">
 	{#await assetsPromise then data}
