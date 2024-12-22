@@ -57,9 +57,6 @@
 		});
 		window.location = twitterAuthUrl as string & Location;
 	}
-	function openAccount() {
-		// open account modal
-	}
 
 	let tab: 'dash' | 'news' | 'state' = $state('dash');
 </script>
