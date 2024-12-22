@@ -9,8 +9,8 @@
   },
   "private": true,
   "scripts": {
-    "test:programs": "bun run --cwd=./programs test",
-    "cleanup": "bun run --cwd=./programs cleanup"
+    "generate-prisma": "cd backend && bun install && bunx prisma generate",
+    "up": "bun run generate-prisma && docker compose up -d --build" 
   },
   "type": "module",
   "workspaces": [
