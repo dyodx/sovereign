@@ -50,6 +50,15 @@ async function registerAllNations(job: Jobs.RegisterAllNationsJob) {
             environment_reward_rate: new BN(1),
             stability_reward_rate: new BN(1),
         }
+        const nationAccountPubkey = PublicKey.findProgramAddressSync(
+            [
+                Buffer.from(ACCOUNT_SEEDS.NATION),
+                Uint8Array.from(serializeUint64(gamekeys.gameId,{endianess: ByteifyEndianess.LITTLE_ENDIAN})),
+                Uint8Array.from(serializeUint8(nation.nationId))
+            ],
+            SVPRGM.programId
+        )[0]
+
         const ix = await SVPRGM.methods
             .initNation(initNationArgs)
             .accountsPartial({
@@ -62,14 +71,7 @@ async function registerAllNations(job: Jobs.RegisterAllNationsJob) {
                     ],
                     SVPRGM.programId
                 )[0],
-                nation: PublicKey.findProgramAddressSync(
-                    [
-                        Buffer.from(ACCOUNT_SEEDS.NATION),
-                        Uint8Array.from(serializeUint64(gamekeys.gameId,{endianess: ByteifyEndianess.LITTLE_ENDIAN})),
-                        Uint8Array.from(serializeUint8(nation.nationId))
-                    ],
-                    SVPRGM.programId
-                )[0],
+                nation: nationAccountPubkey
             })
             .signers([nationKey])
             .instruction();
@@ -85,6 +87,25 @@ async function registerAllNations(job: Jobs.RegisterAllNationsJob) {
         tx.sign([gameAuthority, nationKey]);
         const sig = await CONNECTION.sendTransaction(tx);
         console.log(`Registered nation ${nation.nationId} with sig ${sig}`);
+        // Add the nations to the DB as well
+        await DB.nationAccount.create({
+            data: {
+                pubkey: nationAccountPubkey.toBase58(),
+                gameId: gamekeys.gameId,
+                nationId: nation.nationId,
+                authority: nationKey.publicKey.toBase58(),
+                mintedTokensTotal: "0",
+                gdp: new BN(worldLeader.stats.gdp).toString(),
+                healthcare: new BN(worldLeader.stats.healthcare).toString(),
+                environment: new BN(worldLeader.stats.environment).toString(),
+                stability: new BN(worldLeader.stats.politicalStability).toString(),
+                gdpRewardRate: "1",
+                healthcareRewardRate: "1",
+                environmentRewardRate: "1",
+                stabilityRewardRate: "1",
+                isAlive: true,
+            }
+        })
     }
     
     

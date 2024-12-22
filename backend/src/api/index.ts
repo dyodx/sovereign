@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
-import { CONNECTION, SERVER_URL } from "../common.ts";
+import { CONNECTION, DB, SERVER_URL } from "../common.ts";
 
 const app = new Hono();
 export default {
@@ -47,4 +47,19 @@ app.get("/collection", async (c) => {
             category: "image",
         }
     }, 200);
+});
+
+app.get("/nations", async (c) => {
+    const gameId = c.req.param("gameId");
+    if (!gameId) {
+        return c.text("Missing gameId parameter", 400);
+    }
+
+    const nations = await DB.nationAccount.findMany({
+        where: {
+            gameId: BigInt(gameId)  
+        }
+    });
+
+    return c.json(nations);
 });
