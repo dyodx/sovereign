@@ -124,3 +124,9 @@ export function estimateInstructionSize(ix: TransactionInstruction): number {
     
     return size;
 }
+
+export function stringifyBigInt(data: any) {
+    return JSON.stringify(data, (_, value) => 
+        typeof value === 'bigint' ? value.toString() : value
+      );
+}

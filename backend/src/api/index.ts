@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
-import { CONNECTION, DB, SERVER_URL } from "../common.ts";
+import { CONNECTION, DB, SERVER_URL, stringifyBigInt } from "../common.ts";
 
 const app = new Hono();
 export default {
@@ -12,7 +12,7 @@ export default {
 app.get("/", (c) => c.text("Hello World")); // heartbeat
 
 app.get("/airdrop", async (c) => {
-    const publicKey = c.req.param("publicKey");
+    const publicKey = c.req.query("publicKey");
     if (!publicKey) {
         return c.text("Missing publicKey parameter", 400);
     }
@@ -27,8 +27,8 @@ app.get("/airdrop", async (c) => {
 
 // Collection JSON
 app.get("/collection", async (c) => {
-    const gameId = c.req.param("gameId");
-    if (!gameId) {
+    const gameId = c.req.query("gameId");
+    if (gameId === undefined) {
         return c.text("Missing gameId parameter", 400);
     }
 
@@ -50,8 +50,8 @@ app.get("/collection", async (c) => {
 });
 
 app.get("/nations", async (c) => {
-    const gameId = c.req.param("gameId");
-    if (!gameId) {
+    const gameId = c.req.query("gameId");
+    if (gameId === undefined) {
         return c.text("Missing gameId parameter", 400);
     }
 
@@ -61,5 +61,5 @@ app.get("/nations", async (c) => {
         }
     });
 
-    return c.json(nations);
+    return c.json(stringifyBigInt(nations));
 });
