@@ -10,7 +10,9 @@ pub struct Player {
     pub x_username: String,
 }
 
+// Seeds = [STAKED_CITIZEN_SEED.as_bytes(), &game.id.to_le_bytes(), &nation.nation_id.to_le_bytes(), citizen_asset.key().as_ref()]
 #[account]
+#[derive(InitSpace)]
 pub struct StakedCitizen {
     pub citizen_asset: Pubkey,
     pub owner: Pubkey,
