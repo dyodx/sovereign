@@ -10,6 +10,14 @@
 	import IconCopy from '$lib/components/atoms/icons/IconCopy.svelte';
 	import toast from 'svelte-french-toast';
 	import { CITIZEN_IMG_URL } from '$lib/constants/citizens';
+	import {
+		IconExchange,
+		IconGavel,
+		IconLeaf,
+		IconMoneyBag,
+		IconSolana,
+		IconStethoscope
+	} from '$lib/components/atoms/icons';
 
 	let { citizenId, children } = $props();
 	const { firstName, lastName } = generateNamePair(citizenId);
@@ -80,11 +88,28 @@
 							{getAttribute('nation_state', data)}
 						</p>
 
-						<div class="grid grid-cols-2 rounded bg-panel p-2">
+						<div class="grid grid-cols-2 gap-2">
 							{#snippet stat(key: CitizenAttribute, text: string)}
-								<div class="flex flex-col">
-									<p>{text}</p>
-									<p>{getAttribute(key, data)}</p>
+								<div>
+									<p class="text-xs">{text}</p>
+									<div
+										class="flex min-h-10 items-center justify-center gap-2 rounded bg-panel text-lg"
+									>
+										<span class="rounded-full text-background">
+											{#if key === 'environment_fix'}
+												<IconLeaf />
+											{:else if key === 'gdp_fix'}
+												<IconMoneyBag />
+											{:else if key === 'healthcare_fix'}
+												<IconStethoscope />
+											{:else if key === 'stability_fix'}
+												<IconGavel />
+											{:else}
+												{' '}
+											{/if}
+										</span>
+										<p>{getAttribute(key, data)}</p>
+									</div>
 								</div>
 							{/snippet}
 

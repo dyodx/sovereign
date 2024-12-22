@@ -99,7 +99,10 @@
 	{#await assetsPromise then data}
 		{#each data?.filter(matchesGameId) ?? [] as asset}
 			<ModalCitizen citizenId={asset.publicKey}>
-				<div class="grid w-fit grid-cols-[8rem_1fr] gap-4 justify-self-center rounded bg-panel">
+				<div
+					class="grid w-fit grid-cols-[8rem_1fr] gap-4 justify-self-center rounded bg-panel"
+					style={`opacity: ${asset.freezeDelegate?.frozen ? '0.25' : '1'}`}
+				>
 					<div class="relative flex items-center gap-4">
 						<p class="absolute left-[-1rem] top-[-1rem] z-10 text-4xl">
 							{getCountryFlag(getAttribute('nation_state', asset) ?? 'Solana')}
