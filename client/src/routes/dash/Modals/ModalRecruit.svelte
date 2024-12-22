@@ -18,7 +18,7 @@
 
 	let { children } = $props();
 
-	const connection = new Connection(PUBLIC_RPC_URL as string); // todo figure out how make this everywhere
+	const connection = new Connection(PUBLIC_RPC_URL as string, { commitment: 'confirmed' }); // todo figure out how make this everywhere
 
 	let address = $derived.by(() => $walletStore.address ?? null);
 	let playerAccountPromise: ReturnType<typeof getPlayerAccount> | null = $state(null);
@@ -71,6 +71,7 @@
 		tx.addSignature(pkey, Uint8Array.from(Buffer.from(signed, 'base64')));
 
 		const confirmedSentTx = await connection.sendTransaction(tx);
+		console.info('CONFIRMED SENT TX:', confirmedSentTx);
 		confirmedTx = confirmedSentTx;
 	}
 

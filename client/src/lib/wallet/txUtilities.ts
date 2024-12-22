@@ -21,7 +21,6 @@ export async function estimateCU(
 					instructions: ixs
 				}).compileToV0Message()
 			);
-			console.log('Simulating Transaction');
 			await connection.simulateTransaction(tx);
 			const unitsConsumed = (await connection.simulateTransaction(tx)).value
 				.unitsConsumed;
