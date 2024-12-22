@@ -80,8 +80,8 @@
 		<div class="flex items-center">
 			<button
 				class={cn(
-					'hidden text-4xl font-bold md:inline',
-					tab === 'dash' ? 'text-foreground' : 'text-panel'
+					'hidden text-4xl font-bold transition-all md:inline',
+					tab === 'dash' ? 'text-foreground' : 'text-panel hover:text-white'
 				)}
 				onclick={() => {
 					tab = 'dash';
@@ -92,8 +92,8 @@
 			<span class="hidden text-4xl font-bold text-panel md:ml-2 md:inline"> | </span>
 			<button
 				class={cn(
-					'hidden text-4xl font-bold md:inline',
-					tab === 'state' ? 'text-foreground' : 'text-panel'
+					'hidden text-4xl font-bold transition-all md:inline',
+					tab === 'state' ? 'text-foreground' : 'text-panel hover:text-white'
 				)}
 				onclick={() => {
 					tab = 'state';
