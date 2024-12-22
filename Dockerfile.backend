@@ -1,0 +1,16 @@
+FROM oven/bun:latest
+
+WORKDIR /backend
+
+# Copy backend folder
+COPY ./backend .
+
+# Install dependencies
+RUN bun install
+
+# Expose the required ports
+EXPOSE 5500
+EXPOSE 5600
+
+# Run the production command
+CMD ["bun", "run", "prod"]

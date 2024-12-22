@@ -1,3 +1,5 @@
+export * from "./solana.ts";
+
 export interface EVENT_QUEUE_EVENT {
     name: string;
     data: any;

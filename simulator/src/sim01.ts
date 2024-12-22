@@ -1,4 +1,4 @@
-import {SVPRGM, db, dbClient, SERVER_URL, COMPUTE_UNIT_PRICE} from "../../backend/src/common.ts";
+import {SVPRGM, SERVER_URL, COMPUTE_UNIT_PRICE, DB} from "../../backend/src/common.ts";
 import { web3, BN } from "@coral-xyz/anchor";
 import bs58 from "bs58";
 import { sleep } from "bun";
@@ -41,15 +41,17 @@ async function main(){
 
 async function createGame(){    
     // Fetch the max game id from the db
-    const maxGameId = await db.select(db.common.Game, (game: typeof db.common.Game) => ({
-        game_id: true,
-        order_by: {
-            expression: game.game_id,
-            direction: db.DESC, 
+    const maxGameId = await DB.game.findFirst({
+        orderBy: {
+            gameId: "desc",
         },
-        limit: 1
-    })).run(dbClient);
-    const newGameId: bigint = maxGameId.length == 0 ? BigInt(0) : maxGameId[0].game_id! + BigInt(1);
+        select: {
+            gameId: true,
+        },
+        take: 1
+    });
+
+    const newGameId: bigint = maxGameId ? maxGameId.gameId + 1n : 1n;
 
     const adminKey = web3.Keypair.generate();
     const worldAgentKey = web3.Keypair.generate();
@@ -97,14 +99,16 @@ async function createGame(){
     .instruction();
     
     // Create DB Entries
-    await db.insert(db.common.Game, {
-        game_id: newGameId,
-        admin_private_key: bs58.encode(adminKey.secretKey),
-        world_agent_private_key: bs58.encode(worldAgentKey.secretKey),
-        broker_private_key: bs58.encode(brokerKey.secretKey),
-        journalist_private_key: bs58.encode(journalistKey.secretKey),
-    }).run(dbClient);
-    
+    await DB.game.create({
+       data: {
+        gameId: newGameId,
+        adminPrivateKey: bs58.encode(adminKey.secretKey),
+        worldAgentPrivateKey: bs58.encode(worldAgentKey.secretKey),
+        brokerPrivateKey: bs58.encode(brokerKey.secretKey),
+        journalistPrivateKey: bs58.encode(journalistKey.secretKey),
+       }
+    });
+
     const estimatedCU = await estimateCU(adminKey.publicKey, [newGameIx]);
     // Send Transaction To Chain
     const tx = new web3.VersionedTransaction(new web3.TransactionMessage({
