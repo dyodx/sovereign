@@ -19,11 +19,6 @@
 	const connection = new Connection(PUBLIC_RPC_URL as string); // todo figure out how make this everywhere
 
 	let address = $derived.by(() => $walletStore.address ?? null);
-	let playerAccountPromise: ReturnType<typeof getPlayerAccount> | null = $state(null);
-	$effect(() => {
-		if (!address) return;
-		playerAccountPromise = getPlayerAccount(address);
-	});
 
 	let privy: Privy | null = $derived.by(() =>
 		$privyStore.isInitialized ? $privyStore.privy : null
