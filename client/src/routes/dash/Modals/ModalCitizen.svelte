@@ -43,8 +43,6 @@
 	}
 </script>
 
-<Toaster />
-
 <Dialog.Root>
 	<Dialog.Trigger class="w-full">
 		{@render children?.()}
