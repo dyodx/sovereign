@@ -12,6 +12,8 @@
 	import IconTwitter from '$lib/components/atoms/icons/IconTwitter.svelte';
 	import { getPlayerAccount } from '$lib/wallet/txUtilities';
 	import ModalRegisterTwitter from '$lib/components/molecules/RegisterTwitter/ModalRegisterTwitter.svelte';
+	import ModalUserProfile from './Modals/ModalUserProfile.svelte';
+	import { Toaster } from 'svelte-french-toast';
 
 	let privy: Privy | null = $state(null);
 	let user = $state(null as PrivyAuthenticatedUser | null);
@@ -61,6 +63,8 @@
 
 	let tab: 'dash' | 'news' | 'state' = $state('dash');
 </script>
+
+<Toaster />
 
 <iframe
 	bind:this={iframe}
@@ -124,21 +128,25 @@
 				{/await}
 				<!-- END || TWITTER REGISTER: show if twitter is not linked -->
 
-				<button onclick={openAccount} class="rounded-xl bg-panel px-4 py-2">
-					<div class="group flex items-center gap-4">
-						<span class="tracking-tight">
-							{address.substring(0, 4)}
-							{address.substring(address.length - 4, address.length)}
-						</span>
-						<img
-							class="scale-100 rounded-full bg-background bg-center p-[2px] transition-all group-hover:scale-125"
-							src={`https://api.dicebear.com/9.x/identicon/svg?seed=${address}`}
-							alt="pfp"
-							width="35px"
-							height="35px"
-						/>
+				<ModalUserProfile>
+					<div class="flex">
+						<button onclick={openAccount} class="rounded-xl bg-panel px-4 py-2">
+							<div class="group flex items-center gap-4">
+								<span class="tracking-tight">
+									{address.substring(0, 4)}
+									{address.substring(address.length - 4, address.length)}
+								</span>
+								<img
+									class="scale-100 rounded-full bg-background bg-center p-[2px] transition-all group-hover:scale-125 group-active:scale-105"
+									src={`https://api.dicebear.com/9.x/identicon/svg?seed=${address}`}
+									alt="pfp"
+									width="35px"
+									height="35px"
+								/>
+							</div>
+						</button>
 					</div>
-				</button>
+				</ModalUserProfile>
 			{:else}
 				<button
 					onclick={login}
