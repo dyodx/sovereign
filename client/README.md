@@ -19,7 +19,7 @@ for development
     - on mac, open Notifications & Focus, enable Chrome and Google Chrome Helper
 
 # TODO GENERAL
-- [ ] clean up the stats on citizen  (big number)
+- [ ] clean up the stats on citizen (how to represent numbers)
 - [ ] make copy/paste of address to deposit sol
 - [ ] balances
     - [x] add a "your total sol balance" (maybe where question mark is?)
