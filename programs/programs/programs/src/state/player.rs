@@ -12,7 +12,7 @@ pub struct Player {
 
 #[account]
 pub struct StakedCitizen {
-    pub citizen: Pubkey,
+    pub citizen_asset: Pubkey,
     pub owner: Pubkey,
     pub nation_id: u8,
     pub game_id: u64,

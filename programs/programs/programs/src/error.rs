@@ -42,4 +42,6 @@ pub enum SovereignError {
     StakeNotComplete,
     #[msg("Citizen Not Staked")]
     CitizenNotStaked,
+    #[msg("Invalid Citizen Owner")]
+    InvalidCitizenOwner,
 }

@@ -10,9 +10,9 @@ use groth16_solana::groth16::Groth16Verifier;
 use mpl_core::{
     accounts::{BaseAssetV1, BaseCollectionV1},
     fetch_plugin,
-    instructions::{CreateV2CpiBuilder, UpdatePluginV1CpiBuilder},
+    instructions::{CreateV2CpiBuilder, UpdatePluginV1CpiBuilder, BurnV1CpiBuilder},
     types::{
-        Attribute, Attributes, FreezeDelegate, Plugin, PluginAuthority, PluginAuthorityPair,
+        Attribute, Attributes, FreezeDelegate, BurnDelegate, Plugin, PluginAuthority, PluginAuthorityPair,
         PluginType,
     },
     ID as MPL_CORE_ID,
@@ -150,6 +150,10 @@ pub fn mint_citizen(ctx: Context<MintCitizen>) -> Result<()> {
                 }),
                 authority: Some(PluginAuthority::UpdateAuthority),
             },
+            PluginAuthorityPair {
+                plugin: Plugin::BurnDelegate(BurnDelegate {}),
+                authority: Some(PluginAuthority::UpdateAuthority),
+            }
         ])
         .invoke_signed(&[signers_seeds])?;
 
@@ -223,7 +227,7 @@ pub fn stake_citizen(ctx: Context<StakeCitizen>, _args: StakeCitizenArgs) -> Res
     // Create StakedCitizen account
     let staked_citizen = &mut ctx.accounts.staked_citizen;
     staked_citizen.owner = ctx.accounts.player_authority.key();
-    staked_citizen.citizen = ctx.accounts.citizen_asset.key();
+    staked_citizen.citizen_asset = ctx.accounts.citizen_asset.key();
     staked_citizen.game_id = ctx.accounts.game_account.id;
     staked_citizen.nation_id = ctx.accounts.nation.nation_id;
     let (_, attribute_plugin, _) = fetch_plugin::<BaseAssetV1, Attributes>(
@@ -341,6 +345,7 @@ pub struct StakeCitizenEvent {
     pub slot: u64,
 }
 pub fn complete_stake(ctx: Context<CompleteStake>, _args: CompleteStakeArgs) -> Result<()> {
+    // Check that citizen_asset is frozen
     let (_, freeze_plugin, _) = fetch_plugin::<BaseAssetV1, FreezeDelegate>(
         &ctx.accounts.citizen_asset.to_account_info(),
         PluginType::FreezeDelegate,
@@ -421,7 +426,7 @@ pub struct CompleteStake<'info> {
             citizen_asset.key().as_ref()
         ],
         bump,
-        constraint = staked_citizen.citizen == citizen_asset.key() @ SovereignError::InvalidCitizenAsset
+        constraint = staked_citizen.citizen_asset == citizen_asset.key() @ SovereignError::InvalidCitizenAsset
     )]
     pub staked_citizen: Account<'info, StakedCitizen>,
     pub player_wallet: Account<'info, Wallet>,
@@ -442,10 +447,19 @@ pub struct CompleteStakeEvent {
 }
 
 pub fn claim_bounty(ctx: Context<ClaimBounty>, args: ClaimBountyArgs) -> Result<()> {
+    // Check that bounty has not expired
     require!(
         ctx.accounts.bounty.expiry_slot > Clock::get()?.slot,
         SovereignError::BountyExpired
     );
+
+    // Check that citizen_asset is frozen
+    let (_, freeze_plugin, _) = fetch_plugin::<BaseAssetV1, FreezeDelegate>(
+        &ctx.accounts.citizen_asset.to_account_info(),
+        PluginType::FreezeDelegate,
+    )?;
+    require!(freeze_plugin.frozen, SovereignError::CitizenNotStaked);
+
     verify_bounty(
         ctx.accounts.bounty.bounty_hash,
         args.bounty_nonce,
@@ -453,6 +467,29 @@ pub fn claim_bounty(ctx: Context<ClaimBounty>, args: ClaimBountyArgs) -> Result<
         args.bounty_proof,
     )?;
 
+    // Close the StakedCitizen account and return rent to original owner
+    let staked_citizen_info = ctx.accounts.staked_citizen.to_account_info();
+    let dest_starting_lamports = ctx.accounts.citizen_owner.lamports();
+    **ctx.accounts.citizen_owner.lamports.borrow_mut() = dest_starting_lamports
+        .checked_add(staked_citizen_info.lamports())
+        .unwrap();
+    **staked_citizen_info.lamports.borrow_mut() = 0;
+    staked_citizen_info.data.borrow_mut().fill(0);
+
+    // Burn citizen asset
+    let signers_seeds = &[
+        GAME_SEED.as_bytes(),
+        &ctx.accounts.game.id.to_le_bytes(),
+        &[ctx.bumps.game],
+    ];
+    BurnV1CpiBuilder::new(&ctx.accounts.mpl_core_program.to_account_info())
+        .asset(&ctx.accounts.citizen_asset.to_account_info())
+        .authority(Some(&ctx.accounts.game.to_account_info()))
+        .payer(&ctx.accounts.player_authority.to_account_info())
+        .system_program(Some(&ctx.accounts.system_program.to_account_info()))
+        .invoke_signed(&[signers_seeds])?;
+
+    // Transfer bounty to player
     let broker_escrow_signer_seeds = &[
         WALLET_SEED.as_bytes(),
         &ctx.accounts.game.id.to_le_bytes(),
@@ -484,6 +521,8 @@ pub fn claim_bounty(ctx: Context<ClaimBounty>, args: ClaimBountyArgs) -> Result<
         bounty_hash: bounty_hash_str,
         player_authority: ctx.accounts.player_authority.key().to_string(),
         amount: ctx.accounts.bounty.amount,
+        citizen_asset: ctx.accounts.citizen_asset.key().to_string(),
+        citizen_owner: ctx.accounts.citizen_owner.key().to_string(),
     });
 
     Ok(())
@@ -495,6 +534,8 @@ pub struct ClaimBountyEvent {
     pub bounty_hash: String,
     pub player_authority: String,
     pub amount: u64,
+    pub citizen_asset: String,
+    pub citizen_owner: String,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
@@ -520,7 +561,41 @@ pub struct ClaimBounty<'info> {
         close = broker_escrow
     )]
     pub bounty: Account<'info, Bounty>,
+    #[account(
+        seeds = [
+            NATION_SEED.as_bytes(), 
+            game.id.to_le_bytes().as_ref(), 
+            nation.nation_id.to_le_bytes().as_ref()
+        ],
+        bump,
+    )]
+    pub nation: Account<'info, Nation>,
+    pub citizen_asset: Account<'info, BaseAssetV1>,
+    #[account(
+        seeds = [
+            STAKED_CITIZEN_SEED.as_bytes(),
+            game.id.to_le_bytes().as_ref(),
+            nation.nation_id.to_le_bytes().as_ref(),
+            citizen_asset.key().as_ref()
+        ],
+        bump,
+        constraint = staked_citizen.citizen_asset == citizen_asset.key() @ SovereignError::InvalidCitizenAsset
+    )]
+    pub staked_citizen: Account<'info, StakedCitizen>,
+    /// CHECK: constraint checks it's the correct owner
+    #[account(
+        mut,
+        address = staked_citizen.owner @ SovereignError::InvalidCitizenOwner
+    )]
+    pub citizen_owner: UncheckedAccount<'info>,
+    #[account(
+        seeds = [GAME_SEED.as_bytes(), &game.id.to_le_bytes()],
+        bump,
+    )]
     pub game: Account<'info, Game>,
+    /// CHECK: constraint checks it
+    #[account(address = MPL_CORE_ID)]
+    pub mpl_core_program: UncheckedAccount<'info>,
     pub system_program: Program<'info, System>,
 }
 
