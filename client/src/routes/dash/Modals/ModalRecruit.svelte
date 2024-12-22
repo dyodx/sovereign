@@ -16,11 +16,11 @@
 
 	let address = $derived.by(() => $walletStore.address ?? null);
 
-	$inspect('recruit modal address:', address);
-
 	let privy: Privy | null = $derived.by(() =>
 		$privyStore.isInitialized ? $privyStore.privy : null
 	);
+
+	$inspect('privy', privy);
 
 	let user: PrivyAuthenticatedUser | null = $derived.by(() =>
 		$privyStore.isInitialized ? $privyStore.user : null

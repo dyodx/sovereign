@@ -37,7 +37,6 @@
 		}
 
 		let data = await fetchAssetsByOwner(umi, address);
-		console.log({ citizens: data, address });
 		return data;
 	}
 

@@ -15,11 +15,9 @@ import {
 import { serializeUint64, ByteifyEndianess } from 'byteify';
 import { estimateCU, getGameAccount } from './txUtilities';
 import { mintNewCitizen } from './txHelpers/citizen';
+import { registerPlayer } from './txHelpers/player';
 
 async function sendOneLamportToSelf(connection: Connection, address: string) {
-	const { SVPRGM } = initAnchor();
-	console.log({ SVPRGM });
-
 	const pkey = new PublicKey(address);
 	const tx = new VersionedTransaction(
 		new TransactionMessage({
@@ -42,33 +40,33 @@ async function sendOneLamportToSelf(connection: Connection, address: string) {
 	};
 }
 
-async function registerPlayer(
-	connection: Connection,
-	address: string,
-	twitterHandle: string
-) {
-	const { SVPRGM } = initAnchor();
+// async function registerPlayer(
+// 	connection: Connection,
+// 	address: string,
+// 	twitterHandle: string
+// ) {
+// 	const { SVPRGM } = initAnchor();
 
-	const pkey = new PublicKey(address); // authority
-	let x_username = '';
-	const currentGameId = 0n;
+// 	const pkey = new PublicKey(address); // authority
+// 	let x_username = '';
+// 	const currentGameId = 0n;
 
-	// convert currentGameId to bytes
-	const gameId = Uint8Array.from(
-		serializeUint64(currentGameId, {
-			endianess: ByteifyEndianess.LITTLE_ENDIAN
-		})
-	);
+// 	// convert currentGameId to bytes
+// 	const gameId = Uint8Array.from(
+// 		serializeUint64(currentGameId, {
+// 			endianess: ByteifyEndianess.LITTLE_ENDIAN
+// 		})
+// 	);
 
-	// check if registered
-	let playerAccountKey = anchor.web3.PublicKey.findProgramAddressSync(
-		[Buffer.from('player'), gameId, pkey.toBytes()],
-		SVPRGM.programId
-	)[0];
-	const playerAccount =
-		await SVPRGM.account.player.fetchNullable(playerAccountKey);
-	// end todo
-}
+// 	// check if registered
+// 	let playerAccountKey = anchor.web3.PublicKey.findProgramAddressSync(
+// 		[Buffer.from('player'), gameId, pkey.toBytes()],
+// 		SVPRGM.programId
+// 	)[0];
+// 	const playerAccount =
+// 		await SVPRGM.account.player.fetchNullable(playerAccountKey);
+// 	// end todo
+// }
 
 type EmbeddedSolanaWalletProvider = Awaited<
 	ReturnType<Privy['embeddedWallet']['getSolanaProvider']>
@@ -103,5 +101,6 @@ export async function buildRequest(
 
 export const buildTransaction = {
 	sendOneLamportToSelf,
-	mintNewCitizen
+	mintNewCitizen,
+	registerPlayer
 };
