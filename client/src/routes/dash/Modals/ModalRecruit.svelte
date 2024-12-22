@@ -12,6 +12,8 @@
 	import { getGameAccount, getPlayerAccount } from '$lib/wallet/txUtilities';
 	import IconSolana from '$lib/components/atoms/icons/IconSolana.svelte';
 	import { copyToClipboard } from '$lib/utils';
+	import { CITIZEN_IMG_URL } from '$lib/constants/citizens';
+	import { onMount } from 'svelte';
 
 	let { children } = $props();
 
@@ -70,10 +72,32 @@
 		const confirmedSentTx = await connection.sendTransaction(tx);
 		confirmedTx = confirmedSentTx;
 	}
+
+	let seed = $state(1);
+	onMount(() => {
+		const interval = setInterval(() => {
+			seed++;
+		}, 1000);
+
+		// Clean up interval when component unmounts
+		return () => clearInterval(interval);
+	});
 </script>
 
+<!--PANEL: IF ADDRESS AND TWITTER LINKED -->
 {#snippet mint()}
-	<div class="relative h-[200px] rounded-xl bg-panel">
+	<div class="relative grid h-[200px] place-items-center rounded-xl bg-panel">
+		{#key seed}
+			<img
+				src={`${CITIZEN_IMG_URL}${seed}`}
+				alt="citizen"
+				class="h-20 w-20 animate-bounce rounded-full border-2 border-black duration-1000"
+			/>
+			<!-- PRELOAD THE NEXT IMAGE -->
+			<img src={`${CITIZEN_IMG_URL}${seed + 1}`} alt="citizen" class="hidden" />
+		{/key}
+
+		<!-- COST TO MINT -->
 		<div class="absolute bottom-0 flex w-full items-center justify-center py-2">
 			{#await getMintCost() then mintCost}
 				<IconSolana />
@@ -81,6 +105,8 @@
 			{/await}
 		</div>
 	</div>
+
+	<!-- PURCHASE BUTTON -->
 	<button
 		onclick={mintNewCitizen}
 		class="mt-4 w-full rounded-xl border-2 border-black bg-black p-2 transition-all hover:bg-black disabled:opacity-75"
@@ -88,16 +114,20 @@
 		{#if confirmedTx === ''}
 			Purchase
 		{:else}
-			Purchased another
+			Purchase another
 		{/if}
 	</button>
 
+	<!-- TX HASH -->
 	{#if confirmedTx !== ''}
-		<button
-			onclick={() => copyToClipboard(confirmedTx)}
-			class="max-w-[300px] overflow-x-auto pt-2 underline"
-			>Copy Tx Hash: {confirmedTx.substring(0, 6)}...</button
-		>
+		<div class="flex items-center justify-between pt-2">
+			<button
+				onclick={() => copyToClipboard(confirmedTx)}
+				class="max-w-[300px] overflow-x-auto underline"
+				>Copy Tx Hash: {confirmedTx.substring(0, 6)}...</button
+			>
+			<span> Wait ~10s to refresh and see </span>
+		</div>
 	{/if}
 {/snippet}
 
@@ -107,7 +137,7 @@
 	</Dialog.Trigger>
 	<Dialog.Content class="max-h-[90vh] overflow-y-auto">
 		<Dialog.Header>
-			<Dialog.Title>Pay to recruit a citizen</Dialog.Title>
+			<Dialog.Title>Recruit a citizen</Dialog.Title>
 			<Dialog.Description>
 				<div>
 					{#if !address}
