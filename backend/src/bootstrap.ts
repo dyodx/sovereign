@@ -1,6 +1,5 @@
 // Called ONCE to setup the environment
-import {db, dbClient, NATION_STATES} from "./common";
-import type { agents } from "../edgedb-js/interfaces";
+import {NATION_STATES, DB} from "./common";
 import bs58 from "bs58";
 import {web3} from "@coral-xyz/anchor";
 import OpenAI from "openai";
@@ -9,32 +8,32 @@ const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
 
-//generateAgentPersonalities();
+// Bootstrap the environment
+(() => {
+    initalizeAgents();
+})()
 
-
-async function pushAgentKeysToDb() {
-    // Create Agent Keypairs
-    let agents: agents.Agent[] = [];
-    for (let i = 1; i < NATION_STATES.length; i++) {
-        agents.push({
-            id: db.uuid_generate_v4(),
-            agent_id: i,
-            private_key: bs58.encode(web3.Keypair.generate().secretKey),
-        });
+async function initalizeAgents() {
+    // Check if agents already exist
+    const agentsCheck = await DB.agent.findMany({take: 1});
+    if(agentsCheck.length > 0){
+        console.log(`Agents already exist, skipping creation`);
+        return;
     }
 
-    const insertAgentsQuery = db.params({ agents: db.json }, (params: any) => {
-        return db.for(db.json_array_unpack(params.agents), (agent: any) => {
-            return db.insert(db.agents.Agent, {
-                id: agent.id,
-                agent_id: agent.agent_id,
-                private_key: agent.private_key,
-            });
+    const characters = await Bun.file("./bootstrap/characters.json").json();
+    let agents: any[] = [];
+    for(let i = 0; i < characters.length; i++){
+        agents.push({
+            nationId: i + 1,
+            privateKey: bs58.encode(web3.Keypair.generate().secretKey),
+            character: characters[i],
         });
-    })
-
-    const result = await insertAgentsQuery.run(dbClient, { agents });
-    console.log("New Agents Created: ", result);
+    }
+    await DB.agent.createMany({
+        data: agents,
+    });
+    console.log(`Created ${agents.length} agents`);
 }
 
 async function generateAgentPersonalities(){
