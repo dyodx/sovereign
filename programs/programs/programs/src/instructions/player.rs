@@ -361,17 +361,68 @@ pub fn complete_stake(ctx: Context<CompleteStake>, _args: CompleteStakeArgs) -> 
 
     let staked_citizen = &ctx.accounts.staked_citizen;
     let slot = Clock::get()?.slot;
-    // If nation is alive, check if stake is complete (otherwise error), reward and unfreeze
-    // If nation is dead, just continue to unfreeze
+    // If nation is alive, check if stake is complete (otherwise error) and apply benefits
+    // If nation is dead, just continue to unfreeze citizen_asset
     if ctx.accounts.nation.is_alive {
         require!(
             slot >= staked_citizen.complete_slot,
             SovereignError::StakeNotComplete
         );
-        ctx.accounts.player_wallet.balances[ctx.accounts.nation.nation_id as usize] = ctx.accounts.player_wallet.balances[ctx.accounts.nation.nation_id as usize].checked_add(ctx.accounts.staked_citizen.reward_amount).unwrap();
-        ctx.accounts.nation.minted_tokens_total += ctx.accounts.staked_citizen.reward_amount;   
+
+        // Player recieves rewards
+        ctx.accounts.player_wallet.balances[ctx.accounts.nation.nation_id as usize] = ctx.accounts.player_wallet.balances[ctx.accounts.nation.nation_id as usize].checked_add(staked_citizen.reward_amount).unwrap();
+        ctx.accounts.nation.minted_tokens_total += staked_citizen.reward_amount;   
+
+        // Nation recieves stat buffs
+        // Collect all the fix values
+        let (_, attribute_plugin, _) = fetch_plugin::<BaseAssetV1, Attributes>(
+            &ctx.accounts.citizen_asset.to_account_info(),
+            PluginType::Attributes,
+        )?;
+        let mut fix_values = (0, 0, 0, 0); // (gdp, healthcare, environment, stability)
+        let mut found = (false, false, false, false); // Make sure they are all found
+        for attr in attribute_plugin.attribute_list.iter() {
+            match attr.key.as_str() {
+                "gdp_fix" => {
+                    found.0 = true;
+                    fix_values.0 = attr.value
+                        .parse::<u64>()
+                        .map_err(|_| SovereignError::InvalidCitizenAttributeValue)?;
+                },
+                "healthcare_fix" => {
+                    found.1 = true;
+                    fix_values.1 = attr.value
+                        .parse::<u64>()
+                        .map_err(|_| SovereignError::InvalidCitizenAttributeValue)?;
+                },
+                "environment_fix" => {
+                    found.2 = true;
+                    fix_values.2 = attr.value
+                        .parse::<u64>()
+                        .map_err(|_| SovereignError::InvalidCitizenAttributeValue)?;
+                },
+                "stability_fix" => {
+                    found.3 = true;
+                    fix_values.3 = attr.value
+                        .parse::<u64>()
+                        .map_err(|_| SovereignError::InvalidCitizenAttributeValue)?;
+                },
+                _ => continue,
+            }
+        }
+
+        // Check if we found all required attributes
+        if !found.0 || !found.1 || !found.2 || !found.3 {
+            return Err(SovereignError::CitizenAttributeNotFound.into());
+        }
+
+        ctx.accounts.nation.gdp += fix_values.0;
+        ctx.accounts.nation.healthcare += fix_values.1;
+        ctx.accounts.nation.environment += fix_values.2;
+        ctx.accounts.nation.stability += fix_values.3;
     }
 
+    // Unfreeze citizen_asset
     let signers_seeds = &[
         GAME_SEED.as_bytes(),
         &ctx.accounts.game.id.to_le_bytes(),
@@ -392,6 +443,10 @@ pub fn complete_stake(ctx: Context<CompleteStake>, _args: CompleteStakeArgs) -> 
         nation_id: ctx.accounts.nation.nation_id,
         reward_amount: staked_citizen.reward_amount,
         slot: slot,
+        nation_fixed_gdp: ctx.accounts.nation.gdp,
+        nation_fixed_healthcare: ctx.accounts.nation.healthcare,
+        nation_fixed_environment: ctx.accounts.nation.environment,
+        nation_fixed_stability: ctx.accounts.nation.stability,
     });
 
     Ok(())
@@ -453,6 +508,10 @@ pub struct CompleteStakeEvent {
     pub nation_id: u8,
     pub reward_amount: u64,
     pub slot: u64,
+    pub nation_fixed_gdp: u64,
+    pub nation_fixed_healthcare: u64,
+    pub nation_fixed_environment: u64,
+    pub nation_fixed_stability: u64,
 }
 
 pub fn claim_bounty(ctx: Context<ClaimBounty>, args: ClaimBountyArgs) -> Result<()> {
