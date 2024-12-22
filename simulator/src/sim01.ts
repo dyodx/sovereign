@@ -51,7 +51,7 @@ async function createGame(){
         take: 1
     });
 
-    const newGameId: bigint = maxGameId ? maxGameId.gameId + 1n : 1n;
+    const newGameId: bigint = maxGameId ? maxGameId.gameId + 1n : 0n;
 
     const adminKey = web3.Keypair.generate();
     const worldAgentKey = web3.Keypair.generate();
