@@ -14,6 +14,7 @@
     "@solana/web3.js": "1.98.0",
     "bs58": "^6.0.0",
     "bullmq": "^5.34.4",
+    "byteify": "^4.1.4",
     "hono": "^4.6.14",
     "ioredis": "^5.4.2",
     "openai": "^4.77.0",
@@ -23,8 +24,6 @@
   "scripts": {
     "copy-program-deps": "cp ../programs/target/idl/programs.json ./deps/sovereign.json && cp ../programs/target/types/programs.ts ./deps/sovereign.ts",
     "bootstrap": "bun src/bootstrap.ts",
-    "hub": "bun src/hub/index.ts",
-    "api": "bun src/api/index.ts",
     "prisma": "bunx prisma generate && bunx prisma db push --force-reset",
     "prod": "bun run prisma && bun run bootstrap && bun start.ts"
   }

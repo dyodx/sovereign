@@ -1,43 +1,11 @@
-import {SVPRGM, SERVER_URL, COMPUTE_UNIT_PRICE, DB} from "../../backend/src/common.ts";
+import {SVPRGM, SERVER_URL, COMPUTE_UNIT_PRICE, DB, CONNECTION} from "../common";
 import { web3, BN } from "@coral-xyz/anchor";
 import bs58 from "bs58";
 import { sleep } from "bun";
 import { serializeUint64, ByteifyEndianess } from "byteify";
 
-// Assumes the following is already running:
-// - Solana Validator with Program Deployed
-// - Backend API
-// - Solana Ingest Service
-// - Twitter Ingest Service
 
-const CONNECTION = new web3.Connection("http://localhost:8899", {commitment: "confirmed"});
-main().then(() => {
-    console.log("Done!");
-});
-
-async function main(){
-    // Create a Game As Admin    
-    const gameSetup = await createGame();
-    //await Bun.sleep(5000);
-    //await mintCitizen(gameSetup, gameSetup.adminKey);
-    // Nations Register
-        // Generate Keypair && Store in DB
-        // Start Nation Worker (Use BullMQ on the backend)
-    // Players Register
-    
-    // Player Loop
-        // Tweet Simulator
-        // Mint & Stake Citizens
-        // Swap Tokens
-        // Complete Bounties
-    // Nations Loop
-        // Engage in Actions
-        // Issue Bounties
-    // World Agent Loop
-        // Boons & Disasters
-    // Journalist Loop
-        // Tweet Simualtion on Events
-}
+await createGame();
 
 async function createGame(){    
     // Fetch the max game id from the db
