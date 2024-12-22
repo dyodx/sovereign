@@ -7,6 +7,7 @@ import Privy, {
 } from '@privy-io/js-sdk-core';
 import { walletStore } from '$lib/stores/wallet.svelte';
 import { privyStore, updatePrivyStore } from '$lib/stores/privy.svelte';
+import { GAME_ID } from './constants';
 
 // Auth state store
 const AUTH_STORAGE_KEY = 'privy_auth_state';
@@ -18,6 +19,8 @@ type initProps = {
 	setAddress: (newAddress: string | null) => void;
 };
 async function initializePrivy(props: initProps) {
+	console.info('LOG: Initializing SOVEREIGN', `GAME_ID: ${GAME_ID}`);
+	console.table({ GAME_ID });
 	const newPrivy = new Privy({
 		appId: 'cm4rluhru04zmuj8pzs0hklmk',
 		storage: new LocalStorage()
