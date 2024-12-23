@@ -31,6 +31,9 @@ for development
 - [ ] connect notifications to outside server
 
 # TODO GENERAL
+- [ ] add designs for operations
+- [ ] change citizen design: only show flag if staked
+
 - [ ] balances
     - [x] add a "your total sol balance" (maybe where question mark is?)
     - [x] need a copy/paste of address
