@@ -182,6 +182,10 @@ export class Router implements SERVICE {
                     // TODO (Let nation(s?) know)
                     // TODO (Journalist JOB)
                     break;
+                case "coupNationEvent":
+                    break;
+                case "lootNationEvent":
+                    break;
                 default:
                     throw new Error(`Unknown event: ${event.name}`);
             }

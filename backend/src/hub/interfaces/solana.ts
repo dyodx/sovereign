@@ -43,7 +43,7 @@ export const DepositToBrokerEvent = z.object({
     amount: z.string(),
 });
 
-export const GameOverEvent = z.object({
+export const CoupNationEvent = z.object({
     gameId: z.string(),
 });
 
@@ -131,4 +131,11 @@ export const CreateBountyEvent = z.object({
     bountyHash: z.string(),
     amount: z.number(),
     expirySlot: z.number(),
+});
+
+export const LootNationEvent = z.object({
+    gameId: z.string(),
+    nationId: z.number(),
+    playerAuthority: z.string(),
+    amount: z.string(),
 });
