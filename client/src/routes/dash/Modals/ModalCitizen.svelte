@@ -50,8 +50,8 @@
 	}
 
 	function getRewardForStake(citizen: AssetV1) {
-		const { gdpRewardRate, stabilityRewardRate, healthcareRewardRate, environmentRewardRate } =
-			getNationData() as NationDTO;
+		const d = getNationData() as NationDTO;
+		if (!d) return { rewards: [], total: 0 };
 
 		const environment = getAttribute('environment_fix', citizen) as string;
 		const gdp = getAttribute('gdp_fix', citizen) as string;
@@ -59,10 +59,10 @@
 		const stability = getAttribute('stability_fix', citizen) as string;
 
 		const rewards = [
-			+environment * +environmentRewardRate,
-			+gdp * +gdpRewardRate,
-			+healthcare * +healthcareRewardRate,
-			+stability * +stabilityRewardRate
+			+environment * +d.environmentRewardRate,
+			+gdp * +d.gdpRewardRate,
+			+healthcare * +d.healthcareRewardRate,
+			+stability * +d.stabilityRewardRate
 		];
 
 		return {
@@ -149,13 +149,41 @@
 							/>
 
 							{#if selectedNation !== ''}
-								<div class="flex justify-center">
-									<p>Current Balance: ${stateCurrencyBalance}</p>
+								{@const nation = getNationData()}
+								{#snippet reward(
+									key: keyof Pick<
+										NationDTO,
+										| 'gdpRewardRate'
+										| 'environmentRewardRate'
+										| 'healthcareRewardRate'
+										| 'stabilityRewardRate'
+									>
+								)}
+									<div class="flex items-center justify-center rounded bg-panel px-1">
+										{#if key === 'environmentRewardRate'}
+											<IconLeaf />
+										{:else if key === 'gdpRewardRate'}
+											<IconMoneyBag />
+										{:else if key === 'healthcareRewardRate'}
+											<IconStethoscope />
+										{:else if key === 'stabilityRewardRate'}
+											<IconGavel />
+										{/if}
+										<span>
+											x{nation?.[key]}
+										</span>
+									</div>
+								{/snippet}
+								<div class="grid grid-cols-2 gap-1">
+									{@render reward('environmentRewardRate')}
+									{@render reward('gdpRewardRate')}
+									{@render reward('healthcareRewardRate')}
+									{@render reward('stabilityRewardRate')}
 								</div>
 							{/if}
 						</div>
 
-						<div class="flex min-h-20 flex-col items-center justify-center rounded-xl bg-panel p-4">
+						<div class="flex min-h-28 flex-col items-center justify-center rounded-xl bg-panel p-4">
 							{#await asset then citizen}
 								{#if selectedNation !== ''}
 									{#key selectedNation}
@@ -164,7 +192,7 @@
 									<p class="font-bold">
 										{`$${selectedNation.replace(/\b(?:and|of|the|Democratic)\b|\s+|'/gi, '')}`}
 									</p>
-									<p class="font-thin">/per day</p>
+									<p class="text-xs font-thin">/per stake (6hrs)</p>
 								{/if}
 							{/await}
 						</div>
