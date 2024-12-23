@@ -22,7 +22,9 @@
     "zod": "^3.24.1"
   },
   "scripts": {
-    "copy-program-deps": "cp ../programs/target/idl/programs.json ./deps/sovereign.json && cp ../programs/target/types/programs.ts ./deps/sovereign.ts",
+    "copy-program-deps-to-backend": "cp ../programs/target/idl/programs.json ./deps/sovereign.json && cp ../programs/target/types/programs.ts ./deps/sovereign.ts",
+    "copy-program-deps-to-client": "cp ../programs/target/idl/programs.json ./client/src/lib/deps/sovereign.json && cp ../programs/target/types/programs.ts ./client/src/lib/deps/sovereign.ts",
+    "copy-deps": "bun run copy-program-deps-to-backend && bun run copy-program-deps-to-client",
     "bootstrap": "bun src/bootstrap.ts",
     "prisma": "bunx prisma generate && bunx prisma db push",
     "prod": "bun run prisma && bun run bootstrap && bun start.ts"

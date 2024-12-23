@@ -297,8 +297,7 @@ pub fn stake_citizen(ctx: Context<StakeCitizen>, _args: StakeCitizenArgs) -> Res
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
-pub struct StakeCitizenArgs {
-}
+pub struct StakeCitizenArgs {}
 
 #[derive(Accounts)]
 pub struct StakeCitizen<'info> {
