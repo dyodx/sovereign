@@ -13,6 +13,13 @@
 	import { copyToClipboard } from '$lib/utils';
 	import { queries } from '$lib/services/queries';
 	import type { NationDTO } from '$lib/services/apiClient';
+	import type Privy from '@privy-io/js-sdk-core';
+	import { privyStore } from '$lib/stores/privy.svelte';
+	import type { PrivyAuthenticatedUser } from '@privy-io/public-api';
+	import { walletHandler } from '$lib/wallet/walletHelpers';
+	import { walletStore } from '$lib/stores/wallet.svelte';
+	import { PublicKey } from '@solana/web3.js';
+	import { buildRequest, buildTransaction } from '$lib/wallet/txHelpers';
 
 	const nationStates = queries.getNations();
 
@@ -25,7 +32,6 @@
 	const asset = fetchAssetV1(umi, citizenId);
 
 	let selectedNation: string = $state('');
-	let stateCurrencyBalance = $state(0);
 
 	type CitizenAttribute =
 		| 'game'
@@ -69,6 +75,46 @@
 			rewards,
 			total: rewards.reduce((a, b) => a + b, 0)
 		};
+	}
+
+	/**
+	 * WALLET ACTIONS - STAKE
+	 */
+	let address = $derived.by(() => $walletStore.address ?? null);
+	let connection = $derived.by(() => $walletStore.connection ?? null);
+	let privy: Privy | null = $derived.by(() =>
+		$privyStore.isInitialized ? $privyStore.privy : null
+	);
+	let user: PrivyAuthenticatedUser | null = $derived.by(() =>
+		$privyStore.isInitialized ? $privyStore.user : null
+	);
+	let provider = $state(
+		null as Awaited<ReturnType<Privy['embeddedWallet']['getSolanaProvider']>> | null
+	);
+	let confirmedTx = $state('');
+	async function createEmbeddedWallet() {
+		await walletHandler.createEmbeddedWallet({
+			privy: privy as Privy,
+			user: user as PrivyAuthenticatedUser,
+			setProvider: (e) => (provider = e)
+		});
+	}
+
+	async function stakeCitizen(): Promise<void> {
+		if (!address || address === '')
+			return console.error('Sending Lamport Error: no address:', address);
+		if (!connection) return console.error('no connection, please try again');
+		if (!provider) return createEmbeddedWallet().then((e) => stakeCitizen());
+
+		const pkey = new PublicKey(address);
+
+		const { tx, message } = await buildTransaction.mintNewCitizen(connection, address);
+		const signed = await buildRequest(provider, message, address);
+		tx.addSignature(pkey, Uint8Array.from(Buffer.from(signed, 'base64')));
+
+		const confirmedSentTx = await connection.sendTransaction(tx);
+		console.info('CONFIRMED SENT TX:', confirmedSentTx);
+		confirmedTx = confirmedSentTx;
 	}
 </script>
 
@@ -144,7 +190,7 @@
 					<div class="grid grid-cols-2 items-start gap-4">
 						<div class="flex w-full flex-col gap-4">
 							<Combobox
-								options={NATION_STATES.map((e, i) => ({ value: e, label: e }))}
+								options={NATION_STATES.map((e) => ({ value: e, label: e }))}
 								bind:value={selectedNation}
 							/>
 
