@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import { z } from 'zod';
 
 export interface SolanaEvent {
     txn: string;
@@ -79,10 +79,10 @@ export const NationBoostEvent = z.object({
 
 export const StakeCitizenEvent = z.object({
     gameId: z.string(),
-    playerAuthority: z.string(),
+    owner: z.string(),
     citizenAssetId: z.string(),
     nationId: z.number(),
-    slot: z.string(),
+    completed_slot: z.string(),
 });
 
 export const CompleteStakeEvent = z.object({
@@ -90,11 +90,30 @@ export const CompleteStakeEvent = z.object({
     playerAuthority: z.string(),
     citizenAssetId: z.string(),
     nationId: z.number(),
-    rewardAmount: z.string(),
+    rewardAmount: z.number(),
     slot: z.string(),
+    nation_gdp: z.number(),
+    nation_healthcare: z.number(),
+    nation_environment: z.number(),
+    nation_stability: z.number(),
 });
 
 export const NationDissolutionEvent = z.object({
     gameId: z.string(),
     nationId: z.number(),
+});
+
+export const UpdateNationRewardRateEvent = z.object({
+    gameId: z.string(),
+    nationId: z.number(),
+    gdpRewardRate: z.number(),
+    healthcareRewardRate: z.number(),
+    environmentRewardRate: z.number(),
+    stabilityRewardRate: z.number(),
+});
+
+export const RegisterPlayerEvent = z.object({
+    gameId: z.string(),
+    playerAuthority: z.string(),
+    xUsername: z.string(),
 });

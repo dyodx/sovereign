@@ -34,6 +34,13 @@ pub fn register_player(ctx: Context<RegisterPlayer>, args: RegisterPlayerArgs) -
     ctx.accounts.player_wallet.game_id = ctx.accounts.game.id;
     ctx.accounts.player_wallet.authority = ctx.accounts.player_authority.key();
     ctx.accounts.player_wallet.balances = BALANCES_INIT;
+
+    emit!(RegisterPlayerEvent {
+        game_id: ctx.accounts.game.id,
+        authority: ctx.accounts.player_authority.key().to_string(),
+        x_username: ctx.accounts.player.x_username.clone(),
+    });
+
     Ok(())
 }
 
@@ -64,6 +71,13 @@ pub struct RegisterPlayer<'info> {
     )]
     pub player_wallet: Box<Account<'info, Wallet>>,
     pub system_program: Program<'info, System>,
+}
+
+#[event]
+pub struct RegisterPlayerEvent {
+    pub game_id: u64,
+    pub authority: String,
+    pub x_username: String,
 }
 
 pub fn mint_citizen(ctx: Context<MintCitizen>) -> Result<()> {
@@ -227,7 +241,7 @@ pub fn stake_citizen(ctx: Context<StakeCitizen>, _args: StakeCitizenArgs) -> Res
     // Create StakedCitizen account
     let staked_citizen = &mut ctx.accounts.staked_citizen;
     staked_citizen.owner = ctx.accounts.player_authority.key();
-    staked_citizen.citizen_asset = ctx.accounts.citizen_asset.key();
+    staked_citizen.citizen_asset_id = ctx.accounts.citizen_asset.key();
     staked_citizen.game_id = ctx.accounts.game.id;
     staked_citizen.nation_id = ctx.accounts.nation.nation_id;
     let (_, attribute_plugin, _) = fetch_plugin::<BaseAssetV1, Attributes>(
@@ -443,10 +457,10 @@ pub fn complete_stake(ctx: Context<CompleteStake>, _args: CompleteStakeArgs) -> 
         nation_id: ctx.accounts.nation.nation_id,
         reward_amount: staked_citizen.reward_amount,
         slot: slot,
-        nation_fixed_gdp: ctx.accounts.nation.gdp,
-        nation_fixed_healthcare: ctx.accounts.nation.healthcare,
-        nation_fixed_environment: ctx.accounts.nation.environment,
-        nation_fixed_stability: ctx.accounts.nation.stability,
+        nation_gdp: ctx.accounts.nation.gdp,
+        nation_healthcare: ctx.accounts.nation.healthcare,
+        nation_environment: ctx.accounts.nation.environment,
+        nation_stability: ctx.accounts.nation.stability,
     });
 
     Ok(())
@@ -489,7 +503,7 @@ pub struct CompleteStake<'info> {
             citizen_asset.key().as_ref()
         ],
         bump,
-        constraint = staked_citizen.citizen_asset == citizen_asset.key() @ SovereignError::InvalidCitizenAsset,
+        constraint = staked_citizen.citizen_asset_id == citizen_asset.key() @ SovereignError::InvalidCitizenAsset,
         close = player_authority
     )]
     pub staked_citizen: Account<'info, StakedCitizen>,
@@ -509,10 +523,10 @@ pub struct CompleteStakeEvent {
     pub nation_id: u8,
     pub reward_amount: u64,
     pub slot: u64,
-    pub nation_fixed_gdp: u64,
-    pub nation_fixed_healthcare: u64,
-    pub nation_fixed_environment: u64,
-    pub nation_fixed_stability: u64,
+    pub nation_gdp: u64,
+    pub nation_healthcare: u64,
+    pub nation_environment: u64,
+    pub nation_stability: u64,
 }
 
 pub fn claim_bounty(ctx: Context<ClaimBounty>, args: ClaimBountyArgs) -> Result<()> {
@@ -638,7 +652,7 @@ pub struct ClaimBounty<'info> {
             citizen_asset.key().as_ref()
         ],
         bump,
-        constraint = staked_citizen.citizen_asset == citizen_asset.key() @ SovereignError::InvalidCitizenAsset,
+        constraint = staked_citizen.citizen_asset_id == citizen_asset.key() @ SovereignError::InvalidCitizenAsset,
         close = player_authority
     )]
     pub staked_citizen: Account<'info, StakedCitizen>,

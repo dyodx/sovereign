@@ -64,6 +64,16 @@ pub fn update_nation_reward_rate(ctx: Context<UpdateNationRewardRate>, update_na
     ctx.accounts.nation.environment_reward_rate = update_nation_reward_rate_args.environment_reward_rate;
     ctx.accounts.nation.stability_reward_rate = update_nation_reward_rate_args.stability_reward_rate;
 
+    emit!(UpdateNationRewardRateEvent {
+        game_id: ctx.accounts.nation.game_id,
+        nation_id: ctx.accounts.nation.nation_id,
+        gdp_reward_rate: update_nation_reward_rate_args.gdp_reward_rate,
+        healthcare_reward_rate: update_nation_reward_rate_args.healthcare_reward_rate,
+        environment_reward_rate: update_nation_reward_rate_args.environment_reward_rate,
+        stability_reward_rate: update_nation_reward_rate_args.stability_reward_rate,
+        slot: Clock::get()?.slot,
+    });
+
     Ok(())
 }
 
@@ -83,6 +93,17 @@ pub struct UpdateNationRewardRate<'info> {
         constraint = nation.authority == nation_authority.key() @ SovereignError::InvalidAuthority
     )]
     pub nation: Account<'info, Nation>,
+}
+
+#[event]
+pub struct UpdateNationRewardRateEvent {
+    pub game_id: u64,
+    pub nation_id: u8,
+    pub gdp_reward_rate: u64,
+    pub healthcare_reward_rate: u64,
+    pub environment_reward_rate: u64,
+    pub stability_reward_rate: u64,
+    pub slot: u64,
 }
 
 
