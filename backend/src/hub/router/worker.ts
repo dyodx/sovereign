@@ -6,6 +6,7 @@ import { ComputeBudgetProgram, Keypair, PublicKey, Transaction, TransactionInstr
 import { ByteifyEndianess, serializeUint64, serializeUint8 } from "byteify";
 import type { WorldLeader } from "../interfaces";
 import { BN } from "@coral-xyz/anchor";
+import { SYSTEM_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/native/system";
 
 export default async function worker(job: Job) {
     console.log(`Worker received job: ${job.id} - ${job.name}`);
@@ -22,6 +23,12 @@ export default async function worker(job: Job) {
                 break;
             case "createStakedCitizenInDb":
                 await createStakedCitizenInDB(job.data as Jobs.CreateStakedCitizenInDBJob);
+                break;
+            case "registerBounty":
+                await registerBounty(job.data as Jobs.RegisterBountyJob);
+                break;
+            case "createBountyInDB":
+                await createBountyInDB(job.data as Jobs.CreateBountyInDBJob);
                 break;
             default:
                 throw new Error(`Unknown job: ${job.name}`);
@@ -297,3 +304,100 @@ export async function createStakedCitizenInDB(job: Jobs.CreateStakedCitizenInDBJ
         throw error;
     }
 }
+
+export async function registerBounty(job: Jobs.RegisterBountyJob) {
+    // Create the game authority keypair
+    const gameData = await DB.game.findUnique({
+        where: {
+            gameId: BigInt(job.gameId),
+        },
+    });
+    if (!gameData) {
+        throw new Error(`Game not found: ${job.gameId}`);
+    }
+    const gameAuthority = Keypair.fromSecretKey(bs58.decode(gameData.adminPrivateKey));
+
+    // Convert bounty hash string to bytes
+    const bountyHashBytes = Buffer.from(job.bountyHash, 'hex');
+    if (bountyHashBytes.length !== 32) {
+        throw new Error('Bounty hash must be 32 bytes');
+    }
+
+    const gamePDA = PublicKey.findProgramAddressSync(
+        [
+            Buffer.from(ACCOUNT_SEEDS.GAME),
+            Uint8Array.from(serializeUint64(gameData.gameId, { endianess: ByteifyEndianess.LITTLE_ENDIAN }))
+        ],
+        SVPRGM.programId
+    )[0];
+    const bountyPDA = PublicKey.findProgramAddressSync(
+        [
+            Buffer.from(ACCOUNT_SEEDS.BOUNTY),
+            Uint8Array.from(serializeUint64(gameData.gameId, { endianess: ByteifyEndianess.LITTLE_ENDIAN })),
+            bountyHashBytes
+        ],
+        SVPRGM.programId
+    )[0];
+
+    // Create and send the transaction
+    const ix = await SVPRGM.methods
+        .createBounty({
+            bountyHash: Array.from(bountyHashBytes),
+            amount: new BN(job.amount),
+            expirySlot: new BN(job.expirySlot)
+        })
+        .accountsPartial({
+            brokerKey: gameAuthority.publicKey,
+            game: gamePDA,
+            bounty: bountyPDA,
+            systemProgram: SYSTEM_PROGRAM_ID
+        })
+        .instruction();
+
+    const tx = new VersionedTransaction(new TransactionMessage({
+        payerKey: gameAuthority.publicKey,
+        recentBlockhash: (await CONNECTION.getLatestBlockhash()).blockhash,
+        instructions: [
+            ComputeBudgetProgram.setComputeUnitPrice({ microLamports: COMPUTE_UNIT_PRICE }),
+            ComputeBudgetProgram.setComputeUnitLimit({ units: await estimateCU(gameAuthority.publicKey, [ix]) }),
+            ix
+        ]
+    }).compileToV0Message());
+
+    tx.sign([gameAuthority]);
+    const sig = await CONNECTION.sendTransaction(tx);
+    console.log(`Registered bounty with sig ${sig}`);
+}
+
+export async function createBountyInDB(job: Jobs.CreateBountyInDBJob) {
+    console.log(`Creating bounty account with hash ${job.bountyHash} in game ${job.gameId}`);
+    try {
+        const bountyPubkey = PublicKey.findProgramAddressSync(
+            [
+                Buffer.from(ACCOUNT_SEEDS.BOUNTY),
+                Uint8Array.from(serializeUint64(BigInt(job.gameId), { endianess: ByteifyEndianess.LITTLE_ENDIAN })),
+                Buffer.from(job.bountyHash, 'hex')
+            ],
+            SVPRGM.programId
+        )[0];
+
+        const bounty = await DB.bountyAccount.create({
+            data: {
+                pubkey: bountyPubkey.toBase58(),
+                gameId: BigInt(job.gameId),
+                bountyHash: job.bountyHash,
+                amount: job.amount.toString(),
+                expirySlot: job.expirySlot.toString()
+            }
+        });
+
+        console.log(`Created bounty account ${bountyPubkey.toBase58()} with hash ${job.bountyHash}`);
+        return bounty;
+    } catch (error) {
+        if (error instanceof Error) {
+            throw new Error(`Failed to create bounty in DB: ${error.message}`);
+        }
+        throw error;
+    }
+}
+

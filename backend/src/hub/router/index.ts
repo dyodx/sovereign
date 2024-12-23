@@ -152,6 +152,36 @@ export class Router implements SERVICE {
                     // TODO (Let nation know)
                     // TODO (Journalist JOB)
                     break;
+                case "nationCreateBountyEvent":
+                    // Event for when the nation wants the broker to create an onchain bounty
+                    await this.JOBS_QUEUE.add(
+                        "registerBounty",
+                        {
+                            gameId: event.data.gameId,
+                            bountyHash: event.data.bountyHash,
+                            amount: event.data.amount,
+                            expirySlot: event.data.expirySlot,
+                        } as Jobs.RegisterBountyJob,
+                        REMOVE_OPTS
+                    );
+                    break;
+                case "createBountyEvent":
+                    // Event for when the broker has created an onchain bounty
+                    await this.JOBS_QUEUE.add(
+                        "createBountyInDB",
+                        {
+                            gameId: event.data.gameId,
+                            bountyHash: event.data.bountyHash,
+                            amount: event.data.amount,
+                            expirySlot: event.data.expirySlot,
+                        } as Jobs.CreateBountyInDBJob,
+                        REMOVE_OPTS
+                    );
+                    break;
+                case "claimBountyEvent":
+                    // TODO (Let nation(s?) know)
+                    // TODO (Journalist JOB)
+                    break;
                 default:
                     throw new Error(`Unknown event: ${event.name}`);
             }

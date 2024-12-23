@@ -297,14 +297,15 @@ pub fn stake_citizen(ctx: Context<StakeCitizen>, _args: StakeCitizenArgs) -> Res
     staked_citizen.reward_amount = rewards.0 + rewards.1 + rewards.2 + rewards.3; 
 
     let clock = Clock::get()?;
-    staked_citizen.complete_slot = clock.slot + ctx.accounts.game.citizen_stake_length;
+    let complete_slot = clock.slot + ctx.accounts.game.citizen_stake_length;
+    staked_citizen.complete_slot = complete_slot;
 
     emit!(StakeCitizenEvent {
         game_id: ctx.accounts.game.id,
         player_authority: ctx.accounts.player_authority.key().to_string(),
         citizen_asset_id: ctx.accounts.citizen_asset.key().to_string(),
         nation_id: ctx.accounts.nation.nation_id,
-        slot: clock.slot,
+        complete_slot: complete_slot,
     });
 
     Ok(())
@@ -363,7 +364,7 @@ pub struct StakeCitizenEvent {
     pub player_authority: String,
     pub citizen_asset_id: String,
     pub nation_id: u8,
-    pub slot: u64,
+    pub complete_slot: u64,
 }
 pub fn complete_stake(ctx: Context<CompleteStake>, _args: CompleteStakeArgs) -> Result<()> {
     // Check that citizen_asset is frozen

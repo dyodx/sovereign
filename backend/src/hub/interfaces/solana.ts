@@ -82,7 +82,7 @@ export const StakeCitizenEvent = z.object({
     owner: z.string(),
     citizenAssetId: z.string(),
     nationId: z.number(),
-    completed_slot: z.string(),
+    complete_slot: z.string(),
 });
 
 export const CompleteStakeEvent = z.object({
@@ -116,4 +116,19 @@ export const RegisterPlayerEvent = z.object({
     gameId: z.string(),
     playerAuthority: z.string(),
     xUsername: z.string(),
+});
+
+export const NationCreateBountyEvent = z.object({
+    gameId: z.string(),
+    nationId: z.number(),
+    bountyHash: z.string(),
+    amount: z.number(),
+    expirySlot: z.number(),
+});
+
+export const CreateBountyEvent = z.object({
+    gameId: z.string(),
+    bountyHash: z.string(),
+    amount: z.number(),
+    expirySlot: z.number(),
 });
