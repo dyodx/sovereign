@@ -27,8 +27,14 @@ async function getNations() {
 	return res.data;
 }
 
+/**
+ * API Functions & Keys for cache management
+ * */
 export const api = {
 	fetch: {
-		getNations
+		getNations: {
+			key: 'states',
+			fn: getNations
+		}
 	}
 };

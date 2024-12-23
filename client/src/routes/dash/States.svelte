@@ -2,17 +2,12 @@
 	import { cn } from '$lib/utils.js';
 	import * as Table from '$lib/components/ui/table';
 	import TipOperations from './Tooltips/TipOperations.svelte';
-	import { api, type NationDTO } from '$lib/services/apiClient';
-
-	import { createQuery } from '@tanstack/svelte-query';
+	import { type NationDTO } from '$lib/services/apiClient';
 	import { NATION_STATES } from '$lib/constants/nations';
 	import { IconGavel, IconLeaf, IconMoneyBag, IconStethoscope } from '$lib/components/atoms/icons';
-	const query = createQuery({
-		queryKey: ['states'],
-		queryFn: api.fetch.getNations
-	});
+	import { queries } from '$lib/services/queries';
 
-	$inspect('data', $query?.data);
+	const nationStates = queries.getNations();
 
 	type Category = 'environment' | 'gdp' | 'healthcare' | 'stability';
 	type SortingDirection = 'asc' | 'desc';
@@ -117,7 +112,9 @@
 			</Table.Row>
 		</Table.Header>
 		<Table.Body>
-			{#each $query?.data?.filter(filterBySearchInput)?.sort(sortNationsByCategory) ?? [] as nation}
+			{#each $nationStates?.data
+				?.filter(filterBySearchInput)
+				?.sort(sortNationsByCategory) ?? [] as nation}
 				<Table.Row class="text-center text-xs md:text-start">
 					<Table.Cell class="text-start text-sm">
 						<p

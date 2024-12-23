@@ -12,6 +12,13 @@ for development
 - `$lib/wallet/txHelpers.ts` is the main file for interacting with the chain
 - privy initiated on `/dash` page and passed around via `walletStore` and `privyStore`
 
+# fetching data - @tanstack/svelte-query
+- api functions are in `src/lib/services/apiClient.ts`
+    - use the `api` object which groups functions with keys
+    - keys used in query for cache management
+- queries are in `src/lib/services/queries.ts`
+- example in `src/routes/dash/State.svelte`
+
 
 # TODO PWA
 - [ ] add notifications (working but need to link it to something dynamic)
