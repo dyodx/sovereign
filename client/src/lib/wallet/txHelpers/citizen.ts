@@ -8,6 +8,9 @@ import {
 	VersionedTransaction
 } from '@solana/web3.js';
 import { estimateCU, getGameAccount } from '$lib/wallet/txUtilities';
+import { publicKey } from '@coral-xyz/anchor/dist/cjs/utils';
+//@ts-expect-error: todo fix types later
+import { serializeUint8, ByteifyEndianess } from 'byteify';
 
 export async function mintNewCitizen(connection: Connection, address: string) {
 	const { SVPRGM } = initAnchor();
@@ -80,7 +83,7 @@ export async function stakeCitizen(
 	const { SVPRGM } = initAnchor();
 
 	const pkey = new PublicKey(address);
-	const citizenAsset = new PublicKey(citizenAddress);
+	const citizenPkey = new PublicKey(citizenAddress);
 	const {
 		Uint8Array: gameIdInBytes,
 		gameAccountKey,
@@ -93,18 +96,37 @@ export async function stakeCitizen(
 		bigNumber: gameMetaData.mintCost / LAMPORTS_PER_SOL
 	});
 
+	const nationIdInBytes = Uint8Array.from(
+		serializeUint8(BigInt(nationId), {
+			endianess: ByteifyEndianess.LITTLE_ENDIAN
+		})
+	);
+
 	// const citizenAsset = anchor.web3.Keypair.generate();
+	const [stakedCitizenAccount] = anchor.web3.PublicKey.findProgramAddressSync(
+		[
+			Buffer.from('staked_citizen'),
+			gameIdInBytes,
+			nationIdInBytes,
+			citizenPkey.toBytes()
+		],
+		SVPRGM.programId
+	);
+
+	const [nationAccount] = anchor.web3.PublicKey.findProgramAddressSync(
+		[Buffer.from('nation'), gameIdInBytes, nationIdInBytes],
+		SVPRGM.programId
+	);
 
 	const stakeCitizenIx = await SVPRGM.methods
-		.stakeOrUnstakeCitizen()
+		.stakeCitizen()
 		.accountsPartial({
 			playerAuthority: pkey,
-			citizenAsset: citizenAsset,
-			gameAccount: gameAccountKey // get admin key
-			// nation: BigInt(nationId),
-			// stakedCitizen: citizenAsset // TODO: is this correct?
+			citizenAsset: citizenPkey,
+			gameAccount: gameAccountKey, // get admin key
+			nation: nationAccount,
+			stakedCitizen: stakedCitizenAccount
 		})
-		// .signers([citizenAsset])
 		.instruction();
 
 	const estimatedCU = await estimateCU(pkey, [stakeCitizenIx], connection);
