@@ -8,7 +8,6 @@ import {
 	VersionedTransaction
 } from '@solana/web3.js';
 import { estimateCU, getGameAccount } from '$lib/wallet/txUtilities';
-import { publicKey } from '@coral-xyz/anchor/dist/cjs/utils';
 //@ts-expect-error: todo fix types later
 import { serializeUint8, ByteifyEndianess } from 'byteify';
 
@@ -33,7 +32,7 @@ export async function mintNewCitizen(connection: Connection, address: string) {
 		.mintCitizen()
 		.accountsPartial({
 			playerAuthority: pkey,
-			gameAccount: gameAccountKey, // get admin key
+			game: gameAccountKey, // get admin key
 			worldAgentWallet: anchor.web3.PublicKey.findProgramAddressSync(
 				[
 					Buffer.from('wallet'),
@@ -97,7 +96,7 @@ export async function stakeCitizen(
 	});
 
 	const nationIdInBytes = Uint8Array.from(
-		serializeUint8(BigInt(nationId), {
+		serializeUint8(nationId, {
 			endianess: ByteifyEndianess.LITTLE_ENDIAN
 		})
 	);
@@ -119,13 +118,14 @@ export async function stakeCitizen(
 	);
 
 	const stakeCitizenIx = await SVPRGM.methods
-		.stakeCitizen()
+		.stakeCitizen({})
 		.accountsPartial({
 			playerAuthority: pkey,
 			citizenAsset: citizenPkey,
-			gameAccount: gameAccountKey, // get admin key
+			game: gameAccountKey,
 			nation: nationAccount,
-			stakedCitizen: stakedCitizenAccount
+			stakedCitizen: stakedCitizenAccount,
+			collection: gameMetaData.collection // wait for fix
 		})
 		.instruction();
 
@@ -146,7 +146,6 @@ export async function stakeCitizen(
 		}).compileToLegacyMessage()
 	);
 
-	// tx.sign([citizenAsset]);
 	const message = Buffer.from(tx.message.serialize()).toString('base64');
 
 	return {
