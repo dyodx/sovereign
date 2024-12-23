@@ -49,7 +49,9 @@
 	function getNationData() {
 		if (!selectedNation) return null;
 		const nation = $nationStates.data?.find((e) => {
-			return e.nationId === getNationId(selectedNation);
+			// HACK: might need +1, afghan shows no reward rate
+			// this is because i got rid of solana which is 0 index
+			return e.nationId === getNationId(selectedNation) + 1;
 		});
 		return nation;
 	}
@@ -102,19 +104,13 @@
 		if (!address || address === '')
 			return console.error('Sending Lamport Error: no address:', address);
 		if (!connection) return console.error('no connection, please try again');
-		if (!provider) return createEmbeddedWallet().then((e) => stakeCitizen());
+		if (!provider) return createEmbeddedWallet().then(() => stakeCitizen());
 
 		const pkey = new PublicKey(address);
 
 		const citizen = await asset.catch((e) => console.error('Error fetching citizen:', e));
 		if (!citizen) return console.error('No citizen found', { citizenId });
 
-		const totalStakingReward = getRewardForStake(citizen).total;
-
-		console.log('TODO: send transaction');
-		return;
-
-		// TODO: Finish building transaction
 		const { tx, message } = await buildTransaction.stakeCitizen(
 			connection,
 			address,
