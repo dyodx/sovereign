@@ -65,7 +65,101 @@ export type Programs = {
           "writable": true
         },
         {
-          "name": "game"
+          "name": "nation",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  110,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.id",
+                "account": "game"
+              },
+              {
+                "kind": "account",
+                "path": "nation.nation_id",
+                "account": "nation"
+              }
+            ]
+          }
+        },
+        {
+          "name": "citizenAsset"
+        },
+        {
+          "name": "stakedCitizen",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101,
+                  100,
+                  95,
+                  99,
+                  105,
+                  116,
+                  105,
+                  122,
+                  101,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.id",
+                "account": "game"
+              },
+              {
+                "kind": "account",
+                "path": "nation.nation_id",
+                "account": "nation"
+              },
+              {
+                "kind": "account",
+                "path": "citizenAsset"
+              }
+            ]
+          }
+        },
+        {
+          "name": "game",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  109,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.id",
+                "account": "game"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mplCoreProgram",
+          "address": "CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d"
         },
         {
           "name": "systemProgram",
@@ -114,6 +208,142 @@ export type Programs = {
         }
       ],
       "args": []
+    },
+    {
+      "name": "completeStake",
+      "discriminator": [
+        140,
+        11,
+        27,
+        124,
+        153,
+        43,
+        255,
+        117
+      ],
+      "accounts": [
+        {
+          "name": "playerAuthority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "citizenAsset",
+          "writable": true
+        },
+        {
+          "name": "game",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  109,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.id",
+                "account": "game"
+              }
+            ]
+          }
+        },
+        {
+          "name": "nation",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  110,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.id",
+                "account": "game"
+              },
+              {
+                "kind": "account",
+                "path": "nation.nation_id",
+                "account": "nation"
+              }
+            ]
+          }
+        },
+        {
+          "name": "stakedCitizen",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101,
+                  100,
+                  95,
+                  99,
+                  105,
+                  116,
+                  105,
+                  122,
+                  101,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.id",
+                "account": "game"
+              },
+              {
+                "kind": "account",
+                "path": "nation.nation_id",
+                "account": "nation"
+              },
+              {
+                "kind": "account",
+                "path": "citizenAsset"
+              }
+            ]
+          }
+        },
+        {
+          "name": "playerWallet",
+          "writable": true
+        },
+        {
+          "name": "mplCoreProgram",
+          "address": "CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "completeStakeArgs"
+            }
+          }
+        }
+      ]
     },
     {
       "name": "coupNation",
@@ -746,12 +976,12 @@ export type Programs = {
               },
               {
                 "kind": "account",
-                "path": "game_account.id",
+                "path": "game.id",
                 "account": "game"
               },
               {
                 "kind": "account",
-                "path": "game_account.world_agent",
+                "path": "game.world_agent",
                 "account": "game"
               }
             ]
@@ -767,7 +997,7 @@ export type Programs = {
           "signer": true
         },
         {
-          "name": "gameAccount",
+          "name": "game",
           "pda": {
             "seeds": [
               {
@@ -781,7 +1011,7 @@ export type Programs = {
               },
               {
                 "kind": "account",
-                "path": "game_account.id",
+                "path": "game.id",
                 "account": "game"
               }
             ]
@@ -1000,20 +1230,21 @@ export type Programs = {
       ]
     },
     {
-      "name": "stakeOrUnstakeCitizen",
+      "name": "stakeCitizen",
       "discriminator": [
-        92,
-        63,
-        186,
-        227,
-        249,
-        94,
-        237,
-        109
+        129,
+        35,
+        148,
+        252,
+        96,
+        177,
+        145,
+        61
       ],
       "accounts": [
         {
           "name": "playerAuthority",
+          "writable": true,
           "signer": true
         },
         {
@@ -1021,7 +1252,7 @@ export type Programs = {
           "writable": true
         },
         {
-          "name": "gameAccount",
+          "name": "game",
           "pda": {
             "seeds": [
               {
@@ -1035,8 +1266,77 @@ export type Programs = {
               },
               {
                 "kind": "account",
-                "path": "game_account.id",
+                "path": "game.id",
                 "account": "game"
+              }
+            ]
+          }
+        },
+        {
+          "name": "nation",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  110,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.id",
+                "account": "game"
+              },
+              {
+                "kind": "account",
+                "path": "nation.nation_id",
+                "account": "nation"
+              }
+            ]
+          }
+        },
+        {
+          "name": "stakedCitizen",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101,
+                  100,
+                  95,
+                  99,
+                  105,
+                  116,
+                  105,
+                  122,
+                  101,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.id",
+                "account": "game"
+              },
+              {
+                "kind": "account",
+                "path": "nation.nation_id",
+                "account": "nation"
+              },
+              {
+                "kind": "account",
+                "path": "citizenAsset"
               }
             ]
           }
@@ -1055,7 +1355,7 @@ export type Programs = {
           "name": "args",
           "type": {
             "defined": {
-              "name": "stakeOrUnstakeCitizenArgs"
+              "name": "stakeCitizenArgs"
             }
           }
         }
@@ -1371,6 +1671,19 @@ export type Programs = {
       ]
     },
     {
+      "name": "stakedCitizen",
+      "discriminator": [
+        158,
+        87,
+        64,
+        127,
+        50,
+        37,
+        53,
+        182
+      ]
+    },
+    {
       "name": "wallet",
       "discriminator": [
         24,
@@ -1396,6 +1709,19 @@ export type Programs = {
         234,
         176,
         222
+      ]
+    },
+    {
+      "name": "completeStakeEvent",
+      "discriminator": [
+        136,
+        131,
+        132,
+        20,
+        223,
+        62,
+        8,
+        159
       ]
     },
     {
@@ -1490,16 +1816,16 @@ export type Programs = {
       ]
     },
     {
-      "name": "stakeOrUnstakeCitizenEvent",
+      "name": "stakeCitizenEvent",
       "discriminator": [
-        199,
-        218,
-        192,
-        150,
-        16,
-        21,
-        69,
-        253
+        87,
+        35,
+        40,
+        73,
+        203,
+        144,
+        124,
+        90
       ]
     },
     {
@@ -1569,33 +1895,58 @@ export type Programs = {
     },
     {
       "code": 6010,
-      "name": "invalidNationIdx",
-      "msg": "Invalid Nation Index"
-    },
-    {
-      "code": 6011,
       "name": "invalidBroker",
       "msg": "Invalid Broker"
     },
     {
-      "code": 6012,
+      "code": 6011,
       "name": "bountyNotExpired",
       "msg": "Bounty Not Expired"
     },
     {
-      "code": 6013,
+      "code": 6012,
       "name": "bountyExpired",
       "msg": "Bounty Expired"
     },
     {
-      "code": 6014,
+      "code": 6013,
       "name": "gameNotOver",
       "msg": "Game Not Over"
     },
     {
-      "code": 6015,
+      "code": 6014,
       "name": "invalidCollectionKey",
       "msg": "Invalid Collection Key"
+    },
+    {
+      "code": 6015,
+      "name": "citizenAlreadyStaked",
+      "msg": "Citizen Already Staked"
+    },
+    {
+      "code": 6016,
+      "name": "citizenAttributeNotFound",
+      "msg": "CitizenAttribute Not Found"
+    },
+    {
+      "code": 6017,
+      "name": "invalidCitizenAttributeValue",
+      "msg": "Invalid Attribute Value"
+    },
+    {
+      "code": 6018,
+      "name": "stakeNotComplete",
+      "msg": "Stake Not Complete"
+    },
+    {
+      "code": 6019,
+      "name": "citizenNotStaked",
+      "msg": "Citizen Not Staked"
+    },
+    {
+      "code": 6020,
+      "name": "invalidCitizenOwner",
+      "msg": "Invalid Citizen Owner"
     }
   ],
   "types": [
@@ -1768,6 +2119,65 @@ export type Programs = {
           {
             "name": "amount",
             "type": "u64"
+          },
+          {
+            "name": "citizenAssetId",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "completeStakeArgs",
+      "type": {
+        "kind": "struct",
+        "fields": []
+      }
+    },
+    {
+      "name": "completeStakeEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "gameId",
+            "type": "u64"
+          },
+          {
+            "name": "playerAuthority",
+            "type": "string"
+          },
+          {
+            "name": "citizenAssetId",
+            "type": "string"
+          },
+          {
+            "name": "nationId",
+            "type": "u8"
+          },
+          {
+            "name": "rewardAmount",
+            "type": "u64"
+          },
+          {
+            "name": "slot",
+            "type": "u64"
+          },
+          {
+            "name": "nationFixedGdp",
+            "type": "u64"
+          },
+          {
+            "name": "nationFixedHealthcare",
+            "type": "u64"
+          },
+          {
+            "name": "nationFixedEnvironment",
+            "type": "u64"
+          },
+          {
+            "name": "nationFixedStability",
+            "type": "u64"
           }
         ]
       }
@@ -1910,6 +2320,10 @@ export type Programs = {
           {
             "name": "nationsAlive",
             "type": "u8"
+          },
+          {
+            "name": "citizenStakeLength",
+            "type": "u64"
           }
         ]
       }
@@ -2292,21 +2706,14 @@ export type Programs = {
       }
     },
     {
-      "name": "stakeOrUnstakeCitizenArgs",
+      "name": "stakeCitizenArgs",
       "type": {
         "kind": "struct",
-        "fields": [
-          {
-            "name": "nationIdx",
-            "type": {
-              "option": "u8"
-            }
-          }
-        ]
+        "fields": []
       }
     },
     {
-      "name": "stakeOrUnstakeCitizenEvent",
+      "name": "stakeCitizenEvent",
       "type": {
         "kind": "struct",
         "fields": [
@@ -2319,15 +2726,47 @@ export type Programs = {
             "type": "string"
           },
           {
-            "name": "assetId",
+            "name": "citizenAssetId",
             "type": "string"
           },
           {
-            "name": "isStaked",
-            "type": "bool"
+            "name": "nationId",
+            "type": "u8"
           },
           {
             "name": "slot",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "stakedCitizen",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "citizenAsset",
+            "type": "pubkey"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "nationId",
+            "type": "u8"
+          },
+          {
+            "name": "gameId",
+            "type": "u64"
+          },
+          {
+            "name": "rewardAmount",
+            "type": "u64"
+          },
+          {
+            "name": "completeSlot",
             "type": "u64"
           }
         ]

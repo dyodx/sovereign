@@ -1,6 +1,7 @@
 import type { SERVICE } from "./interfaces";
 import { SolanaIngress } from "./ingress";
 import { Router } from "./router";
+import { WorldAI } from "./ingress/world";
 
 class ServiceManager {
     private services: SERVICE[] = [];
@@ -67,7 +68,8 @@ async function main() {
         // Add services
         manager.addService(new SolanaIngress());
         manager.addService(new Router());
-
+        manager.addService(new WorldAI());
+        
         // Start services and keep running
         await manager.start();
     } catch (e) {
