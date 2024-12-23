@@ -8,6 +8,8 @@ import {
 	VersionedTransaction
 } from '@solana/web3.js';
 import { estimateCU, getGameAccount } from '$lib/wallet/txUtilities';
+//@ts-expect-error: todo fix types later
+import { serializeUint8, ByteifyEndianess } from 'byteify';
 
 export async function mintNewCitizen(connection: Connection, address: string) {
 	const { SVPRGM } = initAnchor();
@@ -30,7 +32,7 @@ export async function mintNewCitizen(connection: Connection, address: string) {
 		.mintCitizen()
 		.accountsPartial({
 			playerAuthority: pkey,
-			gameAccount: gameAccountKey, // get admin key
+			game: gameAccountKey, // get admin key
 			worldAgentWallet: anchor.web3.PublicKey.findProgramAddressSync(
 				[
 					Buffer.from('wallet'),
@@ -80,7 +82,7 @@ export async function stakeCitizen(
 	const { SVPRGM } = initAnchor();
 
 	const pkey = new PublicKey(address);
-	const citizenAsset = new PublicKey(citizenAddress);
+	const citizenPkey = new PublicKey(citizenAddress);
 	const {
 		Uint8Array: gameIdInBytes,
 		gameAccountKey,
@@ -93,18 +95,38 @@ export async function stakeCitizen(
 		bigNumber: gameMetaData.mintCost / LAMPORTS_PER_SOL
 	});
 
+	const nationIdInBytes = Uint8Array.from(
+		serializeUint8(nationId, {
+			endianess: ByteifyEndianess.LITTLE_ENDIAN
+		})
+	);
+
 	// const citizenAsset = anchor.web3.Keypair.generate();
+	const [stakedCitizenAccount] = anchor.web3.PublicKey.findProgramAddressSync(
+		[
+			Buffer.from('staked_citizen'),
+			gameIdInBytes,
+			nationIdInBytes,
+			citizenPkey.toBytes()
+		],
+		SVPRGM.programId
+	);
+
+	const [nationAccount] = anchor.web3.PublicKey.findProgramAddressSync(
+		[Buffer.from('nation'), gameIdInBytes, nationIdInBytes],
+		SVPRGM.programId
+	);
 
 	const stakeCitizenIx = await SVPRGM.methods
-		.stakeOrUnstakeCitizen()
+		.stakeCitizen({})
 		.accountsPartial({
 			playerAuthority: pkey,
-			citizenAsset: citizenAsset,
-			gameAccount: gameAccountKey // get admin key
-			// nation: BigInt(nationId),
-			// stakedCitizen: citizenAsset // TODO: is this correct?
+			citizenAsset: citizenPkey,
+			game: gameAccountKey,
+			nation: nationAccount,
+			stakedCitizen: stakedCitizenAccount,
+			collection: gameMetaData.collection // wait for fix
 		})
-		// .signers([citizenAsset])
 		.instruction();
 
 	const estimatedCU = await estimateCU(pkey, [stakeCitizenIx], connection);
@@ -124,7 +146,6 @@ export async function stakeCitizen(
 		}).compileToLegacyMessage()
 	);
 
-	// tx.sign([citizenAsset]);
 	const message = Buffer.from(tx.message.serialize()).toString('base64');
 
 	return {

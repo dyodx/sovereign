@@ -218,6 +218,7 @@ pub fn stake_citizen(ctx: Context<StakeCitizen>, _args: StakeCitizenArgs) -> Res
     ];
     UpdatePluginV1CpiBuilder::new(&ctx.accounts.mpl_core_program.to_account_info())
         .asset(&ctx.accounts.citizen_asset.to_account_info())
+        .collection(Some(&ctx.accounts.collection.to_account_info()))
         .plugin(Plugin::FreezeDelegate(FreezeDelegate { frozen: true }))
         .authority(Some(&ctx.accounts.game.to_account_info()))
         .payer(&ctx.accounts.player_authority.to_account_info())
@@ -336,6 +337,7 @@ pub struct StakeCitizen<'info> {
         bump
     )]
     pub staked_citizen: Account<'info, StakedCitizen>,
+    pub collection: Account<'info, BaseCollectionV1>,
     /// CHECK: constraint checks it
     #[account(address = MPL_CORE_ID)]
     pub mpl_core_program: UncheckedAccount<'info>,
@@ -429,6 +431,7 @@ pub fn complete_stake(ctx: Context<CompleteStake>, _args: CompleteStakeArgs) -> 
     ];
     UpdatePluginV1CpiBuilder::new(&ctx.accounts.mpl_core_program.to_account_info())
         .asset(&ctx.accounts.citizen_asset.to_account_info())
+        .collection(Some(&ctx.accounts.collection.to_account_info()))
         .plugin(Plugin::FreezeDelegate(FreezeDelegate { frozen: false }))
         .authority(Some(&ctx.accounts.game.to_account_info()))
         .payer(&ctx.accounts.player_authority.to_account_info())
@@ -494,6 +497,7 @@ pub struct CompleteStake<'info> {
     pub staked_citizen: Account<'info, StakedCitizen>,
     #[account(mut)]
     pub player_wallet: Box<Account<'info, Wallet>>,
+    pub collection: Account<'info, BaseCollectionV1>,
     /// CHECK: constraint checks it
     #[account(address = MPL_CORE_ID)]
     pub mpl_core_program: UncheckedAccount<'info>,
