@@ -7,6 +7,17 @@
 	import { IconGavel, IconLeaf, IconMoneyBag, IconStethoscope } from '$lib/components/atoms/icons';
 	import { queries } from '$lib/services/queries';
 
+	/**
+  operations show up without any user input
+  - fetching operations will be rest endpoint
+  - submitting successfully found hash will be a transaction
+
+  <nationState> wants you to sabotage <citizen> working for <nation>. <explain hashing in fun way>
+
+  one action button to start hashing (add loading spinner)
+  clicking on another action button will stop the first (modal to confirm?)
+  */
+
 	const nationStates = queries.getNations();
 
 	type Category = 'environment' | 'gdp' | 'healthcare' | 'stability';
