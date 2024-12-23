@@ -14,7 +14,7 @@ import {
 //@ts-expect-error: todo fix types later
 import { serializeUint64, ByteifyEndianess } from 'byteify';
 import { estimateCU, getGameAccount } from './txUtilities';
-import { mintNewCitizen } from './txHelpers/citizen';
+import { mintNewCitizen, stakeCitizen } from './txHelpers/citizen';
 import { registerPlayer } from './txHelpers/player';
 
 async function sendOneLamportToSelf(connection: Connection, address: string) {
@@ -72,7 +72,8 @@ export async function buildRequest(
 }
 
 export const buildTransaction = {
-	sendOneLamportToSelf,
 	mintNewCitizen,
-	registerPlayer
+	registerPlayer,
+	sendOneLamportToSelf,
+	stakeCitizen
 };

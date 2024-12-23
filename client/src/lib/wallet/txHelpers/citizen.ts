@@ -70,3 +70,65 @@ export async function mintNewCitizen(connection: Connection, address: string) {
 		message
 	};
 }
+
+export async function stakeCitizen(
+	connection: Connection,
+	address: string,
+	citizenAddress: string,
+	nationId: number
+) {
+	const { SVPRGM } = initAnchor();
+
+	const pkey = new PublicKey(address);
+	const citizenAsset = new PublicKey(citizenAddress);
+	const {
+		Uint8Array: gameIdInBytes,
+		gameAccountKey,
+		getGameMetaData
+	} = getGameAccount();
+
+	const gameMetaData = await getGameMetaData();
+	console.log({
+		gameMetaData,
+		bigNumber: gameMetaData.mintCost / LAMPORTS_PER_SOL
+	});
+
+	// const citizenAsset = anchor.web3.Keypair.generate();
+
+	const stakeCitizenIx = await SVPRGM.methods
+		.stakeOrUnstakeCitizen()
+		.accountsPartial({
+			playerAuthority: pkey,
+			citizenAsset: citizenAsset,
+			gameAccount: gameAccountKey // get admin key
+			// nation: BigInt(nationId),
+			// stakedCitizen: citizenAsset // TODO: is this correct?
+		})
+		// .signers([citizenAsset])
+		.instruction();
+
+	const estimatedCU = await estimateCU(pkey, [stakeCitizenIx], connection);
+	const tx = new VersionedTransaction(
+		new TransactionMessage({
+			payerKey: pkey,
+			recentBlockhash: (await connection.getLatestBlockhash()).blockhash,
+			instructions: [
+				anchor.web3.ComputeBudgetProgram.setComputeUnitPrice({
+					microLamports: 1_000_000 // todo turn into constant
+				}),
+				anchor.web3.ComputeBudgetProgram.setComputeUnitLimit({
+					units: estimatedCU
+				}),
+				stakeCitizenIx
+			]
+		}).compileToLegacyMessage()
+	);
+
+	// tx.sign([citizenAsset]);
+	const message = Buffer.from(tx.message.serialize()).toString('base64');
+
+	return {
+		tx,
+		message
+	};
+}

@@ -1,5 +1,5 @@
 import { PUBLIC_RPC_URL } from '$env/static/public';
-import { walletStore } from '$lib/stores/wallet.svelte';
+import { updateWalletStore, walletStore } from '$lib/stores/wallet.svelte';
 import Privy, {
 	getAllUserEmbeddedSolanaWallets,
 	type PrivyEmbeddedSolanaWalletProvider
@@ -46,6 +46,7 @@ async function createEmbeddedWallet(props: {
 
 async function getWalletBalance(address: string) {
 	const connection = new Connection(PUBLIC_RPC_URL as string);
+	updateWalletStore.setConnection(connection);
 
 	if (!connection || !address) {
 		return 0;
