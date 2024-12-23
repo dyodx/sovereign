@@ -20,18 +20,18 @@
 	import { walletStore } from '$lib/stores/wallet.svelte';
 	import { PublicKey } from '@solana/web3.js';
 	import { buildRequest, buildTransaction } from '$lib/wallet/txHelpers';
+	import IconStopwatch from '$lib/components/atoms/icons/IconStopwatch.svelte';
 
 	const nationStates = queries.getNations();
-
 	const [_SOLANA, ...NATION_STATES] = _NATION_STATES;
 
 	let { citizenId, children } = $props();
 	const { firstName, lastName } = generateNamePair(citizenId);
-
 	const umi = createUmi(PUBLIC_RPC_URL).use(mplCore());
 	const asset = fetchAssetV1(umi, citizenId);
 
 	let selectedNation: string = $state('');
+	const currencyRegex = /\b(?:and|of|the|Democratic)\b|\s+|'/gi;
 
 	type CitizenAttribute =
 		| 'game'
@@ -40,7 +40,6 @@
 		| 'healthcare_fix'
 		| 'environment_fix'
 		| 'stability_fix';
-
 	function getAttribute(key: CitizenAttribute, asset: AssetV1) {
 		return asset.attributes?.attributeList.find((e) => e.key === key)?.value;
 	}
@@ -54,7 +53,6 @@
 		});
 		return nation;
 	}
-
 	function getRewardForStake(citizen: AssetV1) {
 		const d = getNationData() as NationDTO;
 		if (!d) return { rewards: [], total: 0 };
@@ -108,12 +106,20 @@
 
 		const pkey = new PublicKey(address);
 
-		const { tx, message } = await buildTransaction.mintNewCitizen(connection, address);
+		const citizen = await asset.catch((e) => console.error('Error fetching citizen:', e));
+		if (!citizen) return console.error('No citizen found', { citizenId });
+
+		const totalStakingReward = getRewardForStake(citizen).total;
+
+		console.log('TODO: send transaction');
+		return;
+
+		// TODO: Finish building transaction
+		const { tx, message } = await buildTransaction.stakeCitizen(connection, address, citizenId);
 		const signed = await buildRequest(provider, message, address);
 		tx.addSignature(pkey, Uint8Array.from(Buffer.from(signed, 'base64')));
 
 		const confirmedSentTx = await connection.sendTransaction(tx);
-		console.info('CONFIRMED SENT TX:', confirmedSentTx);
 		confirmedTx = confirmedSentTx;
 	}
 </script>
@@ -236,7 +242,7 @@
 										<p class="text-xl font-bold">{getRewardForStake(citizen).total}</p>
 									{/key}
 									<p class="font-bold">
-										{`$${selectedNation.replace(/\b(?:and|of|the|Democratic)\b|\s+|'/gi, '')}`}
+										{`$${selectedNation.replace(currencyRegex, '')}`}
 									</p>
 									<p class="text-xs font-thin">/per stake (6hrs)</p>
 								{/if}
@@ -244,12 +250,19 @@
 						</div>
 					</div>
 
-					<button
-						class="mt-4 w-full rounded-xl border-2 border-black bg-black p-2 transition-all hover:bg-black"
-					>
-						Stake for
-						{selectedNation === '' ? '...' : `$${selectedNation}`}
-					</button>
+					<div class="flex items-center gap-2">
+						{#if selectedNation !== ''}
+							<IconStopwatch />
+							<p>6hrs</p>
+						{/if}
+						<button
+							class=" w-full rounded-xl border-2 border-black bg-black p-2 transition-all hover:opacity-80 active:opacity-70"
+							onclick={stakeCitizen}
+						>
+							Stake for
+							{selectedNation === '' ? '...' : `$${selectedNation.replace(currencyRegex, '')}`}
+						</button>
+					</div>
 				</div>
 			</Dialog.Description>
 		</Dialog.Header>
