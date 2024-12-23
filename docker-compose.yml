@@ -47,6 +47,7 @@ services:
       - SOLANA_RPC_URL=http://solana-validator:8899
       - SOLANA_WS_URL=ws://solana-validator:8900
       - SERVER_URL=http://localhost:5600
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
     depends_on:
       - postgres
       - keydb
