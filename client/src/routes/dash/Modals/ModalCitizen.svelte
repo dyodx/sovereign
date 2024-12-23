@@ -115,7 +115,12 @@
 		return;
 
 		// TODO: Finish building transaction
-		const { tx, message } = await buildTransaction.stakeCitizen(connection, address, citizenId);
+		const { tx, message } = await buildTransaction.stakeCitizen(
+			connection,
+			address,
+			citizenId,
+			getNationId(selectedNation)
+		);
 		const signed = await buildRequest(provider, message, address);
 		tx.addSignature(pkey, Uint8Array.from(Buffer.from(signed, 'base64')));
 

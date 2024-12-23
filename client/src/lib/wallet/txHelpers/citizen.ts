@@ -74,11 +74,13 @@ export async function mintNewCitizen(connection: Connection, address: string) {
 export async function stakeCitizen(
 	connection: Connection,
 	address: string,
-	citizenAddress: string
+	citizenAddress: string,
+	nationId: number
 ) {
 	const { SVPRGM } = initAnchor();
 
 	const pkey = new PublicKey(address);
+	const citizenAsset = new PublicKey(citizenAddress);
 	const {
 		Uint8Array: gameIdInBytes,
 		gameAccountKey,
@@ -95,20 +97,13 @@ export async function stakeCitizen(
 
 	const stakeCitizenIx = await SVPRGM.methods
 		.stakeOrUnstakeCitizen()
-		// .accountsPartial({
-		// 	playerAuthority: pkey,
-		// 	gameAccount: gameAccountKey, // get admin key
-		// 	worldAgentWallet: anchor.web3.PublicKey.findProgramAddressSync(
-		// 		[
-		// 			Buffer.from('wallet'),
-		// 			gameIdInBytes,
-		// 			gameMetaData.worldAgent.toBytes()
-		// 		],
-		// 		SVPRGM.programId
-		// 	)[0],
-		// 	collection: gameMetaData.collection,
-		// 	citizenAsset: citizenAsset.publicKey // check metaplex
-		// })
+		.accountsPartial({
+			playerAuthority: pkey,
+			citizenAsset: citizenAsset,
+			gameAccount: gameAccountKey // get admin key
+			// nation: BigInt(nationId),
+			// stakedCitizen: citizenAsset // TODO: is this correct?
+		})
 		// .signers([citizenAsset])
 		.instruction();
 
