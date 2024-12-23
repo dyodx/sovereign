@@ -1,7 +1,13 @@
+import { getNationName } from '$lib/utilsNation';
+
 export function getCountryFlag(
-	countryName: keyof typeof nationStateFlags
+	countryName: keyof typeof nationStateFlags | number
 ): string | undefined {
-	return nationStateFlags[countryName];
+	let name = countryName;
+	if (typeof countryName === 'number') {
+		name = getNationName(countryName);
+	}
+	return nationStateFlags[name];
 }
 
 export const nationStateFlags: Record<string, string> = {
