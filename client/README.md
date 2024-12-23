@@ -40,16 +40,15 @@ for development
     - bounties are where you can trigger PoW
     - empty placeholders are on `src/routes/dash/States.svelte` (under table)
 
-- PoW need to add hashing
+# PoW (hashing)
+    - will be used for sabotage. Players claim bounties and hash them and submit proof.
     - check this implementation: https://github.com/SPCG-NEST/sovereign/blob/develop-v2/circuits/tests/test01/test.ts
     - check out how to to do multithreading in mobile (in service worker)
     - bountyHashLimited > threshold = success
-    - ```
+        ```
         const bountyHash = poseidon4(inputs);
         const bountyHashLimited = reduceTo252Bits(numberToUint8Array(bountyHash));
-    
-
-
+        ```
 
 ---
 
