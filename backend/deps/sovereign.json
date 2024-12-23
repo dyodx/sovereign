@@ -59,7 +59,101 @@
           "writable": true
         },
         {
-          "name": "game"
+          "name": "nation",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  110,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.id",
+                "account": "Game"
+              },
+              {
+                "kind": "account",
+                "path": "nation.nation_id",
+                "account": "Nation"
+              }
+            ]
+          }
+        },
+        {
+          "name": "citizen_asset"
+        },
+        {
+          "name": "staked_citizen",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101,
+                  100,
+                  95,
+                  99,
+                  105,
+                  116,
+                  105,
+                  122,
+                  101,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.id",
+                "account": "Game"
+              },
+              {
+                "kind": "account",
+                "path": "nation.nation_id",
+                "account": "Nation"
+              },
+              {
+                "kind": "account",
+                "path": "citizen_asset"
+              }
+            ]
+          }
+        },
+        {
+          "name": "game",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  109,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.id",
+                "account": "Game"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mpl_core_program",
+          "address": "CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d"
         },
         {
           "name": "system_program",
@@ -108,6 +202,142 @@
         }
       ],
       "args": []
+    },
+    {
+      "name": "complete_stake",
+      "discriminator": [
+        140,
+        11,
+        27,
+        124,
+        153,
+        43,
+        255,
+        117
+      ],
+      "accounts": [
+        {
+          "name": "player_authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "citizen_asset",
+          "writable": true
+        },
+        {
+          "name": "game",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  109,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.id",
+                "account": "Game"
+              }
+            ]
+          }
+        },
+        {
+          "name": "nation",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  110,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.id",
+                "account": "Game"
+              },
+              {
+                "kind": "account",
+                "path": "nation.nation_id",
+                "account": "Nation"
+              }
+            ]
+          }
+        },
+        {
+          "name": "staked_citizen",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101,
+                  100,
+                  95,
+                  99,
+                  105,
+                  116,
+                  105,
+                  122,
+                  101,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.id",
+                "account": "Game"
+              },
+              {
+                "kind": "account",
+                "path": "nation.nation_id",
+                "account": "Nation"
+              },
+              {
+                "kind": "account",
+                "path": "citizen_asset"
+              }
+            ]
+          }
+        },
+        {
+          "name": "player_wallet",
+          "writable": true
+        },
+        {
+          "name": "mpl_core_program",
+          "address": "CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "CompleteStakeArgs"
+            }
+          }
+        }
+      ]
     },
     {
       "name": "coup_nation",
@@ -740,12 +970,12 @@
               },
               {
                 "kind": "account",
-                "path": "game_account.id",
+                "path": "game.id",
                 "account": "Game"
               },
               {
                 "kind": "account",
-                "path": "game_account.world_agent",
+                "path": "game.world_agent",
                 "account": "Game"
               }
             ]
@@ -761,7 +991,7 @@
           "signer": true
         },
         {
-          "name": "game_account",
+          "name": "game",
           "pda": {
             "seeds": [
               {
@@ -775,7 +1005,7 @@
               },
               {
                 "kind": "account",
-                "path": "game_account.id",
+                "path": "game.id",
                 "account": "Game"
               }
             ]
@@ -994,20 +1224,21 @@
       ]
     },
     {
-      "name": "stake_or_unstake_citizen",
+      "name": "stake_citizen",
       "discriminator": [
-        92,
-        63,
-        186,
-        227,
-        249,
-        94,
-        237,
-        109
+        129,
+        35,
+        148,
+        252,
+        96,
+        177,
+        145,
+        61
       ],
       "accounts": [
         {
           "name": "player_authority",
+          "writable": true,
           "signer": true
         },
         {
@@ -1015,7 +1246,7 @@
           "writable": true
         },
         {
-          "name": "game_account",
+          "name": "game",
           "pda": {
             "seeds": [
               {
@@ -1029,8 +1260,77 @@
               },
               {
                 "kind": "account",
-                "path": "game_account.id",
+                "path": "game.id",
                 "account": "Game"
+              }
+            ]
+          }
+        },
+        {
+          "name": "nation",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  110,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.id",
+                "account": "Game"
+              },
+              {
+                "kind": "account",
+                "path": "nation.nation_id",
+                "account": "Nation"
+              }
+            ]
+          }
+        },
+        {
+          "name": "staked_citizen",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101,
+                  100,
+                  95,
+                  99,
+                  105,
+                  116,
+                  105,
+                  122,
+                  101,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.id",
+                "account": "Game"
+              },
+              {
+                "kind": "account",
+                "path": "nation.nation_id",
+                "account": "Nation"
+              },
+              {
+                "kind": "account",
+                "path": "citizen_asset"
               }
             ]
           }
@@ -1049,7 +1349,7 @@
           "name": "args",
           "type": {
             "defined": {
-              "name": "StakeOrUnstakeCitizenArgs"
+              "name": "StakeCitizenArgs"
             }
           }
         }
@@ -1365,6 +1665,19 @@
       ]
     },
     {
+      "name": "StakedCitizen",
+      "discriminator": [
+        158,
+        87,
+        64,
+        127,
+        50,
+        37,
+        53,
+        182
+      ]
+    },
+    {
       "name": "Wallet",
       "discriminator": [
         24,
@@ -1390,6 +1703,19 @@
         234,
         176,
         222
+      ]
+    },
+    {
+      "name": "CompleteStakeEvent",
+      "discriminator": [
+        136,
+        131,
+        132,
+        20,
+        223,
+        62,
+        8,
+        159
       ]
     },
     {
@@ -1484,16 +1810,16 @@
       ]
     },
     {
-      "name": "StakeOrUnstakeCitizenEvent",
+      "name": "StakeCitizenEvent",
       "discriminator": [
-        199,
-        218,
-        192,
-        150,
-        16,
-        21,
-        69,
-        253
+        87,
+        35,
+        40,
+        73,
+        203,
+        144,
+        124,
+        90
       ]
     },
     {
@@ -1563,33 +1889,58 @@
     },
     {
       "code": 6010,
-      "name": "InvalidNationIdx",
-      "msg": "Invalid Nation Index"
-    },
-    {
-      "code": 6011,
       "name": "InvalidBroker",
       "msg": "Invalid Broker"
     },
     {
-      "code": 6012,
+      "code": 6011,
       "name": "BountyNotExpired",
       "msg": "Bounty Not Expired"
     },
     {
-      "code": 6013,
+      "code": 6012,
       "name": "BountyExpired",
       "msg": "Bounty Expired"
     },
     {
-      "code": 6014,
+      "code": 6013,
       "name": "GameNotOver",
       "msg": "Game Not Over"
     },
     {
-      "code": 6015,
+      "code": 6014,
       "name": "InvalidCollectionKey",
       "msg": "Invalid Collection Key"
+    },
+    {
+      "code": 6015,
+      "name": "CitizenAlreadyStaked",
+      "msg": "Citizen Already Staked"
+    },
+    {
+      "code": 6016,
+      "name": "CitizenAttributeNotFound",
+      "msg": "CitizenAttribute Not Found"
+    },
+    {
+      "code": 6017,
+      "name": "InvalidCitizenAttributeValue",
+      "msg": "Invalid Attribute Value"
+    },
+    {
+      "code": 6018,
+      "name": "StakeNotComplete",
+      "msg": "Stake Not Complete"
+    },
+    {
+      "code": 6019,
+      "name": "CitizenNotStaked",
+      "msg": "Citizen Not Staked"
+    },
+    {
+      "code": 6020,
+      "name": "InvalidCitizenOwner",
+      "msg": "Invalid Citizen Owner"
     }
   ],
   "types": [
@@ -1762,6 +2113,65 @@
           {
             "name": "amount",
             "type": "u64"
+          },
+          {
+            "name": "citizen_asset_id",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CompleteStakeArgs",
+      "type": {
+        "kind": "struct",
+        "fields": []
+      }
+    },
+    {
+      "name": "CompleteStakeEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "game_id",
+            "type": "u64"
+          },
+          {
+            "name": "player_authority",
+            "type": "string"
+          },
+          {
+            "name": "citizen_asset_id",
+            "type": "string"
+          },
+          {
+            "name": "nation_id",
+            "type": "u8"
+          },
+          {
+            "name": "reward_amount",
+            "type": "u64"
+          },
+          {
+            "name": "slot",
+            "type": "u64"
+          },
+          {
+            "name": "nation_fixed_gdp",
+            "type": "u64"
+          },
+          {
+            "name": "nation_fixed_healthcare",
+            "type": "u64"
+          },
+          {
+            "name": "nation_fixed_environment",
+            "type": "u64"
+          },
+          {
+            "name": "nation_fixed_stability",
+            "type": "u64"
           }
         ]
       }
@@ -1904,6 +2314,10 @@
           {
             "name": "nations_alive",
             "type": "u8"
+          },
+          {
+            "name": "citizen_stake_length",
+            "type": "u64"
           }
         ]
       }
@@ -2286,21 +2700,14 @@
       }
     },
     {
-      "name": "StakeOrUnstakeCitizenArgs",
+      "name": "StakeCitizenArgs",
       "type": {
         "kind": "struct",
-        "fields": [
-          {
-            "name": "nation_idx",
-            "type": {
-              "option": "u8"
-            }
-          }
-        ]
+        "fields": []
       }
     },
     {
-      "name": "StakeOrUnstakeCitizenEvent",
+      "name": "StakeCitizenEvent",
       "type": {
         "kind": "struct",
         "fields": [
@@ -2313,15 +2720,47 @@
             "type": "string"
           },
           {
-            "name": "asset_id",
+            "name": "citizen_asset_id",
             "type": "string"
           },
           {
-            "name": "is_staked",
-            "type": "bool"
+            "name": "nation_id",
+            "type": "u8"
           },
           {
             "name": "slot",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "StakedCitizen",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "citizen_asset",
+            "type": "pubkey"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "nation_id",
+            "type": "u8"
+          },
+          {
+            "name": "game_id",
+            "type": "u64"
+          },
+          {
+            "name": "reward_amount",
+            "type": "u64"
+          },
+          {
+            "name": "complete_slot",
             "type": "u64"
           }
         ]
