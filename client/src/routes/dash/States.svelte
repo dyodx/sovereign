@@ -2,7 +2,7 @@
 	import { cn } from '$lib/utils.js';
 	import * as Table from '$lib/components/ui/table';
 	import TipOperations from './Tooltips/TipOperations.svelte';
-	import { api, type NationDTO } from '$lib/services/apiClient';
+	import { type NationDTO } from '$lib/services/apiClient';
 	import { NATION_STATES } from '$lib/constants/nations';
 	import { IconGavel, IconLeaf, IconMoneyBag, IconStethoscope } from '$lib/components/atoms/icons';
 	import { queries } from '$lib/services/queries';
