@@ -115,9 +115,10 @@ pub fn mint_citizen(ctx: Context<MintCitizen>) -> Result<()> {
     let healthcare_fix = hash_bytes[1] as u8;
     let environment_fix = hash_bytes[2] as u8;
     let stability_fix = hash_bytes[3] as u8;
-    let nation_state_idx = u32::from_be_bytes(clock.slot.to_be_bytes()[4..8].try_into().unwrap())
-        as usize
-        % NATION_STATES.len();
+    let nation_state_idx = {
+        let tmp = u32::from_be_bytes(clock.slot.to_be_bytes()[4..8].try_into().unwrap()) as usize % NATION_STATES.len();
+        if tmp == 0 { 1 } else { tmp }
+    };
     let nation_state = NATION_STATES[nation_state_idx];
 
     CreateV2CpiBuilder::new(&ctx.accounts.mpl_core_program.to_account_info())
