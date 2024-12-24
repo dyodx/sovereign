@@ -165,16 +165,15 @@ export class Router implements SERVICE {
                     // TODO (Let nation know)
                     // TODO (Journalist JOB)
                     break;
-                case "registerBountyEvent":
+                case "depositToBrokerEvent":
                     // Event for when the nation wants the broker to create an onchain bounty
                     await this.JOBS_QUEUE.add(
-                        "registerBounty",
+                        "depositToBroker",
                         {
                             gameId: event.data.gameId,
-                            bountyHash: event.data.bountyHash,
+                            nationId: event.data.nationId,
                             amount: event.data.amount,
-                            expirySlot: event.data.expirySlot,
-                        } as Jobs.RegisterBountyJob,
+                        } as Jobs.DepositToBrokerJob,
                         REMOVE_OPTS
                     );
                     break;
@@ -196,8 +195,6 @@ export class Router implements SERVICE {
                     // TODO (Journalist JOB)
                     break;
                 case "mintTokensToPlayerWalletEvent":
-                    break;
-                case "depositToBrokerEvents":
                     break;
                 case "nationDissolutionEvent":
                     break;

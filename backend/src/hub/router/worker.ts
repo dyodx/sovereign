@@ -27,8 +27,8 @@ export default async function worker(job: Job) {
             case "createStakedCitizenInDb":
                 await createStakedCitizenInDB(job.data as Jobs.CreateStakedCitizenInDBJob);
                 break;
-            case "registerBounty":
-                await registerBounty(job.data as Jobs.RegisterBountyJob);
+            case "depositToBroker":
+                await depositToBroker(job.data as Jobs.DepositToBrokerJob);
                 break;
             case "createBountyInDB":
                 await createBountyInDB(job.data as Jobs.CreateBountyInDBJob);
@@ -308,68 +308,69 @@ export async function createStakedCitizenInDB(job: Jobs.CreateStakedCitizenInDBJ
     }
 }
 
-export async function registerBounty(job: Jobs.RegisterBountyJob) {
-    // Create the game authority keypair
-    const gameData = await DB.game.findUnique({
-        where: {
-            gameId: BigInt(job.gameId),
-        },
-    });
-    if (!gameData) {
-        throw new Error(`Game not found: ${job.gameId}`);
-    }
-    const gameAuthority = Keypair.fromSecretKey(bs58.decode(gameData.adminPrivateKey));
+export async function depositToBroker(job: Jobs.DepositToBrokerJob) {
+    // TODO
+    // // Create the game authority keypair
+    // const gameData = await DB.game.findUnique({
+    //     where: {
+    //         gameId: BigInt(job.gameId),
+    //     },
+    // });
+    // if (!gameData) {
+    //     throw new Error(`Game not found: ${job.gameId}`);
+    // }
+    // const gameAuthority = Keypair.fromSecretKey(bs58.decode(gameData.adminPrivateKey));
 
-    // Convert bounty hash string to bytes
-    const bountyHashBytes = Buffer.from(job.bountyHash, 'hex');
-    if (bountyHashBytes.length !== 32) {
-        throw new Error('Bounty hash must be 32 bytes');
-    }
+    // // Convert bounty hash string to bytes
+    // const bountyHashBytes = Buffer.from(job.bountyHash, 'hex');
+    // if (bountyHashBytes.length !== 32) {
+    //     throw new Error('Bounty hash must be 32 bytes');
+    // }
 
-    const gamePDA = PublicKey.findProgramAddressSync(
-        [
-            Buffer.from(ACCOUNT_SEEDS.GAME),
-            Uint8Array.from(serializeUint64(gameData.gameId, { endianess: ByteifyEndianess.LITTLE_ENDIAN }))
-        ],
-        SVPRGM.programId
-    )[0];
-    const bountyPDA = PublicKey.findProgramAddressSync(
-        [
-            Buffer.from(ACCOUNT_SEEDS.BOUNTY),
-            Uint8Array.from(serializeUint64(gameData.gameId, { endianess: ByteifyEndianess.LITTLE_ENDIAN })),
-            bountyHashBytes
-        ],
-        SVPRGM.programId
-    )[0];
+    // const gamePDA = PublicKey.findProgramAddressSync(
+    //     [
+    //         Buffer.from(ACCOUNT_SEEDS.GAME),
+    //         Uint8Array.from(serializeUint64(gameData.gameId, { endianess: ByteifyEndianess.LITTLE_ENDIAN }))
+    //     ],
+    //     SVPRGM.programId
+    // )[0];
+    // const bountyPDA = PublicKey.findProgramAddressSync(
+    //     [
+    //         Buffer.from(ACCOUNT_SEEDS.BOUNTY),
+    //         Uint8Array.from(serializeUint64(gameData.gameId, { endianess: ByteifyEndianess.LITTLE_ENDIAN })),
+    //         bountyHashBytes
+    //     ],
+    //     SVPRGM.programId
+    // )[0];
 
-    // Create and send the transaction
-    const ix = await SVPRGM.methods
-        .createBounty({
-            bountyHash: Array.from(bountyHashBytes),
-            amount: new BN(job.amount),
-            expirySlot: new BN(job.expirySlot)
-        })
-        .accountsPartial({
-            brokerKey: gameAuthority.publicKey,
-            game: gamePDA,
-            bounty: bountyPDA,
-            systemProgram: SYSTEM_PROGRAM_ID
-        })
-        .instruction();
+    // // Create and send the transaction
+    // const ix = await SVPRGM.methods
+    //     .createBounty({
+    //         bountyHash: Array.from(bountyHashBytes),
+    //         amount: new BN(job.amount),
+    //         expirySlot: new BN(job.expirySlot)
+    //     })
+    //     .accountsPartial({
+    //         brokerKey: gameAuthority.publicKey,
+    //         game: gamePDA,
+    //         bounty: bountyPDA,
+    //         systemProgram: SYSTEM_PROGRAM_ID
+    //     })
+    //     .instruction();
 
-    const tx = new VersionedTransaction(new TransactionMessage({
-        payerKey: gameAuthority.publicKey,
-        recentBlockhash: (await CONNECTION.getLatestBlockhash()).blockhash,
-        instructions: [
-            ComputeBudgetProgram.setComputeUnitPrice({ microLamports: COMPUTE_UNIT_PRICE }),
-            ComputeBudgetProgram.setComputeUnitLimit({ units: await estimateCU(gameAuthority.publicKey, [ix]) }),
-            ix
-        ]
-    }).compileToV0Message());
+    // const tx = new VersionedTransaction(new TransactionMessage({
+    //     payerKey: gameAuthority.publicKey,
+    //     recentBlockhash: (await CONNECTION.getLatestBlockhash()).blockhash,
+    //     instructions: [
+    //         ComputeBudgetProgram.setComputeUnitPrice({ microLamports: COMPUTE_UNIT_PRICE }),
+    //         ComputeBudgetProgram.setComputeUnitLimit({ units: await estimateCU(gameAuthority.publicKey, [ix]) }),
+    //         ix
+    //     ]
+    // }).compileToV0Message());
 
-    tx.sign([gameAuthority]);
-    const sig = await CONNECTION.sendTransaction(tx);
-    console.log(`Registered bounty with sig ${sig}`);
+    // tx.sign([gameAuthority]);
+    // const sig = await CONNECTION.sendTransaction(tx);
+    // console.log(`Registered bounty with sig ${sig}`);
 }
 
 export async function createBountyInDB(job: Jobs.CreateBountyInDBJob) {

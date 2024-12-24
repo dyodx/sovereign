@@ -35,11 +35,10 @@ export interface CreateStakedCitizenInDBJob {
     completeSlot: number | bigint;
 }
 
-export interface RegisterBountyJob {
+export interface DepositToBrokerJob {
     gameId: string;
-    bountyHash: string;
+    nationId: number;
     amount: number;
-    expirySlot: number;
 }
 
 export interface CreateBountyInDBJob {
