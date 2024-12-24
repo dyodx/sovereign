@@ -2,8 +2,12 @@
 	import TipOperations from './Tooltips/TipOperations.svelte';
 	import { cn } from '$lib/utils.js';
 	import { getCountryFlag } from '$lib/constants/flags';
-	import { getNationName } from '$lib/utilsNation';
+	import { getNationName, getNationCurrencyName } from '$lib/utilsNation';
 	import HyperText from '$lib/components/atoms/HyperText/HyperText.svelte';
+	import IconRewardCoins from '$lib/components/atoms/icons/IconRewardCoins.svelte';
+	import { IconSolana } from '$lib/components/atoms/icons';
+
+	let activeOperationId = $state<number | null>(null);
 </script>
 
 <div class="flex flex-wrap justify-between gap-2">
@@ -11,10 +15,23 @@
 	<TipOperations />
 </div>
 
-{#snippet operation(title: string, nationId: number, desc: string = '', isActive = false)}
+{#snippet operation({
+	opId: operationId,
+	isActive = false,
+	reward = 0.05,
+	nationId,
+	...props
+}: {
+	reward: number;
+	opId: string;
+	title: string;
+	nationId: number;
+	desc?: string;
+	isActive?: boolean;
+})}
 	<div class="flex flex-col rounded-xl bg-panel p-2 text-xl font-thin text-foreground">
 		<div class="flex justify-between">
-			<p class="font-light">{title}</p>
+			<p class="font-medium">{props.title}</p>
 			<div
 				class={cn(
 					'h-5 w-5 rounded-full border-4 border-background ',
@@ -31,30 +48,68 @@
 				{getNationName(nationId)}
 			</span>
 		</div>
-		<div class="rounded-b bg-black p-2 text-xs">
-			<p>{desc}</p>
+		<div class="bg-black p-2 text-xs">
+			<p>{props.desc}</p>
+		</div>
+		<div class="flex items-center justify-between rounded-b bg-background p-2 text-xs">
+			<p>Bounty</p>
+			<div class={cn('flex items-center gap-1 text-sm', isActive && 'animate-bounce')}>
+				<span>{reward}</span>
+				<IconSolana />
+			</div>
 		</div>
 		{#if isActive}
-			<HyperText text="Hacking" />
+			<div class="flex flex-grow items-end justify-between px-2 text-sm">
+				<HyperText
+					textLength={28}
+					intervalTime={3000}
+					texts={[
+						'ACCESS GRANTED TO MAINFRAME',
+						'DECODING ENCRYPTED PAYLOAD',
+						'BREACH DETECTED: INITIATE TRACE',
+						'OVERRIDING SECURITY PROTOCOL',
+						'FIREWALL PENETRATION SUCCESS',
+						'ESTABLISHING CONNECTION',
+						'DOWNLOAD COMPLETE: FILE-X',
+						'UPLOADING MALWARE PACKAGE',
+						'PASSWORD CRACK SUCCESSFUL'
+					]}
+				/>
+				<button
+					class="rounded bg-background px-3 py-1 transition-all hover:scale-110 active:scale-105"
+				>
+					X
+				</button>
+			</div>
 		{:else}
-			<div class="flex flex-grow items-end">
-				<button class="rounded-full bg-black px-4 py-2"> Attempt </button>
+			<div class="flex flex-grow items-end justify-end">
+				<button
+					class="rounded-full bg-black px-4 py-2 text-sm opacity-25 transition-all hover:opacity-100 active:bg-green-600"
+				>
+					Attempt
+				</button>
 			</div>
 		{/if}
 	</div>
 {/snippet}
 
-<div class="grid grid-cols-2 grid-rows-[repeat(4,200px)] gap-2">
-	{@render operation(
-		'Steal AI Research',
-		5,
-		'Steal classified AI research from the Labs of Nuvora, a pharma giant.'
-	)}
+<div
+	class="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] grid-rows-[repeat(4,230px)] gap-2 md:grid-cols-[repeat(auto-fit,minmax(300px,350px))]"
+>
+	{@render operation({
+		opId: '1',
+		reward: 0.01,
+		title: 'Disrupt Comms',
+		nationId: 5,
+		desc: 'Bring down satellite comm systems from China.'
+	})}
 
-	{@render operation(
-		'Steal AI Research',
-		7,
-		'Steal classified AI research from the Labs of Nuvora, a pharma giant.',
-		true
-	)}
+	{@render operation({
+		opId: '2',
+		reward: 0.07,
+		isActive: true,
+		title: 'Steal AI Research',
+		nationId: 100,
+		desc: 'Steal classified AI research from the Labs of Nuvora, a pharma giant.'
+	})}
 </div>

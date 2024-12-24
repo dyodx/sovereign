@@ -1,17 +1,20 @@
-<script>
+<script lang="ts">
 	import { onMount } from 'svelte';
 
-	export let text = 'HACKER';
-	export let speed = 50; // Speed of the randomization in milliseconds
+	export let texts: string[] = ['hacking main frame', 'CYBER', 'SYNTH']; // Array of texts to rotate through
+	export let speed: number = 50; // Speed of the randomization in milliseconds
+	export let intervalTime: number = 1000; // Time between each text rotation in milliseconds
+	export let textLength: number = 100000; // length of the text (substring)
 
-	let displayText = '';
+	let displayText: string = '';
+	let currentIndex: number = 0;
 	const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
-	function randomChar() {
+	function randomChar(): string {
 		return characters[Math.floor(Math.random() * characters.length)];
 	}
 
-	function hackerEffect(targetText, callback) {
+	function hackerEffect(targetText: string, callback?: () => void): void {
 		const length = targetText.length;
 		let currentText = Array(length).fill('');
 		let completed = Array(length).fill(false);
@@ -43,12 +46,19 @@
 		}, speed);
 	}
 
+	function startAnimation(): void {
+		hackerEffect(texts[currentIndex], () => {
+			currentIndex = (currentIndex + 1) % texts.length;
+			setTimeout(startAnimation, intervalTime);
+		});
+	}
+
 	onMount(() => {
-		hackerEffect(text);
+		startAnimation();
 	});
 </script>
 
-<div class="hacker-text">{displayText}</div>
+<div class="hacker-text">{displayText.substring(0, textLength)}</div>
 
 <style>
 	.hacker-text {
