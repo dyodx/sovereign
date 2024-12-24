@@ -195,6 +195,12 @@ export class Router implements SERVICE {
                     // TODO (Let nation(s?) know)
                     // TODO (Journalist JOB)
                     break;
+                case "mintTokensToPlayerWalletEvent":
+                    break;
+                case "depositToBrokerEvents":
+                    break;
+                case "nationDissolutionEvent":
+                    break;
                 case "coupNationEvent":
                     break;
                 case "lootNationEvent":
