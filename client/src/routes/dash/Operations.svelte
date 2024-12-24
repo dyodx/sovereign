@@ -2,12 +2,43 @@
 	import TipOperations from './Tooltips/TipOperations.svelte';
 	import { cn } from '$lib/utils.js';
 	import { getCountryFlag } from '$lib/constants/flags';
-	import { getNationName, getNationCurrencyName } from '$lib/utilsNation';
+	import { getNationName } from '$lib/utilsNation';
 	import HyperText from '$lib/components/atoms/HyperText/HyperText.svelte';
-	import IconRewardCoins from '$lib/components/atoms/icons/IconRewardCoins.svelte';
 	import { IconSolana } from '$lib/components/atoms/icons';
 
-	let activeOperationId = $state<number | null>(null);
+	let activeOperationId = $state<string | null>(null);
+	let hashBountyClaim = $state<string | null>(null); // TODO: turn this into localStorage to avoid losing claims
+
+	function toggleActiveOp(opId: string) {
+		hashBountyClaim = null;
+		if (opId === activeOperationId) {
+			activeOperationId = null;
+			return;
+		}
+		activeOperationId = opId;
+	}
+
+	function getStatus(opId: string) {
+		const isActive = activeOperationId === opId;
+		const foundReward = isActive && !!hashBountyClaim;
+
+		if (isActive && !foundReward) return 'hashing';
+		if (isActive && foundReward) return 'success';
+		return 'inactive';
+	}
+
+	/**
+  DEBUG TOOLS: REMOVE ME WHEN IMPLEMENTING
+  */
+	$effect(() => {
+		// active operation is successfull after X SECONDS
+		const SECONDS = 2;
+		if (activeOperationId) {
+			setTimeout(() => {
+				hashBountyClaim = 'foobar';
+			}, SECONDS * 1000);
+		}
+	});
 </script>
 
 <div class="flex flex-wrap justify-between gap-2">
@@ -15,9 +46,14 @@
 	<TipOperations />
 </div>
 
+{#if !!activeOperationId}
+	<div class={cn('opacity-0 transition-all', !!activeOperationId && 'opacity-100')}>
+		<p>Closing or refreshing this tab will void progress/claimable bounties.</p>
+	</div>
+{/if}
+
 {#snippet operation({
 	opId: operationId,
-	isActive = false,
 	reward = 0.05,
 	nationId,
 	...props
@@ -27,15 +63,16 @@
 	title: string;
 	nationId: number;
 	desc?: string;
-	isActive?: boolean;
 })}
+	{@const isActive = activeOperationId === operationId}
 	<div class="flex flex-col rounded-xl bg-panel p-2 text-xl font-thin text-foreground">
 		<div class="flex justify-between">
 			<p class="font-medium">{props.title}</p>
 			<div
 				class={cn(
-					'h-5 w-5 rounded-full border-4 border-background ',
-					isActive ? 'animate-pulse bg-green-400' : 'bg-background'
+					'h-5 w-5 rounded-full border-4 border-background bg-background transition-all',
+					isActive && !hashBountyClaim && 'animate-pulse bg-blue-400',
+					isActive && !!hashBountyClaim && 'animate-pulse bg-green-400'
 				)}
 			></div>
 		</div>
@@ -53,12 +90,25 @@
 		</div>
 		<div class="flex items-center justify-between rounded-b bg-background p-2 text-xs">
 			<p>Bounty</p>
-			<div class={cn('flex items-center gap-1 text-sm', isActive && 'animate-bounce')}>
+			<div
+				class={cn(
+					'flex items-center gap-1 text-sm',
+					isActive && !hashBountyClaim && 'animate-bounce',
+					isActive && !!hashBountyClaim && 'animate-ping'
+				)}
+			>
 				<span>{reward}</span>
 				<IconSolana />
 			</div>
 		</div>
-		{#if isActive}
+		{#if isActive && !!hashBountyClaim}
+			<div class="flex flex-grow flex-col items-end justify-end">
+				<button
+					class="rounded-full bg-green-600 px-4 py-2 text-sm transition-all hover:scale-110 active:scale-100"
+					>Claim Bounty</button
+				>
+			</div>
+		{:else if isActive}
 			<div class="flex flex-grow items-end justify-between px-2 text-sm">
 				<HyperText
 					textLength={28}
@@ -76,6 +126,7 @@
 					]}
 				/>
 				<button
+					onclick={() => toggleActiveOp(operationId)}
 					class="rounded bg-background px-3 py-1 transition-all hover:scale-110 active:scale-105"
 				>
 					X
@@ -84,6 +135,7 @@
 		{:else}
 			<div class="flex flex-grow items-end justify-end">
 				<button
+					onclick={() => toggleActiveOp(operationId)}
 					class="rounded-full bg-black px-4 py-2 text-sm opacity-25 transition-all hover:opacity-100 active:bg-green-600"
 				>
 					Attempt
@@ -107,7 +159,6 @@
 	{@render operation({
 		opId: '2',
 		reward: 0.07,
-		isActive: true,
 		title: 'Steal AI Research',
 		nationId: 100,
 		desc: 'Steal classified AI research from the Labs of Nuvora, a pharma giant.'
