@@ -67,7 +67,7 @@
 	}
 </script>
 
-<div class="relative h-[60vh] overflow-auto rounded-xl bg-panel text-foreground md:h-[70vh]">
+<div class="relative h-[50vh] overflow-auto rounded-xl bg-panel text-foreground md:h-[50vh]">
 	<div class="bg-foreground px-3 py-2 text-background">
 		<input
 			bind:value={searchInput}

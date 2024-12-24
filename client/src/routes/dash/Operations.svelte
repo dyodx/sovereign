@@ -18,22 +18,14 @@
 		activeOperationId = opId;
 	}
 
-	function getStatus(opId: string) {
-		const isActive = activeOperationId === opId;
-		const foundReward = isActive && !!hashBountyClaim;
-
-		if (isActive && !foundReward) return 'hashing';
-		if (isActive && foundReward) return 'success';
-		return 'inactive';
-	}
-
 	/**
   DEBUG TOOLS: REMOVE ME WHEN IMPLEMENTING
   */
 	$effect(() => {
 		// active operation is successfull after X SECONDS
-		const SECONDS = 2;
 		if (activeOperationId) {
+			// const SECONDS = Math.floor(Math.random() * 10) + 2; //random number between 2 and 10
+			const SECONDS = 1;
 			setTimeout(() => {
 				hashBountyClaim = 'foobar';
 			}, SECONDS * 1000);
@@ -46,11 +38,9 @@
 	<TipOperations />
 </div>
 
-{#if !!activeOperationId}
-	<div class={cn('opacity-0 transition-all', !!activeOperationId && 'opacity-100')}>
-		<p>Closing or refreshing this tab will void progress/claimable bounties.</p>
-	</div>
-{/if}
+<div class={cn('text-yellow-600 opacity-0 transition-all', !!activeOperationId && 'opacity-100')}>
+	<p>Closing or refreshing this tab will void progress/claimable bounties.</p>
+</div>
 
 {#snippet operation({
 	opId: operationId,
@@ -104,7 +94,8 @@
 		{#if isActive && !!hashBountyClaim}
 			<div class="flex flex-grow flex-col items-end justify-end">
 				<button
-					class="rounded-full bg-green-600 px-4 py-2 text-sm transition-all hover:scale-110 active:scale-100"
+					onclick={() => toggleActiveOp(operationId)}
+					class="hover:shadow-hoverflat rounded-full bg-green-600 px-4 py-2 text-sm font-bold text-background shadow-flat transition-all hover:translate-x-[3px] hover:translate-y-[3px]"
 					>Claim Bounty</button
 				>
 			</div>
@@ -136,7 +127,7 @@
 			<div class="flex flex-grow items-end justify-end">
 				<button
 					onclick={() => toggleActiveOp(operationId)}
-					class="rounded-full bg-black px-4 py-2 text-sm opacity-25 transition-all hover:opacity-100 active:bg-green-600"
+					class="rounded-full bg-black px-4 py-2 text-sm opacity-25 transition-all hover:opacity-100 active:bg-blue-600"
 				>
 					Attempt
 				</button>
