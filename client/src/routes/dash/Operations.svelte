@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Confetti } from 'svelte-confetti';
 	import TipOperations from './Tooltips/TipOperations.svelte';
 	import { cn } from '$lib/utils.js';
 	import { getCountryFlag } from '$lib/constants/flags';
@@ -22,10 +23,9 @@
   DEBUG TOOLS: REMOVE ME WHEN IMPLEMENTING
   */
 	$effect(() => {
-		// active operation is successfull after X SECONDS
 		if (activeOperationId) {
+			const SECONDS = 8;
 			// const SECONDS = Math.floor(Math.random() * 10) + 2; //random number between 2 and 10
-			const SECONDS = 1;
 			setTimeout(() => {
 				hashBountyClaim = 'foobar';
 			}, SECONDS * 1000);
@@ -38,8 +38,14 @@
 	<TipOperations />
 </div>
 
-<div class={cn('text-yellow-600 opacity-0 transition-all', !!activeOperationId && 'opacity-100')}>
-	<p>Closing or refreshing this tab will void progress/claimable bounties.</p>
+<div class={cn('text-yellow-600 transition-all', !!activeOperationId && 'animate-pulse')}>
+	{#if activeOperationId && !hashBountyClaim}
+		<p>Keep tab open while attempting...</p>
+	{:else if activeOperationId && hashBountyClaim}
+		<p>Claim before closing tab</p>
+	{:else}
+		<p>2 Bounties available to you</p>
+	{/if}
 </div>
 
 {#snippet operation({
@@ -67,7 +73,14 @@
 			></div>
 		</div>
 
-		<div class="mt-2 flex items-center gap-2 rounded-t bg-background p-2">
+		<div class="relative mt-2 flex items-center gap-2 rounded-t bg-background p-2">
+			{#key hashBountyClaim}
+				{#if isActive && hashBountyClaim}
+					<div class="absolute left-[50%] top-[40%] z-50 flex">
+						<Confetti x={[-0.5, 0.5]} y={[-0.5, 0.5]} />
+					</div>
+				{/if}
+			{/key}
 			<span>
 				{getCountryFlag(nationId)}
 			</span>
