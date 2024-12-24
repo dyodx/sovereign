@@ -48,3 +48,11 @@ export interface CreateBountyInDBJob {
     amount: number;
     expirySlot: number;
 }
+
+export interface MintCitizenJob {
+    gameId: string;
+    playerAuthority: string;
+    citizenAssetId: string;
+    nationId: number;
+    mintCost: number;
+}

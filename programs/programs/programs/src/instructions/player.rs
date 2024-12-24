@@ -83,7 +83,7 @@ pub struct RegisterPlayerEvent {
 pub fn mint_citizen(ctx: Context<MintCitizen>) -> Result<()> {
     // Mint Price is sent 100% to World Agent
     // World Agent will then send to Nation State Account (not authority) based on Citizen's Nation State
-    // Cannot do it in this ix, because nation state is random.
+    // Cannot do it in this ix, because nation state is random, and we'd need its account.
     // We log it so it can be picked up by indexer and added to queue for World Agent to process
 
     transfer(
@@ -174,8 +174,9 @@ pub fn mint_citizen(ctx: Context<MintCitizen>) -> Result<()> {
     emit!(MintCitizenEvent {
         game_id: ctx.accounts.game.id,
         player_authority: ctx.accounts.player_authority.key().to_string(),
-        asset_id: ctx.accounts.citizen_asset.key().to_string(),
-        nation_state_idx: nation_state_idx as u8,
+        citizen_asset_id: ctx.accounts.citizen_asset.key().to_string(),
+        nation_id: nation_state_idx as u8,
+        mint_cost: ctx.accounts.game.mint_cost,
     });
 
     Ok(())
@@ -185,8 +186,9 @@ pub fn mint_citizen(ctx: Context<MintCitizen>) -> Result<()> {
 pub struct MintCitizenEvent {
     pub game_id: u64,
     pub player_authority: String,
-    pub asset_id: String,
-    pub nation_state_idx: u8,
+    pub citizen_asset_id: String,
+    pub nation_id: u8,
+    pub mint_cost: u64,
 }
 
 #[derive(Accounts)]

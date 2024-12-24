@@ -58,8 +58,9 @@ export const ClaimBountyEvent = z.object({
 export const MintCitizenEvent = z.object({
     gameId: z.string(),
     playerAuthority: z.string(),
-    assetId: z.string(),
-    nationStateIdx: z.number(),
+    citizenAssetId: z.string(),
+    nationId: z.number(),
+    mintCost: z.number(),
 });
 
 export const WorldDisasterEvent = z.object({

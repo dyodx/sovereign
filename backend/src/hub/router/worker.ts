@@ -2,7 +2,7 @@ import type { Job } from "bullmq";
 import * as Jobs from "../interfaces/jobs";
 import { SVPRGM, DB, ACCOUNT_SEEDS, estimateInstructionSize, SIGNER_SIZE, BASE_TRANSACTION_SIZE, TRANSACTION_SIZE_LIMIT, CONNECTION, COMPUTE_UNIT_PRICE, estimateCU } from "../../common";
 import bs58 from "bs58";
-import { ComputeBudgetProgram, Keypair, PublicKey, Transaction, TransactionInstruction, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
+import { ComputeBudgetProgram, Keypair, PublicKey, Transaction, TransactionInstruction, TransactionMessage, VersionedTransaction, SystemProgram } from "@solana/web3.js";
 import { ByteifyEndianess, serializeUint64, serializeUint8 } from "byteify";
 import type { WorldLeader } from "../interfaces";
 import { BN } from "@coral-xyz/anchor";
@@ -20,6 +20,9 @@ export default async function worker(job: Job) {
                 break;
             case "createPlayerInDB":
                 await createPlayerInDB(job.data as Jobs.CreatePlayerInDBJob);
+                break;
+            case "mintCitizen":
+                await mintCitizen(job.data as Jobs.MintCitizenJob);
                 break;
             case "createStakedCitizenInDb":
                 await createStakedCitizenInDB(job.data as Jobs.CreateStakedCitizenInDBJob);
@@ -401,3 +404,55 @@ export async function createBountyInDB(job: Jobs.CreateBountyInDBJob) {
     }
 }
 
+async function mintCitizen(job: Jobs.MintCitizenJob) {
+    console.log(`Processing mint payment for citizen ${job.citizenAssetId} for game ${job.gameId}`);
+
+    // Get game keys
+    const gamekeys = await DB.game.findUnique({
+        where: {
+            gameId: BigInt(job.gameId),
+        },
+    });
+    if (!gamekeys) {
+        throw new Error(`Game keys not found: ${job.gameId}`);
+    }
+    const gameAuthority = Keypair.fromSecretKey(bs58.decode(gamekeys.adminPrivateKey));
+
+    // Get nation account
+    const nationAccount = await DB.nationAccount.findFirst({
+        where: {
+            gameId: BigInt(job.gameId),
+            nationId: job.nationId,
+        },
+    });
+    if (!nationAccount) {
+        throw new Error(`Nation account not found for game ${job.gameId} and nation ${job.nationId}`);
+    }
+
+    // 80% of mint cost goes to nation treasury
+    const nationShare = Math.floor(job.mintCost * 0.8);
+    const nationAccountPubkey = PublicKey.findProgramAddressSync(
+        [
+            Buffer.from(ACCOUNT_SEEDS.NATION),
+            Uint8Array.from(serializeUint64(gamekeys.gameId, { endianess: ByteifyEndianess.LITTLE_ENDIAN })),
+            new PublicKey(nationAccount.authority).toBytes()
+        ],
+        SVPRGM.programId
+    )[0];
+
+    const ix = SystemProgram.transfer({
+        fromPubkey: gameAuthority.publicKey,
+        toPubkey: nationAccountPubkey,
+        lamports: nationShare
+    });
+
+    const tx = new VersionedTransaction(new TransactionMessage({
+        payerKey: gameAuthority.publicKey,
+        recentBlockhash: (await CONNECTION.getLatestBlockhash()).blockhash,
+        instructions: [ix]
+    }).compileToV0Message());
+
+    tx.sign([gameAuthority]);
+    const sig = await CONNECTION.sendTransaction(tx);
+    console.log(`Transferred ${nationShare} lamports to nation with sig ${sig}`);
+}

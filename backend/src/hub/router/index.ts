@@ -101,6 +101,19 @@ export class Router implements SERVICE {
                     );
                     // TODO: (Journalist JOB) (in case someone with large number of followers joined)
                     break;
+                case "mintCitizenEvent":
+                    await this.JOBS_QUEUE.add(
+                        "mintCitizen",
+                        {
+                            gameId: event.data.gameId,
+                            playerAuthority: event.data.playerAuthority,
+                            citizenAssetId: event.data.citizenAssetId,
+                            nationId: event.data.nationId,
+                            mintCost: event.data.mintCost,
+                        } as Jobs.MintCitizenJob,
+                        REMOVE_OPTS
+                    );
+                    break;
                 case "stakeCitizenEvent":
                     await this.JOBS_QUEUE.add(
                         "createStakedCitizenInDB",
