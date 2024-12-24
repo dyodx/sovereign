@@ -15,7 +15,8 @@ const config: Config = {
 		},
 		extend: {
 			boxShadow: {
-				flat: '4px 4px 0 rgba(0, 0, 0, 0.5)'
+				flat: '4px 4px 0 rgba(0, 0, 0, 0.5)',
+				hoverflat: '1px 1px 0 rgba(0, 0, 0, 0.5)'
 			},
 			colors: {
 				background: '#1E1E1E',

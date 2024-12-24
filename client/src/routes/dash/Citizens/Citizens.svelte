@@ -3,7 +3,12 @@
 	import ModalRecruit from '../Modals/ModalRecruit.svelte';
 
 	import { createUmi } from '@metaplex-foundation/umi-bundle-defaults';
-	import { mplCore, fetchAssetsByOwner, type AssetV1 } from '@metaplex-foundation/mpl-core';
+	import {
+		mplCore,
+		fetchAssetsByOwner,
+		type AssetV1,
+		freezeAsset
+	} from '@metaplex-foundation/mpl-core';
 	import { walletStore } from '$lib/stores/wallet.svelte';
 	import { PUBLIC_RPC_URL } from '$env/static/public';
 	import { generateNamePair } from '$lib/constants/names';
@@ -12,6 +17,7 @@
 	import { CITIZEN_IMG_URL } from '$lib/constants/citizens';
 	import { IconGavel, IconLeaf, IconMoneyBag, IconStethoscope } from '$lib/components/atoms/icons';
 	import IconRefresh from '$lib/components/atoms/icons/IconRefresh.svelte';
+	import { getNationName } from '$lib/utilsNation';
 
 	let address = $derived.by(() =>
 		$walletStore.connected && !!$walletStore.address ? $walletStore.address : null
@@ -99,14 +105,17 @@
 	{#await assetsPromise then data}
 		{#each data?.filter(matchesGameId) ?? [] as asset}
 			<ModalCitizen citizenId={asset.publicKey}>
-				<div
-					class="grid w-fit grid-cols-[8rem_1fr] gap-4 justify-self-center rounded bg-panel"
-					style={`opacity: ${asset.freezeDelegate?.frozen ? '0.25' : '1'}`}
-				>
+				<div class="grid w-fit grid-cols-[8rem_1fr] gap-4 justify-self-center rounded bg-panel">
 					<div class="relative flex items-center gap-4">
-						<p class="absolute left-[-1rem] top-[-1rem] z-10 text-4xl">
-							{getCountryFlag(getAttribute('nation_state', asset) ?? 'Solana')}
-						</p>
+						{#if asset.freezeDelegate?.frozen}
+							<!-- TODO: Update flag with staked country flag -->
+							{@const TEMP_NATION_ID = 10}
+							<p class="absolute left-[-1rem] top-[-1rem] z-10 text-4xl">
+								<!-- {getCountryFlag(getAttribute('nation_state', asset) ?? 'Solana')} -->
+								{getCountryFlag(getNationName(TEMP_NATION_ID))}
+							</p>
+						{/if}
+
 						<img
 							src={`${CITIZEN_IMG_URL}${asset.publicKey}`}
 							alt="avatar"

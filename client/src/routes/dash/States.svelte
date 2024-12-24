@@ -6,6 +6,7 @@
 	import { NATION_STATES } from '$lib/constants/nations';
 	import { IconGavel, IconLeaf, IconMoneyBag, IconStethoscope } from '$lib/components/atoms/icons';
 	import { queries } from '$lib/services/queries';
+	import Operations from './Operations.svelte';
 
 	/**
   operations show up without any user input
@@ -66,7 +67,7 @@
 	}
 </script>
 
-<div class="relative h-[60vh] overflow-auto rounded-xl bg-panel text-foreground md:h-[70vh]">
+<div class="relative h-[50vh] overflow-auto rounded-xl bg-panel text-foreground md:h-[50vh]">
 	<div class="bg-foreground px-3 py-2 text-background">
 		<input
 			bind:value={searchInput}
@@ -151,12 +152,4 @@
 </div>
 
 <hr class="my-4 rounded border-2 border-panel" />
-<div class="flex flex-wrap justify-between gap-2">
-	<p class="mb-0 text-xl">Incoming Operation Requests</p>
-	<TipOperations />
-</div>
-
-<div class="grid grid-cols-2 grid-rows-[repeat(4,200px)] gap-2">
-	<div class="grid place-items-center rounded-xl bg-panel text-xl text-background">operation</div>
-	<div class="grid place-items-center rounded-xl bg-panel text-xl text-background">operation</div>
-</div>
+<Operations />
