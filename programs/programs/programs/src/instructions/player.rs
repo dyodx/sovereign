@@ -97,7 +97,7 @@ pub fn mint_citizen(ctx: Context<MintCitizen>) -> Result<()> {
         ctx.accounts.game.mint_cost,
     )?;
     // Mint Price is sent 100% to World Agent as SOL
-    ctx.accounts.world_agent_wallet.balances[0] += ctx.accounts.game.mint_cost;
+    ctx.accounts.world_agent_wallet.balances[0] = ctx.accounts.world_agent_wallet.balances[0].checked_add(ctx.accounts.game.mint_cost).ok_or(SovereignError::MathOverflow)?;
 
     let signers_seeds = &[
         GAME_SEED.as_bytes(),
@@ -294,7 +294,11 @@ pub fn stake_citizen(ctx: Context<StakeCitizen>, _args: StakeCitizenArgs) -> Res
         return Err(SovereignError::CitizenAttributeNotFound.into());
     }
 
-    staked_citizen.reward_amount = rewards.0 + rewards.1 + rewards.2 + rewards.3; 
+    staked_citizen.reward_amount = rewards.0
+    .checked_add(rewards.1)
+    .and_then(|sum| sum.checked_add(rewards.2))
+    .and_then(|sum| sum.checked_add(rewards.3))
+    .ok_or(SovereignError::MathOverflow)?;
 
     let clock = Clock::get()?;
     let complete_slot = clock.slot + ctx.accounts.game.citizen_stake_length;
@@ -385,8 +389,8 @@ pub fn complete_stake(ctx: Context<CompleteStake>, _args: CompleteStakeArgs) -> 
         );
 
         // Player recieves rewards
-        ctx.accounts.player_wallet.balances[ctx.accounts.nation.nation_id as usize] = ctx.accounts.player_wallet.balances[ctx.accounts.nation.nation_id as usize].checked_add(staked_citizen.reward_amount).unwrap();
-        ctx.accounts.nation.minted_tokens_total += staked_citizen.reward_amount;   
+        ctx.accounts.player_wallet.balances[ctx.accounts.nation.nation_id as usize] = ctx.accounts.player_wallet.balances[ctx.accounts.nation.nation_id as usize].checked_add(staked_citizen.reward_amount).ok_or(SovereignError::MathOverflow)?;
+        ctx.accounts.nation.minted_tokens_total = ctx.accounts.nation.minted_tokens_total.checked_add(staked_citizen.reward_amount).ok_or(SovereignError::MathOverflow)?;   
 
         // Nation recieves stat buffs
         // Collect all the fix values
@@ -431,10 +435,21 @@ pub fn complete_stake(ctx: Context<CompleteStake>, _args: CompleteStakeArgs) -> 
             return Err(SovereignError::CitizenAttributeNotFound.into());
         }
 
-        ctx.accounts.nation.gdp += fix_values.0;
-        ctx.accounts.nation.healthcare += fix_values.1;
-        ctx.accounts.nation.environment += fix_values.2;
-        ctx.accounts.nation.stability += fix_values.3;
+        ctx.accounts.nation.gdp = ctx.accounts.nation.gdp
+            .checked_add(fix_values.0)
+            .ok_or(SovereignError::MathOverflow)?;
+    
+        ctx.accounts.nation.healthcare = ctx.accounts.nation.healthcare
+            .checked_add(fix_values.1)
+            .ok_or(SovereignError::MathOverflow)?;
+        
+        ctx.accounts.nation.environment = ctx.accounts.nation.environment
+            .checked_add(fix_values.2)
+            .ok_or(SovereignError::MathOverflow)?;
+        
+        ctx.accounts.nation.stability = ctx.accounts.nation.stability
+            .checked_add(fix_values.3)
+            .ok_or(SovereignError::MathOverflow)?;
     }
 
     // Unfreeze citizen_asset

@@ -110,8 +110,8 @@ pub struct UpdateNationRewardRateEvent {
 pub fn mint_tokens_to_player_wallet(ctx: Context<MintTokensToPlayerWallet>, args: MintTokensToPlayerWalletArgs) -> Result<()> {
     require!(ctx.accounts.nation.is_alive, SovereignError::NationIsDead);
 
-    ctx.accounts.player_wallet.balances[ctx.accounts.nation.nation_id as usize] = ctx.accounts.player_wallet.balances[ctx.accounts.nation.nation_id as usize].checked_add(args.amount).unwrap();
-    ctx.accounts.nation.minted_tokens_total += args.amount;    
+    ctx.accounts.player_wallet.balances[ctx.accounts.nation.nation_id as usize] = ctx.accounts.player_wallet.balances[ctx.accounts.nation.nation_id as usize].checked_add(args.amount).ok_or(SovereignError::MathOverflow)?;
+    ctx.accounts.nation.minted_tokens_total = ctx.accounts.nation.minted_tokens_total.checked_add(args.amount).ok_or(SovereignError::MathOverflow)?;
     emit!(MintTokensToPlayerWalletEvent {
         game_id: ctx.accounts.nation.game_id,
         nation_id: ctx.accounts.nation.nation_id,
@@ -159,7 +159,7 @@ pub fn deposit_to_broker(ctx: Context<DepositToBroker>, args: DepositToBrokerArg
             from: ctx.accounts.nation_authority.to_account_info(),
             to: ctx.accounts.broker_escrow.to_account_info(),
         }),
-        args.amount + TXN_FEE //pay for claim fee
+        args.amount.checked_add(TXN_FEE).ok_or(SovereignError::MathOverflow)? // Pay for claim fee
     )?;
 
     emit!(DepositToBrokerEvent {
@@ -221,7 +221,7 @@ pub fn coup_nation(ctx: Context<CoupNation>) -> Result<()> {
             },
             &[broker_escrow_signer_seeds]
         ),
-        ctx.accounts.broker_escrow.to_account_info().lamports().checked_sub(TXN_FEE).unwrap()
+        ctx.accounts.broker_escrow.to_account_info().lamports().checked_sub(TXN_FEE).ok_or(SovereignError::MathOverflow)?
     )?;
 
     let signer_seeds = &[WALLET_SEED.as_bytes(), &ctx.accounts.game.id.to_le_bytes(), &ctx.accounts.game.world_agent.to_bytes(), &[ctx.bumps.world_agent_wallet]];
@@ -234,7 +234,7 @@ pub fn coup_nation(ctx: Context<CoupNation>) -> Result<()> {
             },      
             &[signer_seeds]
         ),
-        ctx.accounts.world_agent_wallet.to_account_info().lamports().checked_sub(TXN_FEE).unwrap()
+        ctx.accounts.world_agent_wallet.to_account_info().lamports().checked_sub(TXN_FEE).ok_or(SovereignError::MathOverflow)?
     )?;
 
     emit!(CoupNationEvent{
@@ -278,8 +278,8 @@ pub struct CoupNation<'info> {
 pub fn loot_nation(ctx: Context<LootNation>) -> Result<()> {
     require!(ctx.accounts.game.nations_alive == 0, SovereignError::GameNotOver);
     // Burn Nation Tokens from Wallet and Transfer Sol to Player Wallet
-    let lamports_per_token = ctx.accounts.nation.to_account_info().lamports().checked_div(ctx.accounts.nation.minted_tokens_total).unwrap();
-    let lamports_to_transfer = ctx.accounts.player_wallet.balances[ctx.accounts.nation.nation_id as usize].checked_mul(lamports_per_token).unwrap();
+    let lamports_per_token = ctx.accounts.nation.to_account_info().lamports().checked_div(ctx.accounts.nation.minted_tokens_total).ok_or(SovereignError::MathOverflow)?;
+    let lamports_to_transfer = ctx.accounts.player_wallet.balances[ctx.accounts.nation.nation_id as usize].checked_mul(lamports_per_token).ok_or(SovereignError::MathOverflow)?;
 
     let nation_signer_seeds = &[NATION_SEED.as_bytes(), &ctx.accounts.game.id.to_le_bytes(), &ctx.accounts.nation.authority.to_bytes(), &[ctx.bumps.nation]];
     transfer(

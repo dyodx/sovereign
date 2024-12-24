@@ -79,7 +79,11 @@ pub fn world_disaster(ctx: Context<WorldDisaster>, args: WorldDisasterArgs) -> R
                 },
                 &[nation_signer_seeds],
             ),
-            nation.to_account_info().lamports() - TXN_FEE, // leave some for transfer fee
+            nation
+                .to_account_info()
+                .lamports()
+                .checked_sub(TXN_FEE)
+                .ok_or(SovereignError::MathOverflow)?, // leave some for transfer fee
         )?;
     }
 

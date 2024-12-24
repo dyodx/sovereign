@@ -152,7 +152,7 @@ export class Router implements SERVICE {
                     // TODO (Let nation know)
                     // TODO (Journalist JOB)
                     break;
-                case "nationCreateBountyEvent":
+                case "registerBountyEvent":
                     // Event for when the nation wants the broker to create an onchain bounty
                     await this.JOBS_QUEUE.add(
                         "registerBounty",

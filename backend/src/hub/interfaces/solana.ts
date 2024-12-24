@@ -118,7 +118,7 @@ export const RegisterPlayerEvent = z.object({
     xUsername: z.string(),
 });
 
-export const NationCreateBountyEvent = z.object({
+export const RegisterBountyEvent = z.object({
     gameId: z.string(),
     nationId: z.number(),
     bountyHash: z.string(),
