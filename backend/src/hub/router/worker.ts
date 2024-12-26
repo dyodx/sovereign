@@ -408,52 +408,73 @@ export async function createBountyInDB(job: Jobs.CreateBountyInDBJob) {
 async function mintCitizen(job: Jobs.MintCitizenJob) {
     console.log(`Processing mint payment for citizen ${job.citizenAssetId} for game ${job.gameId}`);
 
-    // Get game keys
     const gamekeys = await DB.game.findUnique({
-        where: {
-            gameId: BigInt(job.gameId),
-        },
+        where: { gameId: BigInt(job.gameId) }
     });
+
     if (!gamekeys) {
         throw new Error(`Game keys not found: ${job.gameId}`);
     }
-    const gameAuthority = Keypair.fromSecretKey(bs58.decode(gamekeys.adminPrivateKey));
 
-    // Get nation account
     const nationAccount = await DB.nationAccount.findFirst({
         where: {
             gameId: BigInt(job.gameId),
             nationId: job.nationId,
-        },
+        }
     });
+
     if (!nationAccount) {
         throw new Error(`Nation account not found for game ${job.gameId} and nation ${job.nationId}`);
     }
 
-    // 80% of mint cost goes to nation treasury
-    const nationShare = Math.floor(job.mintCost * 0.8);
-    const nationAccountPubkey = PublicKey.findProgramAddressSync(
+    const worldAuthority = Keypair.fromSecretKey(bs58.decode(gamekeys.worldAgentPrivateKey));
+    const gameIdBuffer = Uint8Array.from(
+        serializeUint64(gamekeys.gameId, { endianess: ByteifyEndianess.LITTLE_ENDIAN })
+    );
+
+    const gamePda = PublicKey.findProgramAddressSync(
         [
-            Buffer.from(ACCOUNT_SEEDS.NATION),
-            Uint8Array.from(serializeUint64(gamekeys.gameId, { endianess: ByteifyEndianess.LITTLE_ENDIAN })),
-            new PublicKey(nationAccount.authority).toBytes()
+            Buffer.from(ACCOUNT_SEEDS.GAME),
+            gameIdBuffer
         ],
         SVPRGM.programId
     )[0];
 
-    const ix = SystemProgram.transfer({
-        fromPubkey: gameAuthority.publicKey,
-        toPubkey: nationAccountPubkey,
-        lamports: nationShare
-    });
+    const worldAgentWalletPda = PublicKey.findProgramAddressSync(
+        [
+            Buffer.from(ACCOUNT_SEEDS.WALLET),
+            gameIdBuffer,
+            worldAuthority.publicKey.toBytes()
+        ],
+        SVPRGM.programId
+    )[0];
+
+    // Nation recieves 80% share of mint cost
+    const nationShare = new BN(job.mintCost * 0.8);
+    const ix = await SVPRGM.methods
+        .nationBoost({
+            lamportsAmount: nationShare
+        })
+        .accountsPartial({
+            worldAuthority: worldAuthority.publicKey,
+            worldAgentWallet: worldAgentWalletPda,
+            gameAccount: gamePda,
+            nation: new PublicKey(nationAccount.pubkey),
+            nationAuthority: new PublicKey(nationAccount.authority)
+        })
+        .instruction();
 
     const tx = new VersionedTransaction(new TransactionMessage({
-        payerKey: gameAuthority.publicKey,
+        payerKey: worldAuthority.publicKey,
         recentBlockhash: (await CONNECTION.getLatestBlockhash()).blockhash,
-        instructions: [ix]
+        instructions: [
+            ComputeBudgetProgram.setComputeUnitPrice({ microLamports: COMPUTE_UNIT_PRICE }),
+            ComputeBudgetProgram.setComputeUnitLimit({ units: await estimateCU(worldAuthority.publicKey, [ix]) }),
+            ix
+        ]
     }).compileToV0Message());
+    tx.sign([worldAuthority]);
 
-    tx.sign([gameAuthority]);
     const sig = await CONNECTION.sendTransaction(tx);
-    console.log(`Transferred ${nationShare} lamports to nation with sig ${sig}`);
+    console.log(`Distributed ${nationShare.toString()} lamports to nation ${job.nationId} with sig ${sig}`);
 }
