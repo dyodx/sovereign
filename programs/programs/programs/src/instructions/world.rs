@@ -160,7 +160,7 @@ pub fn nation_boost(ctx: Context<NationBoost>, args: NationBoostArgs) -> Result<
             ctx.accounts.system_program.to_account_info(),
             Transfer {
                 from: ctx.accounts.world_agent_wallet.to_account_info(),
-                to: ctx.accounts.nation_authority.to_account_info(),
+                to: ctx.accounts.nation.to_account_info(),
             },
             &[world_agent_wallet_signer_seeds],
         ),

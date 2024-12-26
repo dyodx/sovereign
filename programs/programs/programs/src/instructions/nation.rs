@@ -156,7 +156,7 @@ pub fn deposit_to_broker(ctx: Context<DepositToBroker>, args: DepositToBrokerArg
 
     transfer(
         CpiContext::new(ctx.accounts.system_program.to_account_info(), Transfer {
-            from: ctx.accounts.nation_authority.to_account_info(),
+            from: ctx.accounts.nation.to_account_info(),
             to: ctx.accounts.broker_escrow.to_account_info(),
         }),
         args.amount.checked_add(TXN_FEE).ok_or(SovereignError::MathOverflow)? // Pay for claim fee
@@ -185,6 +185,7 @@ pub struct DepositToBrokerArgs {
 
 #[derive(Accounts)]
 pub struct DepositToBroker<'info> {
+    pub game_authority: Signer<'info>,
     pub nation_authority: Signer<'info>,
     #[account(
         mut,    
@@ -192,6 +193,7 @@ pub struct DepositToBroker<'info> {
     )]
     pub nation: Account<'info, Nation>,
     #[account(
+        constraint = game.authority == game_authority.key() @ SovereignError::InvalidAuthority,
         constraint = game.id == nation.game_id @ SovereignError::InvalidGameId
     )]
     pub game: Account<'info, Game>,
