@@ -8,7 +8,7 @@ pub enum SovereignError {
     MathOverflow,
     #[msg("Use Solana for Deposit or Withdraw")]
     UseSolanaForDepositOrWithdraw,
-    #[msg("Invalid Token Index")]  
+    #[msg("Invalid Token Index")]
     InvalidTokenIdx,
     #[msg("Insufficient Funds")]
     InsufficientFunds,
@@ -22,14 +22,26 @@ pub enum SovereignError {
     InvalidCitizenAsset,
     #[msg("Nation Is Dead")]
     NationIsDead,
-    #[msg("Invalid Nation Index")]
-    InvalidNationIdx,   
     #[msg("Invalid Broker")]
     InvalidBroker,
     #[msg("Bounty Not Expired")]
     BountyNotExpired,
     #[msg("Bounty Expired")]
-    BountyExpired,  
+    BountyExpired,
     #[msg("Game Not Over")]
     GameNotOver,
-}   
+    #[msg("Invalid Collection Key")]
+    InvalidCollectionKey,
+    #[msg("Citizen Already Staked")]
+    CitizenAlreadyStaked,
+    #[msg("CitizenAttribute Not Found")]
+    CitizenAttributeNotFound,
+    #[msg("Invalid Attribute Value")]
+    InvalidCitizenAttributeValue,
+    #[msg("Stake Not Complete")]
+    StakeNotComplete,
+    #[msg("Citizen Not Staked")]
+    CitizenNotStaked,
+    #[msg("Invalid Citizen Owner")]
+    InvalidCitizenOwner,
+}

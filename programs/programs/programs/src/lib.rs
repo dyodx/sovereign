@@ -2,9 +2,9 @@
 use anchor_lang::prelude::*;
 
 mod constant;
+mod error;
 mod instructions;
 mod state;
-mod error;
 mod verifying_key;
 
 use instructions::*;
@@ -21,23 +21,39 @@ pub mod programs {
     }
 
     // Initialize Game Account & Citizen Collection
-    pub fn init_game(ctx: Context<InitGame>, init_game_args: InitGameArgs) -> Result<()> {
-        instructions::init_game(ctx, init_game_args)
+    pub fn init_game(
+        ctx: Context<InitGame>,
+        game_id: u64,
+        init_game_args: InitGameArgs,
+    ) -> Result<()> {
+        instructions::init_game(ctx, game_id, init_game_args)
     }
 
-    pub fn deposit_or_withdraw_sol_to_wallet(ctx: Context<DepositOrWithdrawSol>, args: DepositOrWithdrawSolArgs) -> Result<()> {
+    pub fn deposit_or_withdraw_sol_to_wallet(
+        ctx: Context<DepositOrWithdrawSol>,
+        args: DepositOrWithdrawSolArgs,
+    ) -> Result<()> {
         instructions::deposit_or_withdraw_sol_to_wallet(ctx, args)
     }
 
-    pub fn deposit_or_withdraw_token_from_wallet_to_pool(ctx: Context<DepositOrWithdrawToken>, args: DepositOrWithdrawTokenArgs) -> Result<()> {
+    pub fn deposit_or_withdraw_token_from_wallet_to_pool(
+        ctx: Context<DepositOrWithdrawToken>,
+        args: DepositOrWithdrawTokenArgs,
+    ) -> Result<()> {
         instructions::deposit_or_withdraw_token_from_wallet_to_pool(ctx, args)
     }
 
-    pub fn swap_token_to_token(ctx: Context<SwapTokenToToken>, args: SwapTokenToTokenArgs) -> Result<()> {
+    pub fn swap_token_to_token(
+        ctx: Context<SwapTokenToToken>,
+        args: SwapTokenToTokenArgs,
+    ) -> Result<()> {
         instructions::swap_token_to_token(ctx, args)
     }
 
-    pub fn transfer_tokens_from_wallet_to_wallet(ctx: Context<TransferTokens>, args: TransferTokensArgs) -> Result<()> {
+    pub fn transfer_tokens_from_wallet_to_wallet(
+        ctx: Context<TransferTokens>,
+        args: TransferTokensArgs,
+    ) -> Result<()> {
         instructions::transfer_tokens(ctx, args)
     }
 
@@ -45,7 +61,10 @@ pub mod programs {
         instructions::init_nation(ctx, args)
     }
 
-    pub fn update_nation_reward_rate(ctx: Context<UpdateNationRewardRate>, args: UpdateNationRewardRateArgs) -> Result<()> {
+    pub fn update_nation_reward_rate(
+        ctx: Context<UpdateNationRewardRate>,
+        args: UpdateNationRewardRateArgs,
+    ) -> Result<()> {
         instructions::update_nation_reward_rate(ctx, args)
     }
 
@@ -57,11 +76,18 @@ pub mod programs {
         instructions::mint_citizen(ctx)
     }
 
-    pub fn stake_or_unstake_citizen(ctx: Context<StakeOrUnstakeCitizen>, args: StakeOrUnstakeCitizenArgs) -> Result<()> {
-        instructions::stake_or_unstake_citizen(ctx, args)
+    pub fn stake_citizen(ctx: Context<StakeCitizen>, args: StakeCitizenArgs) -> Result<()> {
+        instructions::stake_citizen(ctx, args)
     }
 
-    pub fn mint_tokens_to_player_wallet(ctx: Context<MintTokensToPlayerWallet>, args: MintTokensToPlayerWalletArgs) -> Result<()> {
+    pub fn complete_stake(ctx: Context<CompleteStake>, args: CompleteStakeArgs) -> Result<()> {
+        instructions::complete_stake(ctx, args)
+    }
+
+    pub fn mint_tokens_to_player_wallet(
+        ctx: Context<MintTokensToPlayerWallet>,
+        args: MintTokensToPlayerWalletArgs,
+    ) -> Result<()> {
         instructions::mint_tokens_to_player_wallet(ctx, args)
     }
 
@@ -73,7 +99,10 @@ pub mod programs {
         instructions::nation_boost(ctx, args)
     }
 
-    pub fn deposit_to_broker(ctx: Context<DepositToBroker>, args: DepositToBrokerArgs) -> Result<()> {
+    pub fn deposit_to_broker(
+        ctx: Context<DepositToBroker>,
+        args: DepositToBrokerArgs,
+    ) -> Result<()> {
         instructions::deposit_to_broker(ctx, args)
     }
 
@@ -86,7 +115,7 @@ pub mod programs {
     }
 
     pub fn claim_bounty(ctx: Context<ClaimBounty>, args: ClaimBountyArgs) -> Result<()> {
-        instructions::claim_bounty(ctx, args)   
+        instructions::claim_bounty(ctx, args)
     }
 
     pub fn coup_nation(ctx: Context<CoupNation>) -> Result<()> {

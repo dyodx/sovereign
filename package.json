@@ -2,23 +2,22 @@
   "name": "sovereign",
   "devDependencies": {
     "@types/bun": "latest",
-    "bun-types": "^1.1.38",
-    "turbo": "^2.3.3"
+    "bun-types": "^1.1.38"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
   },
   "private": true,
+  "scripts": {
+    "generate-prisma": "cd backend && bun install && bunx prisma generate",
+    "up": "bun run generate-prisma && docker compose up -d --build" ,
+    "newgame": "bun --cwd=./backend run src/admin/newgame.ts"
+  },
   "type": "module",
   "workspaces": [
     "programs/*",
     "agents/*",
     "circuits/*",
-    "backend/*",
-    "validator/*"
-  ],
-  "scripts": {
-    "test:programs": "bun run --cwd=./programs test",
-    "cleanup": "bun run --cwd=./programs cleanup"
-  }
+    "backend/*"
+  ]
 }

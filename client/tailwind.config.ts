@@ -15,7 +15,8 @@ const config: Config = {
 		},
 		extend: {
 			boxShadow: {
-				flat: '4px 4px 0 rgba(0, 0, 0, 0.5)'
+				flat: '4px 4px 0 rgba(0, 0, 0, 0.5)',
+				hoverflat: '1px 1px 0 rgba(0, 0, 0, 0.5)'
 			},
 			colors: {
 				background: '#1E1E1E',
@@ -65,6 +66,25 @@ const config: Config = {
 				body: 'var(--font-body)',
 				mono: 'var(--font-mono)',
 				header: 'var(--font-header)'
+			},
+			keyframes: {
+				'accordion-down': {
+					from: { height: '0' },
+					to: { height: 'var(--bits-accordion-content-height)' }
+				},
+				'accordion-up': {
+					from: { height: 'var(--bits-accordion-content-height)' },
+					to: { height: '0' }
+				},
+				'caret-blink': {
+					'0%,70%,100%': { opacity: '1' },
+					'20%,50%': { opacity: '0' }
+				}
+			},
+			animation: {
+				'accordion-down': 'accordion-down 0.2s ease-out',
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'caret-blink': 'caret-blink 1.25s ease-out infinite'
 			}
 		}
 	}

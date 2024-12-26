@@ -1,0 +1,75 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// COMMON \\
+model Game {
+  gameId               BigInt @id
+  adminPrivateKey      String
+  worldAgentPrivateKey String
+  journalistPrivateKey String
+  brokerPrivateKey     String
+}
+
+// AGENTS \\
+model WorldLeaders {
+  nationId   Int    @id
+  privateKey String
+  character  Json
+}
+
+// SOLANA ACCOUNTS \\
+model GameAccount {
+  gameId             BigInt @id
+  authority          String
+  collection         String
+  slotStart          String
+  worldAgent         String
+  brokerKey          String
+  mintCost           String
+  bountyPowThreshold String // save as hex string
+  nationsAlive       Int
+}
+
+model BountyAccount {
+  pubkey     String @id
+  gameId     BigInt
+  bountyHash String // save as hex string
+  amount     String
+  expirySlot String
+}
+
+model NationAccount {
+  pubkey                String  @id
+  gameId                BigInt
+  nationId              Int
+  authority             String
+  mintedTokensTotal     String
+  gdp                   String
+  healthcare            String
+  environment           String
+  stability             String
+  gdpRewardRate         String
+  healthcareRewardRate  String
+  environmentRewardRate String
+  stabilityRewardRate   String
+  isAlive               Boolean
+}
+
+model PlayerAccount {
+  pubkey    String @id
+  gameId    BigInt
+  authority String
+  xUsername String
+}

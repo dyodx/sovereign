@@ -12,7 +12,7 @@ pub struct Game {
     // Authority Approved Agents
     pub world_agent: Pubkey,
     pub broker_key: Pubkey, // Not a true agent, just processing Algo
-    
+
     // Citizen Info
     pub mint_cost: u64, //Lamports
 
@@ -21,6 +21,8 @@ pub struct Game {
 
     // Nations Alive
     pub nations_alive: u8,
+
+    pub citizen_stake_length: u64, // Number of slots to complete staking of citizens
 }
 
 // Seeds = [BROKER_ESCROW_SEED.as_bytes(), &game_id.to_le_bytes()]

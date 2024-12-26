@@ -2,9 +2,31 @@
   "name": "backend",
   "type": "module",
   "devDependencies": {
+    "@edgedb/generate": "^0.5.6",
     "@types/bun": "latest"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.30.1",
+    "@prisma/client": "6.1.0",
+    "@solana/web3.js": "1.98.0",
+    "bs58": "^6.0.0",
+    "bullmq": "^5.34.4",
+    "byteify": "^4.1.4",
+    "hono": "^4.6.14",
+    "ioredis": "^5.4.2",
+    "openai": "^4.77.0",
+    "prisma": "^6.1.0",
+    "zod": "^3.24.1"
+  },
+  "scripts": {
+    "copy-program-deps-to-backend": "cp ../programs/target/idl/programs.json ./deps/sovereign.json && cp ../programs/target/types/programs.ts ./deps/sovereign.ts",
+    "copy-program-deps-to-client": "cp ../programs/target/idl/programs.json ./client/src/lib/deps/sovereign.json && cp ../programs/target/types/programs.ts ./client/src/lib/deps/sovereign.ts",
+    "copy-deps": "bun run copy-program-deps-to-backend && bun run copy-program-deps-to-client",
+    "bootstrap": "bun src/bootstrap.ts",
+    "prisma": "bunx prisma generate && bunx prisma db push",
+    "prod": "bun run prisma && bun run bootstrap && bun start.ts"
   }
 }

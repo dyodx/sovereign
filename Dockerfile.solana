@@ -1,0 +1,30 @@
+FROM ghcr.io/beeman/solana-test-validator:latest
+
+USER root
+
+# Install system dependencies first
+RUN apt-get update && \
+    apt-get install -y \
+        curl \
+        build-essential \
+        pkg-config \
+        libudev-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+# Set up directory structure
+RUN mkdir -p /solana/app /solana/test-ledger
+
+WORKDIR /solana/app
+
+# Copy programs first
+COPY ./programs ./programs
+
+# Create startup script
+RUN echo '#!/bin/bash\n\
+solana-test-validator --reset \
+    --bpf-program "CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d" ./programs/deps/mpl_core_program.so \
+    --bpf-program "4oVhv3o16X3XR99UgbFrWNKptoNBkg2hsbNY2nYPpv4a" ./programs/deps/sovereign.so \
+    --ledger /solana/test-ledger' > start.sh && \
+    chmod +x start.sh
+
+CMD ["./start.sh"]
