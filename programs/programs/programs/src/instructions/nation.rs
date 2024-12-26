@@ -43,7 +43,9 @@ pub struct InitNation<'info> {
     #[account(mut)]
     pub game_authority: Signer<'info>,
     pub nation_authority: Signer<'info>,
-    #[account(mut)]
+    #[account(mut,
+        constraint = game.authority == game_authority.key() @ SovereignError::InvalidAuthority
+    )]
     pub game: Account<'info, Game>,
     #[account(
         init,
